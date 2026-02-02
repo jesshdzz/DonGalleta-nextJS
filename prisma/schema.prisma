@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Carrito {
+  id             Int       @id @default(autoincrement())
+  id_usuario     Int
+  id_producto    Int
+  cantidad       Int
+  fecha_agregado DateTime  @default(now()) @db.Timestamp(0)
+  id_pedido      Int?
+  Usuarios       Usuarios  @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Carrito_ibfk_1")
+  Productos      Productos @relation(fields: [id_producto], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Carrito_ibfk_2")
+  Pedidos        Pedidos?  @relation(fields: [id_pedido], references: [id], onUpdate: NoAction, map: "fk_carrito_pedido")
+
+  @@unique([id_usuario, id_producto], map: "id_usuario")
+  @@index([id_pedido], map: "fk_carrito_pedido")
+  @@index([id_producto], map: "id_producto")
+}
+
+model Detalles_pedido {
+  id              Int       @id @default(autoincrement())
+  id_pedido       Int
+  id_producto     Int
+  cantidad        Int
+  precio_unitario Decimal?  @db.Decimal(10, 2)
+  subtotal        Decimal?  @db.Decimal(10, 2)
+  Pedidos         Pedidos   @relation(fields: [id_pedido], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Detalles_pedido_ibfk_1")
+  Productos       Productos @relation(fields: [id_producto], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Detalles_pedido_ibfk_2")
+
+  @@index([id_pedido], map: "id_pedido")
+  @@index([id_producto], map: "id_producto")
+}
+
+model Historial_estados_pedido {
+  id           Int                             @id @default(autoincrement())
+  id_pedido    Int
+  estado       Historial_estados_pedido_estado
+  fecha_cambio DateTime                        @default(now()) @db.Timestamp(0)
+  Pedidos      Pedidos                         @relation(fields: [id_pedido], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Historial_estados_pedido_ibfk_1")
+
+  @@index([id_pedido], map: "id_pedido")
+}
+
+model Pagos {
+  id          Int               @id @default(autoincrement())
+  id_pedido   Int
+  metodo_pago Pagos_metodo_pago
+  referencia  String            @unique(map: "referencia") @db.VarChar(100)
+  monto       Decimal           @db.Decimal(10, 2)
+  fecha_pago  DateTime          @default(now()) @db.Timestamp(0)
+  id_sucursal Int
+  Pedidos     Pedidos           @relation(fields: [id_pedido], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Pagos_ibfk_1")
+  Sucursales  Sucursales        @relation(fields: [id_sucursal], references: [id], onUpdate: Restrict, map: "Sucursales_ibfk_1")
+
+  @@index([id_sucursal], map: "Sucursales_ibfk_1")
+  @@index([id_pedido], map: "id_pedido")
+}
+
+model Pedidos {
+  id                       Int                        @id @default(autoincrement())
+  id_usuario               Int
+  id_sucursal              Int
+  fecha_pedido             DateTime                   @default(now()) @db.Timestamp(0)
+  estado                   Pedidos_estado
+  total                    Decimal                    @db.Decimal(10, 2)
+  Carrito                  Carrito[]
+  Detalles_pedido          Detalles_pedido[]
+  Historial_estados_pedido Historial_estados_pedido[]
+  Pagos                    Pagos[]
+  Usuarios                 Usuarios                   @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Pedidos_ibfk_1")
+  Sucursales               Sucursales                 @relation(fields: [id_sucursal], references: [id], onUpdate: Restrict, map: "Sucur_ibfk_1")
+  Tickets                  Tickets[]
+
+  @@index([id_sucursal], map: "Sucur_ibfk_1")
+  @@index([id_usuario], map: "id_usuario")
+}
+
+model Producto_sabor {
+  id_producto Int
+  id_sabor    Int
+  Productos   Productos @relation(fields: [id_producto], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Producto_sabor_ibfk_1")
+  Sabores     Sabores   @relation(fields: [id_sabor], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Producto_sabor_ibfk_2")
+
+  @@id([id_producto, id_sabor])
+  @@index([id_sabor], map: "id_sabor")
+}
+
+model Productos {
+  id              Int               @id @default(autoincrement())
+  nombre          String            @db.VarChar(100)
+  descripcion     String?           @db.Text
+  precio          Decimal           @db.Decimal(10, 2)
+  imagen          String?           @db.VarChar(255)
+  disponibilidad  Boolean?          @default(true)
+  stock           Int               @default(0)
+  Carrito         Carrito[]
+  Detalles_pedido Detalles_pedido[]
+  Producto_sabor  Producto_sabor[]
+}
+
+model Sabores {
+  id             Int              @id @default(autoincrement())
+  nombre         String           @unique(map: "nombre") @db.VarChar(50)
+  Producto_sabor Producto_sabor[]
+}
+
+model Sucursales {
+  id        Int       @id @default(autoincrement())
+  nombre    String    @db.VarChar(100)
+  direccion String    @db.Text
+  latitud   Decimal?  @db.Decimal(10, 8)
+  longitud  Decimal?  @db.Decimal(11, 8)
+  telefono  String?   @db.VarChar(20)
+  Pagos     Pagos[]
+  Pedidos   Pedidos[]
+  Tickets   Tickets[]
+}
+
+model Tickets {
+  id               Int        @id @default(autoincrement())
+  id_pedido        Int
+  id_sucursal      Int
+  codigo_ticket    String     @unique(map: "codigo_ticket") @db.VarChar(20)
+  fecha_generacion DateTime   @default(now()) @db.Timestamp(0)
+  Pedidos          Pedidos    @relation(fields: [id_pedido], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Tickets_ibfk_1")
+  Sucursales       Sucursales @relation(fields: [id_sucursal], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Tickets_ibfk_2")
+
+  @@index([id_pedido], map: "id_pedido")
+  @@index([id_sucursal], map: "id_sucursal")
+}
+
+model Usuarios {
+  id             Int             @id @default(autoincrement())
+  nombre         String          @db.VarChar(100)
+  email          String          @unique(map: "email") @db.VarChar(100)
+  password       String          @db.VarChar(255)
+  rol            Usuarios_rol
+  status         Usuarios_status @default(activo)
+  fecha_registro DateTime        @default(now()) @db.Timestamp(0)
+  Carrito        Carrito[]
+  Pedidos        Pedidos[]
+}
+
+enum Pagos_metodo_pago {
+  paypal
+  transferencia
+  tarjeta
+}
+
+enum Historial_estados_pedido_estado {
+  pendiente
+  procesando
+  completado
+  cancelado
+}
+
+enum Pedidos_estado {
+  pendiente
+  procesando
+  completado
+  cancelado
+}
+
+enum Usuarios_rol {
+  cliente
+  administrador
+}
+
+enum Usuarios_status {
+  activo
+  inactivo
+}
