@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Manual de Instalación y Desarrollo - Don Galleta
 
-## Getting Started
+Sigue esta guía paso a paso para levantar el entorno localmente sin errores.
 
-First, run the development server:
+## 1. Prerrequisitos
 
+Antes de empezar, asegúrate de tener instalado:
+1. Node.js: Versión 20 o superior (Requerido para Next.js 16).
+	- Verificar: `node -v`
+2. Git: Para clonar el repo.
+3. VS Code: Con la extensión "Prisma" y "Tailwind CSS IntelliSense" instaladas.
+
+## 2. Instalación del Proyecto
+### 2.1: Clonar el repositorio
+Abre tu terminal en la carpeta donde guardas tus proyectos:
+```Bash
+git clone <URL_DEL_REPO_GITHUB>
+cd don-galleta
+```
+### 2.2: Instalar Dependencias
+Instala todas las librerías del proyecto (incluyendo Next.js 16, Prisma y Shadcn).
+```Bash
+npm install
+```
+  
+## 3. Configuración de Entorno (.env)
+- Crea un archivo `.env` en la raíz (Si aún no esta creada). 
+- Pega la url de conexión del proyecto (NUNCA la subas a GitHub, por favor).
+ ```bash
+ DATABASE_URL="aquí pon la url" 
+```
+## Sincronizar el Cliente Prisma
+Ejecuta el siguiente comando para que se generen los modelos de Prisma en tu proyecto.
+```bash
+npx prisma generate
+# NO hace falta hacer db push, la base de datos ya está lista en la nube.
+```
+## Arranque
+Finalmente, ejecuta este comando para visualizar la pagina en `http://localhost:3000/`
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Workflow de Git
+Por favor, sigue estas recomendaciones para tener un espacio de trabajo colaborativo limpio y sin problemas.
+- Nunca hagas commit directo a main.
+- Crea tu rama por cada cambio que hagas: git checkout -b nombre-tarea
+- Haz Pull Request  al terminar.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
