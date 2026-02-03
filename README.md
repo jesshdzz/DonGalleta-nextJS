@@ -36,10 +36,15 @@ npx prisma generate
 # NO hace falta hacer db push, la base de datos ya está lista en la nube.
 ```
 ## Arranque
-Finalmente, ejecuta este comando para visualizar la pagina en `http://localhost:3000/`
+Finalmente, ejecuta este comando para visualizar la pagina en `http://localhost:3000/`:
 ```bash
 npm run dev
 ```
+Para visualizar la base de datos en la nube, ejecuta este comando:
+```bash
+npx prisma studio
+```
+
 
 ## Workflow de Git
 Por favor, sigue estas recomendaciones para tener un espacio de trabajo colaborativo limpio y sin problemas.
