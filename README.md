@@ -29,13 +29,20 @@ npm install
  ```bash
  DATABASE_URL="aquí pon la url" 
 ```
-## Sincronizar el Cliente Prisma
+## 4. Sincronizar el Cliente Prisma
 Ejecuta el siguiente comando para que se generen los modelos de Prisma en tu proyecto.
 ```bash
 npx prisma generate
 # NO hace falta hacer db push, la base de datos ya está lista en la nube.
 ```
-## Arranque
+
+## 5. Crear un Secret Auth
+Ejecuta el siguiente comando para generar un secret auth:
+```bash
+npx auth secret
+```
+
+## 6. Arranque
 Finalmente, ejecuta este comando para visualizar la pagina en `http://localhost:3000/`:
 ```bash
 npm run dev
@@ -45,10 +52,19 @@ Para visualizar la base de datos en la nube, ejecuta este comando:
 npx prisma studio
 ```
 
-
-## Workflow de Git
+## 7. Workflow de Git
 Por favor, sigue estas recomendaciones para tener un espacio de trabajo colaborativo limpio y sin problemas.
 - Nunca hagas commit directo a main.
 - Crea tu rama por cada cambio que hagas: git checkout -b nombre-tarea
 - Haz Pull Request  al terminar.
 
+## 8. Estandares de Color
+Por favor, sigue estos estandares de color para tener un espacio de trabajo limpio y sin problemas.
+- Primary: #58321D
+- Secondary: #F7DCBE
+- Destructive: #A42D2C
+- Muted: #C69A8F
+- Accent: #F7DCBE
+- Card: #FFFFFF
+- Border: #A6A3A2
+- Input: #A6A3A2
