@@ -13,7 +13,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center" >
       <form action={action} className="w-full max-w-sm space-y-4 p-8 border rounded-lg">
         <h1 className="text-2xl font-bold">Crear Cuenta (Temporal)</h1>
         <Input name="name" placeholder="Nombre" required />
