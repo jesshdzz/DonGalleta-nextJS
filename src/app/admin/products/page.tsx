@@ -1,10 +1,10 @@
-import { getProducts, deleteProduct } from "@/actions/product-actions";
+import { getProducts } from "@/actions/product-actions";
+import { ProductDeleteButton } from "@/components/admin/product-delete-button";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, Package } from "lucide-react";
+import { Pencil, Plus, Package } from "lucide-react";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 
 export default async function AdminProductsPage() {
     const products = await getProducts();
@@ -82,15 +82,8 @@ export default async function AdminProductsPage() {
                                         </Button>
                                     </Link>
 
-                                    {/* Formulario invisible para borrar (Server Action directa) */}
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteProduct(product.id);
-                                    }} className="inline">
-                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </form>
+                                    {/* Botón Eliminar con Confirmación */}
+                                    <ProductDeleteButton productId={product.id} />
                                 </TableCell>
                             </TableRow>
                         ))}
