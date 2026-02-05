@@ -31,6 +31,7 @@ export async function upsertProduct(prevState: any, formData: FormData) {
 
   if (!validatedFields.success) {
     return {
+      success: false,
       errors: validatedFields.error.flatten().fieldErrors,
       message: "Error en los datos enviados",
     };
@@ -54,7 +55,9 @@ export async function upsertProduct(prevState: any, formData: FormData) {
     }
   } catch (error) {
     console.error(error);
-    return { message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" };
+    return { 
+      success: false,
+      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" };
   }
 
   // 3. Actualizar caché y redireccionar
