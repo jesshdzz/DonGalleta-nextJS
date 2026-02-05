@@ -46,7 +46,7 @@ export default function ProductoItem({ product }: { product: Product }) {
       </div>
 
       {/* Contenido */}
-      <CardContent className="flex-grow p-5 space-y-2">
+      <CardContent className="grow p-5 space-y-2">
         <div className="flex justify-between items-start gap-2">
           <h3 className="font-semibold text-lg leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
             {product.name || "Sin nombre"}
