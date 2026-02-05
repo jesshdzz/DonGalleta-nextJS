@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
