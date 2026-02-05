@@ -53,14 +53,17 @@ export async function upsertProduct(prevState: any, formData: FormData) {
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error("Error en DB:", error);
     return { 
       success: false,
-      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" };
+      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" 
+    };
   }
 
   // 3. Actualizar caché y redireccionar
   revalidatePath("/admin/products");
+  revalidatePath("/productos");
+  
   return { success: true, message: "Producto guardado correctamente" };
 }
 
@@ -71,6 +74,7 @@ export async function deleteProduct(id: number) {
       where: { id },
     });
     revalidatePath("/admin/products");
+    revalidatePath("/productos");
     return { success: true };
   } catch (error) {
     return { message: "No se pudo eliminar el producto" };
