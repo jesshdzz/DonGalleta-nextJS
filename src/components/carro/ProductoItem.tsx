@@ -68,7 +68,7 @@ export default function ProductoItem({ product }: { product: Product }) {
 
       {/* Footer con Botón */}
       <CardFooter className="p-5 pt-0">
-        <Link href={`/bodega/descripcion/${product.id}`} className="w-full">
+        <Link href={`/productos/descripcion/${product.id}`} className="w-full">
           <Button className="w-full font-bold shadow-sm" size="lg">
             Ver Detalles
           </Button>

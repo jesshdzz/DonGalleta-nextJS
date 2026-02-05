@@ -1,5 +1,17 @@
-import { getProducts } from "@/actions/product-actions";
+// app/bodega/page.tsx
 import ProductoItem from "@/components/carro/ProductoItem";
+
+async function getProducts() {
+  const res = await fetch('http://localhost:3000/api/products', {
+    cache: 'no-store'
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch products');
+  }
+  
+  return res.json();
+}
 
 export default async function ProductosPage() {
   const products = await getProducts();

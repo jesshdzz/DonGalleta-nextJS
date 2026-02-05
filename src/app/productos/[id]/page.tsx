@@ -1,4 +1,4 @@
-import AddToCartButton from "@/app/components/AddToCartButton";
+import AddToCartButton from "@/components/carro/AddToCartButton";
 import Image from "next/image";
 import Link from "next/link";
 
