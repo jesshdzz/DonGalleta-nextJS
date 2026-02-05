@@ -8,21 +8,16 @@ import { Badge } from "@/components/ui/badge";
 interface Product {
   id: number;
   name: string;
-  price: number | string;
+  price: number;
   image: string | null;
   description?: string | null;
   stock?: number; // Agregué stock opcional para mostrar badge
 }
 
 export default function ProductoItem({ product }: { product: Product }) {
-  // Conversión segura de precio
-  const priceValue = typeof product.price === 'string' 
-    ? parseFloat(product.price.replace(/[^0-9.-]/g, '')) 
-    : product.price;
-
   // Lógica de imagen (placeholder)
-  const imageUrl = product.image && product.image.trim() !== "" 
-    ? product.image 
+  const imageUrl = product.image && product.image.trim() !== ""
+    ? product.image
     : "https://placehold.co/400x400/png?text=Sin+Imagen";
 
   return (
@@ -52,16 +47,16 @@ export default function ProductoItem({ product }: { product: Product }) {
             {product.name || "Sin nombre"}
           </h3>
         </div>
-        
+
         {product.description && (
           <p className="text-sm text-muted-foreground line-clamp-2">
             {product.description}
           </p>
         )}
-        
+
         <div className="pt-2">
           <span className="text-2xl font-bold text-primary">
-            ${!isNaN(Number(priceValue)) ? Number(priceValue).toFixed(2) : "0.00"}
+            ${Number(product.price).toFixed(2)}
           </span>
         </div>
       </CardContent>
