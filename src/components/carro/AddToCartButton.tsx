@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { Button } from "@/components/ui/button";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 interface Product {
   id: number;
@@ -12,6 +14,7 @@ interface Product {
 export default function AddToCartButton({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const [isAdded, setIsAdded] = useState(false);
 
   const handleIncrement = () => {
     if (quantity < product.quantity) {
@@ -25,30 +28,49 @@ export default function AddToCartButton({ product }: { product: Product }) {
     }
   };
 
+  const handleAddToCart = async () => {
+    await addToCart(product, quantity);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={handleDecrement}
-          className="px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300"
+          disabled={quantity <= 1}
         >
-          -
-        </button>
-        <span className="text-lg font-medium">{quantity}</span>
-        <button
+          <Minus className="h-4 w-4" />
+        </Button>
+
+        <span className="text-lg font-medium min-w-[2rem] text-center">{quantity}</span>
+
+        <Button
+          variant="outline"
+          size="icon"
           onClick={handleIncrement}
-          className="px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300"
+          disabled={quantity >= product.quantity}
         >
-          +
-        </button>
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
-      
-      <button
-        onClick={() => addToCart(product, quantity)}
-        className="w-full select-none rounded-lg bg-pink-500 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-pink-500/20 transition-all hover:shadow-lg hover:shadow-pink-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+
+      <Button
+        onClick={handleAddToCart}
+        className="w-full text-lg py-6 shadow-md transition-all hover:shadow-lg"
+        size="lg"
+        disabled={isAdded}
       >
-        Agregar al carrito (${(product.price * quantity).toFixed(2)})
-      </button>
+        {isAdded ? "¡Agregado!" : (
+          <>
+            <ShoppingCart className="mr-2 h-5 w-5" />
+            Agregar al carrito (${(product.price * quantity).toFixed(2)})
+          </>
+        )}
+      </Button>
     </div>
   );
 }
