@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { checkStock, checkout as checkoutAction } from "@/actions/product-actions";
 
 interface CartItem {
   productId: number;
@@ -46,11 +47,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (product: any, quantity: number) => {
     try {
-      const response = await fetch(`/api/products/${product.id}`);
-      if (!response.ok) throw new Error('Error al obtener información del producto');
-      
-      const currentProduct = await response.json();
-      const currentAvailableQuantity = currentProduct.quantity;
+      // Usar Server Action para verificar stock real
+      const currentAvailableQuantity = await checkStock(product.id);
 
       const existingItem = cart.find(item => item.productId === product.id);
       const currentCartQuantity = existingItem ? existingItem.quantity : 0;
@@ -63,11 +61,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (existingItem) {
           return prevCart.map(item =>
             item.productId === product.id
-              ? { 
-                  ...item, 
-                  quantity: item.quantity + quantity,
-                  availableQuantity: currentAvailableQuantity
-                }
+              ? {
+                ...item,
+                quantity: item.quantity + quantity,
+                availableQuantity: currentAvailableQuantity
+              }
               : item
           );
         }
@@ -76,11 +74,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           {
             productId: product.id,
             name: product.name,
-            price: typeof product.price === 'string' 
-              ? parseFloat(product.price.replace(/[^0-9.-]/g, '')) 
-              : product.price,
+            // El precio ya viene como número desde getProducts actualizado
+            price: Number(product.price),
             quantity,
-            image_url: product.image_url,
+            image_url: product.image, // Nota: product.image en DB vs image_url en cart
             availableQuantity: currentAvailableQuantity
           }
         ];
@@ -102,11 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await fetch(`/api/products/${productId}`);
-      if (!response.ok) throw new Error('Error al verificar cantidad disponible');
-      
-      const currentProduct = await response.json();
-      const currentAvailableQuantity = currentProduct.quantity;
+      const currentAvailableQuantity = await checkStock(productId);
 
       if (newQuantity > currentAvailableQuantity) {
         throw new Error(`No hay suficiente cantidad. Disponible: ${currentAvailableQuantity}`);
@@ -115,11 +108,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCart(prevCart =>
         prevCart.map(item =>
           item.productId === productId
-            ? { 
-                ...item, 
-                quantity: newQuantity,
-                availableQuantity: currentAvailableQuantity
-              }
+            ? {
+              ...item,
+              quantity: newQuantity,
+              availableQuantity: currentAvailableQuantity
+            }
             : item
         )
       );
@@ -133,22 +126,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const checkout = async () => {
     try {
-      await Promise.all(
-        cart.map(async (item) => {
-          const response = await fetch(`/api/products/${item.productId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              quantity: item.availableQuantity - item.quantity
-            }),
-          });
-          if (!response.ok) {
-            throw new Error(`Error al actualizar producto ${item.productId}`);
-          }
-        })
-      );
-      clearCart();
-      return true;
+      const result = await checkoutAction(cart.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      })));
+
+      if (result.success) {
+        clearCart();
+        return true;
+      } else {
+        console.error(result.message);
+        return false;
+      }
     } catch (error) {
       console.error("Error durante el checkout:", error);
       return false;
