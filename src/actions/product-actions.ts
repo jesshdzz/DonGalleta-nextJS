@@ -1,3 +1,4 @@
+// src/actions/product-actions.ts
 'use server';
 
 import { prisma } from "@/lib/prisma";
@@ -9,7 +10,12 @@ export async function getProducts() {
   const products = await prisma.product.findMany({
     orderBy: { id: 'desc' }, // Los más nuevos primero
   });
-  return products;
+
+  // SOLUCIÓN: Convertimos el Decimal a Number para que Next.js pueda enviarlo al cliente
+  return products.map((product) => ({
+    ...product,
+    price: product.price.toNumber(), 
+  }));
 }
 
 // --- CREAR / EDITAR PRODUCTO ---
@@ -22,10 +28,10 @@ export async function upsertProduct(prevState: any, formData: FormData) {
     stock: formData.get("stock"),
     slug: formData.get("slug"),
     image: formData.get("image"),
-    isActive: formData.get("isActive") === "on", // Checkbox envía "on"
+    isActive: formData.get("isActive") === "on", // Checkbox envía "on" si está marcado
   };
 
-  // 2. Validar datos
+  // 2. Validar datos con Zod
   const validatedFields = productSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
@@ -53,14 +59,17 @@ export async function upsertProduct(prevState: any, formData: FormData) {
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error("Error en DB:", error);
     return { 
       success: false,
-      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" };
+      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?" 
+    };
   }
 
   // 3. Actualizar caché y redireccionar
   revalidatePath("/admin/products");
+  revalidatePath("/productos"); // También revalidamos la página pública
+  
   return { success: true, message: "Producto guardado correctamente" };
 }
 
@@ -71,6 +80,7 @@ export async function deleteProduct(id: number) {
       where: { id },
     });
     revalidatePath("/admin/products");
+    revalidatePath("/productos");
     return { success: true };
   } catch (error) {
     return { message: "No se pudo eliminar el producto" };
