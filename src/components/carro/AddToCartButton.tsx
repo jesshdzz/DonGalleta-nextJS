@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 interface Product {
@@ -9,6 +10,7 @@ interface Product {
   name: string;
   price: number;
   stock: number;
+  image: string | null;
 }
 
 export default function AddToCartButton({ product }: { product: Product }) {
