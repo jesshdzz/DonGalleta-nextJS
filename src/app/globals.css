@@ -40,7 +40,7 @@
   --input: 30 2% 64%;
   --ring: 22 50% 23%;
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 .dark {
@@ -111,6 +111,21 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  h1 {
+    @apply font-serif text-4xl md:text-5xl font-bold tracking-tight mb-4 text-primary;
+  }
+  h2 {
+    @apply font-serif text-3xl md:text-4xl font-semibold tracking-tight mb-3 text-primary;
+  }
+  h3 {
+    @apply font-serif text-2xl font-semibold mb-2;
+  }
+  h4 {
+    @apply font-sans text-xl font-semibold mb-2;
+  }
+  p {
+    @apply leading-7 not-first:mt-4 text-muted-foreground;
   }
 }

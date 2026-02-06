@@ -1,79 +1,130 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Schema Cliente
+const LoginSchema = z.object({
+  email: z.string().email("Ingresa un correo electrónico válido"),
+  password: z.string().min(1, "La contraseña es requerida"),
+});
+
+type LoginFormValues = z.infer<typeof LoginSchema>;
 
 export const LoginForm = () => {
   const router = useRouter();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [globalError, setGlobalError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(LoginSchema),
+  });
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+  const onSubmit = async (data: LoginFormValues) => {
+    setGlobalError('');
 
     try {
-      // Usamos signIn de NextAuth en el cliente
       const result = await signIn('credentials', {
-        email,
-        password,
+        email: data.email,
+        password: data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Credenciales inválidas');
-        setLoading(false);
+        // NextAuth devuelve 'Configuration' o 'CredentialsSignin' usualmente
+        setGlobalError('Credenciales inválidas. Verifica tu correo y contraseña.');
       } else {
-        router.push('/admin'); // Redirigir al dashboard si es exitoso
+        router.push('/');
         router.refresh();
       }
     } catch (error) {
-      setError('Ocurrió un error inesperado');
-      setLoading(false);
+      setGlobalError('Ocurrió un error inesperado al iniciar sesión.');
     }
   };
 
   return (
-    <div className="grid gap-6">
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
+    <Card className="shadow-lg border-secondary/20">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-2xl font-serif text-primary">Bienvenido de nuevo</CardTitle>
+        <CardDescription>
+          Ingresa tus datos para acceder a tu cuenta
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+          <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
             <Input
               id="email"
-              name="email"
               placeholder="nombre@ejemplo.com"
               type="email"
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              required
+              {...register('email')}
+              disabled={isSubmitting}
             />
+            {errors.email && (
+              <p className="text-xs text-destructive font-medium mt-0">{errors.email.message}</p>
+            )}
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Contraseña</Label>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Contraseña</Label>
+              <Link
+                href="/auth/reset"
+                className="text-xs text-primary underline-offset-4 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <Input
               id="password"
-              name="password"
               type="password"
-              required
+              {...register('password')}
+              disabled={isSubmitting}
             />
+            {errors.password && (
+              <p className="text-xs text-destructive font-medium mt-0">{errors.password.message}</p>
+            )}
           </div>
-          {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
-          <Button disabled={loading}>
-            {loading ? 'Entrando...' : 'Iniciar Sesión'}
+
+          {globalError && (
+            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20">
+              {globalError}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full font-bold" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isSubmitting ? 'Entrando...' : 'Iniciar Sesión'}
           </Button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center border-t p-4 mt-2">
+        <p className="text-sm text-muted-foreground">
+          ¿No tienes cuenta?{" "}
+          <Link href="/auth/register" className="text-primary font-semibold hover:underline">
+            Regístrate aquí
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   );
 };
