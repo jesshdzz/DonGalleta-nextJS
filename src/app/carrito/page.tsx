@@ -123,7 +123,7 @@ export default function CartPage() {
               </div>
 
               {/* Detalles */}
-              <div className="flex-grow p-4 sm:p-6 flex flex-col justify-between">
+              <div className="grow p-4 sm:p-6 flex flex-col justify-between">
                 <div className="flex justify-between items-start gap-4">
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">{item.name}</h3>
