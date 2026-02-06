@@ -1,13 +1,15 @@
-'use server';
+"use server";
 
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
+import { flattenError, includes } from "zod";
+import { tr } from "zod/v4/locales";
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
   const products = await prisma.product.findMany({
-    orderBy: { id: 'desc' }, // Los más nuevos primero
+    orderBy: { id: "desc" }, // Los más nuevos primero
   });
 
   // Serializar Decimal a number para evitar error de "Plain Objects" en Client Components
@@ -21,19 +23,24 @@ export async function getProducts() {
 export async function checkStock(id: number) {
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { stock: true }
+    select: { stock: true },
   });
   return product ? product.stock : 0;
 }
 
 // --- CHECKOUT (Actualizar Stock) ---
-export async function checkout(items: { productId: number; quantity: number }[]) {
+export async function checkout(
+  items: { productId: number; quantity: number }[],
+) {
   try {
     // Verificar stock de todos primero
     for (const item of items) {
       const currentStock = await checkStock(item.productId);
       if (currentStock < item.quantity) {
-        return { success: false, message: `Stock insuficiente para el producto ID ${item.productId}` };
+        return {
+          success: false,
+          message: `Stock insuficiente para el producto ID ${item.productId}`,
+        };
       }
     }
 
@@ -42,9 +49,9 @@ export async function checkout(items: { productId: number; quantity: number }[])
       items.map((item) =>
         prisma.product.update({
           where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } }
-        })
-      )
+          data: { stock: { decrement: item.quantity } },
+        }),
+      ),
     );
 
     revalidatePath("/admin/products");
@@ -56,7 +63,6 @@ export async function checkout(items: { productId: number; quantity: number }[])
     return { success: false, message: "Error al procesar la compra" };
   }
 }
-
 
 // --- CREAR / EDITAR PRODUCTO ---
 export async function upsertProduct(prevState: any, formData: FormData) {
@@ -102,7 +108,7 @@ export async function upsertProduct(prevState: any, formData: FormData) {
     console.error("Error en DB:", error);
     return {
       success: false,
-      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?"
+      message: "Error al guardar en base de datos. ¿Quizás el Slug ya existe?",
     };
   }
 
@@ -125,4 +131,28 @@ export async function deleteProduct(id: number) {
   } catch (error) {
     return { message: "No se pudo eliminar el producto" };
   }
+}
+
+// --- OBTENER PRODUCTOS FILTRADOS (CHECKBOXES)---
+export async function getFilteredProducts(filters: { flavors?: string[] }) {
+  const products = await prisma.product.findMany({
+    where: filters.flavors?.length
+      ? {
+          flavors: {
+            some: {
+              flavor: {
+                name: { in: filters.flavors },
+              },
+            },
+          },
+        }
+      : undefined,
+    orderBy: { id: "desc" },
+    include: { flavors: { include: { flavor: true } } },
+  });
+
+  return products.map((product) => ({
+    ...product,
+    price: product.price.toNumber(),
+  }));
 }
