@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#F9F5F0] px-4 py-12">
-      <div className="w-full max-w-[400px] space-y-6">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-100 space-y-6">
         <div className="text-center space-y-2">
           <Link href="/" className="cursor-pointer inline-block">
             <h1 className="font-serif text-5xl font-bold text-primary">
@@ -23,7 +23,7 @@ export default function LoginPage() {
         </div>
 
         <LoginForm />
-        
+
       </div>
     </div>
   );

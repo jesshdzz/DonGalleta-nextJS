@@ -15,27 +15,41 @@ export async function registerUser(formData: FormData) {
   const parsed = RegisterSchema.safeParse(data);
 
   if (!parsed.success) {
-    return { error: 'Datos inválidos' };
+    return {
+      success: false,
+      errors: parsed.error.flatten().fieldErrors
+    };
   }
 
   const { email, password, name } = parsed.data;
 
   // Verificar si existe
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { error: 'El usuario ya existe' };
+  if (existing) {
+    return {
+      success: false,
+      errors: { email: ['El correo electrónico ya está registrado'] }
+    };
+  }
 
   // Crear hash
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Crear usuario (Por defecto USER, luego lo cambiamos a ADMIN en Prisma Studio)
-  await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      name,
-      role: 'USER', 
-    },
-  });
-
-  return { success: true };
+  // Crear usuario
+  try {
+    await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        role: 'USER',
+      },
+    });
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Error al crear el usuario en la base de datos'
+    };
+  }
 }

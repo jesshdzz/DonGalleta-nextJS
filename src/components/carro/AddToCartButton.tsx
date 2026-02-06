@@ -46,7 +46,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
           <Minus className="h-4 w-4" />
         </Button>
 
-        <span className="text-lg font-medium min-w-[2rem] text-center">{quantity}</span>
+        <span className="text-lg font-medium min-w-8 text-center">{quantity}</span>
 
         <Button
           variant="outline"
