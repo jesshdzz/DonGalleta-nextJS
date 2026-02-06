@@ -8,7 +8,7 @@ interface Product {
   id: number;
   name: string;
   price: number;
-  quantity: number;
+  stock: number;
 }
 
 export default function AddToCartButton({ product }: { product: Product }) {
@@ -17,7 +17,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
   const [isAdded, setIsAdded] = useState(false);
 
   const handleIncrement = () => {
-    if (quantity < product.quantity) {
+    if (quantity < product.stock) {
       setQuantity(quantity + 1);
     }
   };
@@ -52,7 +52,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
           variant="outline"
           size="icon"
           onClick={handleIncrement}
-          disabled={quantity >= product.quantity}
+          disabled={quantity >= product.stock}
         >
           <Plus className="h-4 w-4" />
         </Button>

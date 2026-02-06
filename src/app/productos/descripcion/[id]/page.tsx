@@ -100,7 +100,7 @@ export default async function ProductDetailPage({ params }: Props) {
               <div className="space-y-4">
                 {/* Botón de Añadir al Carrito (Componente Cliente) */}
                 <div className="w-full">
-                    <AddToCartButton product={{ ...product, quantity: 1 }} />
+                    <AddToCartButton product={{ ...product}} />
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
                   Envío calculado al finalizar la compra.
