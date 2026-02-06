@@ -138,14 +138,14 @@ export async function getFilteredProducts(filters: { flavors?: string[] }) {
   const products = await prisma.product.findMany({
     where: filters.flavors?.length
       ? {
-          flavors: {
-            some: {
-              flavor: {
-                name: { in: filters.flavors },
-              },
+        flavors: {
+          some: {
+            flavor: {
+              name: { in: filters.flavors },
             },
           },
-        }
+        },
+      }
       : undefined,
     orderBy: { id: "desc" },
     include: { flavors: { include: { flavor: true } } },
@@ -155,4 +155,12 @@ export async function getFilteredProducts(filters: { flavors?: string[] }) {
     ...product,
     price: product.price.toNumber(),
   }));
+}
+
+// --- OBTENER SABORES DISPONIBLES ---
+export async function getFlavors() {
+  const flavors = await prisma.flavor.findMany({
+    orderBy: { name: 'asc' },
+  });
+  return flavors;
 }
