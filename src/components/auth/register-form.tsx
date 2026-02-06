@@ -2,44 +2,45 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import Link from "next/link";
+import { registerUser } from '@/actions/auth-actions';
+import { Loader2 } from "lucide-react";
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
 
-export const LoginForm = () => {
+export const RegisterForm = () => {
   const router = useRouter();
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+      const result = await registerUser(formData);
 
       if (result?.error) {
-        setError('Credenciales inválidas. Verifica tu correo y contraseña.');
+        setError(result.error);
         setLoading(false);
       } else {
-        router.push('/'); 
-        router.refresh();
+        setSuccess('¡Cuenta creada exitosamente!');
+        // Redirigir al login después de un breve momento
+        setTimeout(() => {
+            router.push('/auth/login');
+            router.refresh();
+        }, 1500);
       }
     } catch (error) {
+      console.error(error);
       setError('Ocurrió un error inesperado');
       setLoading(false);
     }
@@ -47,14 +48,31 @@ export const LoginForm = () => {
 
   return (
     <Card className="shadow-lg border-secondary/20">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-serif text-primary">Bienvenido de nuevo</CardTitle>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-serif text-primary">Crear Cuenta</CardTitle>
         <CardDescription>
-          Ingresa tus datos para acceder a tu cuenta
+          Completa tus datos para empezar a pedir
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Nombre */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre Completo</Label>
+            <Input
+              id="name"
+              name="name"
+              placeholder="Ej. Juan Pérez"
+              type="text"
+              autoCapitalize="words"
+              autoComplete="name"
+              required
+              className="bg-white"
+            />
+          </div>
+
+          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
             <Input
@@ -64,47 +82,47 @@ export const LoginForm = () => {
               type="email"
               autoCapitalize="none"
               autoComplete="email"
-              autoCorrect="off"
-              required
-              className="bg-white" 
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Contraseña</Label>
-              <Link 
-                href="/auth/reset" 
-                className="text-xs text-primary underline-offset-4 hover:underline"
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              name="password"
-              type="password"
               required
               className="bg-white"
             />
           </div>
-          
+
+          {/* Password */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              required
+              className="bg-white"
+            />
+          </div>
+
+          {/* Feedback Visual */}
           {error && (
             <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20">
               {error}
             </div>
           )}
-          
+          {success && (
+            <div className="p-3 rounded-md bg-green-50 text-green-700 text-sm font-medium border border-green-200">
+              {success}
+            </div>
+          )}
+
           <Button type="submit" className="w-full font-bold" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {loading ? 'Entrando...' : 'Iniciar Sesión'}
+             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+             {loading ? 'Creando cuenta...' : 'Registrarse'}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex justify-center border-t p-4 mt-2">
         <p className="text-sm text-muted-foreground">
-          ¿No tienes cuenta?{" "}
-          <Link href="/auth/register" className="text-primary font-semibold hover:underline">
-            Regístrate aquí
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/auth/login" className="text-primary font-semibold hover:underline">
+            Inicia sesión aquí
           </Link>
         </p>
       </CardFooter>
