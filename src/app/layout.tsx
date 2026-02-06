@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google"; 
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
+import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ 
+
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans", // Variable CSS para Tailwind
 });
 
-const playfair = Playfair_Display({ 
+const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif", // Variable CSS para Tailwind
 });
@@ -27,9 +29,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <CartProvider>
-        {/* <Navbar /> ... */}
-        {children}
-        {/* <Footer /> ... */}
+          {/* <Navbar /> ... */}
+          {children}
+          <Toaster />
+          {/* <Footer /> ... */}
         </CartProvider>
       </body>
     </html>
