@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#F9F5F0] px-4 py-12">
-      <div className="w-full max-w-[450px] space-y-6">
-        
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-112.5 space-y-6">
+
         {/* Encabezado */}
         <div className="text-center space-y-2">
           <Link href="/" className="cursor-pointer inline-block">
@@ -26,7 +26,7 @@ export default function RegisterPage() {
 
         {/* Formulario */}
         <RegisterForm />
-        
+
       </div>
     </div>
   );
