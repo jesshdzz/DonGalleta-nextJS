@@ -3,6 +3,8 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 
 const inter = Inter({
@@ -27,12 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <CartProvider>
-          {/* <Navbar /> ... */}
-          {children}
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
           <Toaster />
-          {/* <Footer /> ... */}
+          <Footer />
         </CartProvider>
       </body>
     </html>
