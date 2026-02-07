@@ -1,15 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Search, ShoppingCart, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
+import Logo from "@/assets/images/logo.png";
+import { shouldHideLayout } from "@/lib/constants";
 
 export function Navbar() {
     const { totalItems } = useCart();
+    const pathname = usePathname();
+
+    if (shouldHideLayout(pathname)) {
+        return null;
+    }
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -37,6 +46,7 @@ export function Navbar() {
 
                 {/* Logo */}
                 <Link href="/" className="mr-6 flex items-center space-x-2">
+                    <Image src={Logo} alt="Don Galleta Logo" width={40} height={40} className="object-contain" />
                     <span className="hidden font-bold sm:inline-block text-xl">
                         Don <span className="text-primary">Galleta</span>
                     </span>
@@ -80,17 +90,17 @@ export function Navbar() {
 
                     {/* Auth Buttons */}
                     <div className="hidden md:flex items-center gap-2">
-                        <Link href="/login">
+                        <Link href="/auth/login">
                             <Button variant="ghost" size="sm">
                                 Iniciar Sesión
                             </Button>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/auth/register">
                             <Button size="sm">Registrarse</Button>
                         </Link>
                     </div>
                     {/* Mobile Auth (Icon) */}
-                    <Link href="/login" className="md:hidden">
+                    <Link href="/auth/login" className="md:hidden">
                         <Button variant="ghost" size="icon">
                             <User className="h-5 w-5" />
                         </Button>

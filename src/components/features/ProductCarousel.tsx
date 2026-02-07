@@ -23,7 +23,8 @@ export async function ProductCarousel() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {/* Adjusted grid for smaller cards: more columns on larger screens */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {featuredProducts.map((product) => (
                         <Card key={product.id} className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
                             <div className="relative aspect-square overflow-hidden rounded-t-lg">
@@ -33,31 +34,31 @@ export async function ProductCarousel() {
                                         alt={product.name}
                                         fill
                                         className="object-cover hover:scale-105 transition-transform duration-300"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                                     />
                                 ) : (
-                                    <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
+                                    <div className="flex h-full items-center justify-center bg-muted text-muted-foreground text-xs">
                                         Sin imagen
                                     </div>
                                 )}
                                 {!product.stock && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <Badge variant="destructive" className="text-lg">Agotado</Badge>
+                                        <Badge variant="destructive" className="text-sm">Agotado</Badge>
                                     </div>
                                 )}
                             </div>
-                            <CardHeader className="p-4">
-                                <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
-                                <div className="text-2xl font-bold text-primary">${product.price.toFixed(2)}</div>
+                            <CardHeader className="p-3">
+                                <CardTitle className="text-base line-clamp-1">{product.name}</CardTitle>
+                                <div className="text-xl font-bold text-primary">${product.price.toFixed(2)}</div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-0 flex-1">
-                                <p className="text-sm text-muted-foreground line-clamp-2">
+                            <CardContent className="p-3 pt-0 flex-1">
+                                <p className="text-xs text-muted-foreground line-clamp-2">
                                     {product.description || "Sin descripción disponible."}
                                 </p>
                             </CardContent>
-                            <CardFooter className="p-4 pt-0">
-                                <Link href={`/productos`} className="w-full">
-                                    <Button className="w-full">Ver Detalles</Button>
+                            <CardFooter className="p-3 pt-0">
+                                <Link href={`/productos/${product.id}`} className="w-full">
+                                    <Button className="w-full h-8 text-sm">Ver Detalles</Button>
                                 </Link>
                             </CardFooter>
                         </Card>
