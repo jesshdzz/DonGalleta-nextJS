@@ -30,7 +30,7 @@ export function Promotions() {
 
     return (
         <section className="w-full py-12 md:py-24 bg-secondary/20">
-            <div className="container px-4 md:px-6">
+            <div className="px-4 md:px-6">
                 <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
                     <div className="space-y-2">
                         <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm text-secondary-foreground">

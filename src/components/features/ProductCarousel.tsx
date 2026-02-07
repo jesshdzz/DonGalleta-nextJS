@@ -11,7 +11,7 @@ export async function ProductCarousel() {
 
     return (
         <section className="w-full py-12 md:py-24">
-            <div className="container px-4 md:px-6">
+            <div className="px-4 md:px-6">
                 <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
                     <div className="space-y-2">
                         <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-primary">
