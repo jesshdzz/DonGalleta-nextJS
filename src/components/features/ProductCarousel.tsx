@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/actions/product-actions";
+import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
 
 export async function ProductCarousel() {
     const products = await getProducts();
@@ -51,11 +52,20 @@ export async function ProductCarousel() {
                                 <CardTitle className="text-base line-clamp-1">{product.name}</CardTitle>
                                 <div className="text-xl font-bold text-primary">${product.price.toFixed(2)}</div>
                             </CardHeader>
-                            <CardContent className="p-3 pt-0 flex-1">
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                    {product.description || "Sin descripción disponible."}
-                                </p>
-                            </CardContent>
+                            <div className="pt-6 border-t border-border">
+                                        {product.stock > 0 ? (
+                                          <div className="space-y-4">
+                                            {/* Botón de Añadir al Carrito (Componente Cliente) */}
+                                            <div className="align-middle w-full">
+                                                <AddToCartCarousel product={{ ...product}} />
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <Button disabled size="lg" className="w-full text-lg opacity-80" variant="secondary">
+                                            No disponible por el momento
+                                          </Button>
+                                        )}
+                                      </div>
                             <CardFooter className="p-3 pt-0">
                                 <Link href={`/productos/${product.id}`} className="w-full">
                                     <Button className="w-full h-8 text-sm">Ver Detalles</Button>
