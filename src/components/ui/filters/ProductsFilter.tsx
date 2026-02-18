@@ -2,15 +2,19 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
-const FLAVORS = [
-  'Chocolate',
-  'Avena',
-  'Vainilla',
-  'Fresa',
-];
+type Flavor = {
+  id: number;
+  name: string;
+};
 
-export default function ProductFilters() {
+interface ProductFiltersProps {
+  availableFlavors: Flavor[];
+}
+
+export default function ProductFilters({ availableFlavors }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -18,10 +22,10 @@ export default function ProductFilters() {
   const selectedFlavors =
     searchParams.get('flavors')?.split(',') ?? [];
 
-  const toggleFlavor = (flavor: string) => {
-    const newSelection = selectedFlavors.includes(flavor)
-      ? selectedFlavors.filter((f) => f !== flavor)
-      : [...selectedFlavors, flavor];
+  const toggleFlavor = (flavorName: string) => {
+    const newSelection = selectedFlavors.includes(flavorName)
+      ? selectedFlavors.filter((f) => f !== flavorName)
+      : [...selectedFlavors, flavorName];
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -37,32 +41,38 @@ export default function ProductFilters() {
   };
 
   return (
-    <aside className="w-full md:w-40 p-4 border rounded-lg mb-6 md:mb-0">
-      <h2 className="font-semibold text-lg mb-4">
+    <aside className="w-full md:w-56 p-4 border border-border/50 rounded-xl bg-card shadow-sm h-fit">
+      <h2 className="font-serif text-xl font-bold mb-4 text-primary">
         Filtrar por sabor
       </h2>
 
-      <div className="space-y-2">
-        {FLAVORS.map((flavor) => (
-          <label
-            key={flavor}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={selectedFlavors.includes(flavor)}
-              onChange={() => toggleFlavor(flavor)}
-              className="accent-black"
+      <div className="space-y-3">
+        {availableFlavors.map((flavor) => (
+          <div key={flavor.id} className="flex items-center space-x-2">
+            <Checkbox
+              id={`flavor-${flavor.id}`}
+              checked={selectedFlavors.includes(flavor.name)}
+              onCheckedChange={() => toggleFlavor(flavor.name)}
             />
-            <span>{flavor}</span>
-          </label>
+            <Label
+              htmlFor={`flavor-${flavor.id}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              {flavor.name}
+            </Label>
+          </div>
         ))}
+
+        {availableFlavors.length === 0 && (
+          <p className="text-sm text-muted-foreground italic">No hay filtros disponibles.</p>
+        )}
       </div>
 
       {isPending && (
-        <p className="text-sm text-gray-500 mt-4">
-          Actualizando productos…
-        </p>
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
+          <div className="h-2 w-2 bg-primary rounded-full animate-bounce" />
+          Actualizando...
+        </div>
       )}
     </aside>
   );
