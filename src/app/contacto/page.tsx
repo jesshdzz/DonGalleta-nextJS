@@ -10,8 +10,7 @@ export default function ContactoPage() {
     'use server';
     const res = await sendContactMessage(formData);
     if (res?.success) {
-      // Por ahora, redirigir a la página principal con un mensaje de éxito
-      // Más adelante se puede implementar un sistema de notificaciones
+      // se direcciona a la página principal con un mensaje de éxito
       redirect('/?mensaje=enviado');
     }
   }
