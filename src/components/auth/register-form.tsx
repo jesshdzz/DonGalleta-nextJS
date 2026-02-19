@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { registerUser } from '@/actions/auth-actions';
@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile'; // <-- Importamos Turnstile
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,10 @@ export const RegisterForm = () => {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Estado y Referencia para el Captcha
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const {
     register,
@@ -41,22 +46,32 @@ export const RegisterForm = () => {
     setServerError('');
     setSuccess('');
 
+    // Validación extra en el cliente para asegurar que resolvió el Captcha
+    if (!captchaToken) {
+      setServerError('Por favor, espera a que se complete la validación de seguridad.');
+      return;
+    }
+
     try {
-      // Creamos FormData para enviar al Server Action (manteniendo compatibilidad)
+      // Creamos FormData para enviar al Server Action
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('email', data.email);
       formData.append('password', data.password);
+      formData.append('cf-turnstile-response', captchaToken); // <-- Agregamos el token manualmente
 
       const result = await registerUser(formData);
 
       if (result?.errors) {
-        // Mapear errores del servidor a los campos del formulario
+        // Mapear errores de Zod del servidor
         if (result.errors.name) setError('name', { message: result.errors.name[0] });
         if (result.errors.email) setError('email', { message: result.errors.email[0] });
         if (result.errors.password) setError('password', { message: result.errors.password[0] });
-      } else if (result?.message) {
-        setServerError(result.message);
+        turnstileRef.current?.reset(); // Reiniciamos captcha si falla
+      } else if (result?.message || result?.error) {
+        // Mapear errores generales (ej. Correo duplicado o fallo de Turnstile backend)
+        setServerError(result.message || result.error || 'Error al procesar el registro');
+        turnstileRef.current?.reset(); // Reiniciamos captcha si falla
       } else if (result?.success) {
         setSuccess('¡Cuenta creada exitosamente!');
         setTimeout(() => {
@@ -66,6 +81,7 @@ export const RegisterForm = () => {
       }
     } catch (error) {
       setServerError('Ocurrió un error inesperado. Inténtalo de nuevo.');
+      turnstileRef.current?.reset();
     }
   };
 
@@ -129,6 +145,16 @@ export const RegisterForm = () => {
             )}
           </div>
 
+          {/* Widget de Turnstile */}
+          <div className="flex justify-center py-2">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={(token) => setCaptchaToken(token)} // <-- Guardamos el token en el estado
+              options={{ theme: 'light', size: 'normal' }}
+            />
+          </div>
+
           {/* Feedback Visual Global */}
           {serverError && (
             <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20">
@@ -141,7 +167,7 @@ export const RegisterForm = () => {
             </div>
           )}
 
-          <Button type="submit" className="w-full font-bold" disabled={isSubmitting}>
+          <Button type="submit" className="w-full font-bold" disabled={isSubmitting || !captchaToken}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isSubmitting ? 'Creando cuenta...' : 'Registrarse'}
           </Button>

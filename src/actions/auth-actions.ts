@@ -10,10 +10,31 @@ const RegisterSchema = z.object({
   name: z.string(),
 });
 
+// Función auxiliar para validar con Cloudflare
+async function verifyTurnstileToken(token: string) {
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `secret=${process.env.TURNSTILE_SECRET_KEY}&response=${token}`,
+  });
+  const data = await res.json();
+  return data.success;
+}
+
 export async function registerUser(formData: FormData) {
   const data = Object.fromEntries(formData);
   const parsed = RegisterSchema.safeParse(data);
+  const token = formData.get('cf-turnstile-response') as string;
+  
+  if (!token) {
+    return { error: 'Por favor, completa la validación de seguridad (Captcha).' };
+  }
 
+  const isValidToken = await verifyTurnstileToken(token);
+  if (!isValidToken) {
+    return { error: 'Validación de seguridad fallida. Intenta nuevamente.' };
+  }
+  
   if (!parsed.success) {
     return {
       success: false,
