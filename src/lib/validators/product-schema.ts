@@ -9,6 +9,7 @@ export const productSchema = z.object({
   slug: z.string().min(3, "El slug es obligatorio y debe ser único"),
   image: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
   isActive: z.boolean().default(true),
+  flavors: z.array(z.number()).optional().default([]),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
