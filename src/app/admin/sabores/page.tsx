@@ -33,7 +33,7 @@ export default async function AdminFlavorsPage() {
                     <TableCaption>Lista total de sabores ({flavors.length})</TableCaption>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
+                            <TableHead className="w-25">ID</TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
