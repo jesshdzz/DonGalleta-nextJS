@@ -33,8 +33,6 @@ export default async function EditProductPage({ params }: EditPageProps) {
         ...product,
         price: Number(product.price),
         description: product.description || "",
-        price: Number(product.price),
-        description: product.description || "",
         image: product.image || "",
         flavors: product.flavors.map(pf => pf.flavorId),
     };
