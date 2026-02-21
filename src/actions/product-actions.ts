@@ -10,6 +10,7 @@ import { tr } from "zod/v4/locales";
 export async function getProducts() {
   const products = await prisma.product.findMany({
     orderBy: { id: "desc" }, // Los más nuevos primero
+    include: { flavors: { include: { flavor: true } } },
   });
 
   // Serializar Decimal a number para evitar error de "Plain Objects" en Client Components
@@ -74,7 +75,8 @@ export async function upsertProduct(prevState: any, formData: FormData) {
     stock: formData.get("stock"),
     slug: formData.get("slug"),
     image: formData.get("image"),
-    isActive: formData.get("isActive") === "on", // Checkbox envía "on"
+    isActive: formData.get("isActive") === "on",
+    flavors: formData.get("flavors") ? JSON.parse(formData.get("flavors") as string) : [],
   };
 
   // 2. Validar datos
@@ -96,12 +98,23 @@ export async function upsertProduct(prevState: any, formData: FormData) {
       // --- MODO EDICIÓN ---
       await prisma.product.update({
         where: { id: parseInt(id) },
-        data: data,
+        data: {
+          ...data,
+          flavors: {
+            deleteMany: {}, // Borramos relaciones anteriores
+            create: data.flavors?.map((flavorId) => ({ flavorId })), // Creamos nuevas
+          }
+        },
       });
     } else {
       // --- MODO CREACIÓN ---
       await prisma.product.create({
-        data: data,
+        data: {
+          ...data,
+          flavors: {
+            create: data.flavors?.map((flavorId) => ({ flavorId })),
+          }
+        },
       });
     }
   } catch (error) {
