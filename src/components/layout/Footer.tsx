@@ -1,34 +1,69 @@
 "use client";
 
+import { memo } from "react"; // Para evitar re-renders
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { shouldHideLayout } from "@/lib/constants";
+import { Facebook, Instagram } from "lucide-react";
 
-export function Footer() {
-    const pathname = usePathname();
+// Estilos constantes fuera del componente para que no se re-creen en cada render
+const LINK_STYLES = "text-sm text-[#A6A3A2] hover:text-[#58321D] transition-colors duration-200";
+const ICON_STYLES = "text-[#C69A8F] hover:text-[#58321D] transition-colors duration-200";
 
-    if (shouldHideLayout(pathname)) {
-        return null;
-    }
+function FooterComponent() {
+  const pathname = usePathname();
 
-    return (
-        <footer className="w-full border-t bg-background py-6">
-            <div className="flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row md:py-0 px-4 md:px-6">
-                <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-                    <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                        Creado por <span className="font-semibold">Grupo FLIJ</span>. El código fuente está disponible en{" "}
-                        GitHub.
-                    </p>
-                </div>
-                <div className="flex gap-4">
-                    <Link href="/terminos" className="text-sm font-medium underline underline-offset-4 decoration-muted-foreground hover:text-primary">
-                        Términos
-                    </Link>
-                    <Link href="/privacidad" className="text-sm font-medium underline underline-offset-4 decoration-muted-foreground hover:text-primary">
-                        Privacidad
-                    </Link>
-                </div>
+  if (shouldHideLayout(pathname)) return null;
+
+  return (
+    <footer className="w-full bg-white border-t border-[#A6A3A2] contain-intrinsic-size-[auto_300px]">
+      <div className="container mx-auto px-4 py-12 md:px-6">
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between md:items-start text-center md:text-left">
+          
+          {/* Contacto */}
+          <div className="flex-1">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Contacto</h3>
+            <ul className="space-y-2 flex flex-col">
+              <li><a href="mailto:hola@dongalleta.com" className={LINK_STYLES}>Email: hola@dongalleta.com</a></li>
+              <li className="text-sm text-[#A6A3A2]">Tel: +52 123 456 7890</li>
+              <li><Link href="/contacto" className={LINK_STYLES} prefetch={false}>Contacta con un administrador</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div className="flex-1">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Legal</h3>
+            <div className="flex flex-col gap-2">
+              <Link href="/terminos" className={LINK_STYLES}>Términos</Link>
+              <Link href="/privacidad" className={LINK_STYLES}>Privacidad</Link>
             </div>
-        </footer>
-    );
+          </div>
+
+          {/* Redes */}
+          <div className="flex-1 flex flex-col items-center md:items-start">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Síguenos</h3>
+            <div className="flex gap-6">
+              <a href="https://facebook.com/dongalleta.mx" target="_blank" rel="noopener noreferrer" className={ICON_STYLES}>
+                <Facebook className="size-6" />
+              </a>
+              <a href="https://instagram.com/dongalleta.mx" target="_blank" rel="noopener noreferrer" className={ICON_STYLES}>
+                <Instagram className="size-6" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-[#A6A3A2] py-6 bg-[#F7DCBE]/30">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-xs text-[#58321D] tracking-wide uppercase">
+            © 2026 <span className="font-bold">Don Galleta</span> - Grupo FLIJ
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }
+
+// Exportamos el componente memoizado
+export const Footer = memo(FooterComponent);
