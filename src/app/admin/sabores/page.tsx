@@ -13,7 +13,7 @@ export default async function AdminFlavorsPage() {
     return (
         <div className="container mx-auto py-10 px-4 max-w-4xl">
             <div className="mb-8">
-                <Link href="/admin/products">
+                <Link href="/admin/productos">
                     <Button variant="ghost" className="pl-0 gap-2 text-muted-foreground mb-4">
                         <ArrowLeft className="h-4 w-4" /> Volver a Productos
                     </Button>

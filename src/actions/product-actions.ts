@@ -55,7 +55,7 @@ export async function checkout(
       ),
     );
 
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/productos");
     revalidatePath("/productos");
 
     return { success: true, message: "Compra realizada con éxito" };
@@ -126,7 +126,7 @@ export async function upsertProduct(prevState: any, formData: FormData) {
   }
 
   // 3. Actualizar caché y redireccionar
-  revalidatePath("/admin/products");
+  revalidatePath("/admin/productos");
   revalidatePath("/productos");
 
   return { success: true, message: "Producto guardado correctamente" };
@@ -138,7 +138,7 @@ export async function deleteProduct(id: number) {
     await prisma.product.delete({
       where: { id },
     });
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/productos");
     revalidatePath("/productos");
     return { success: true };
   } catch (error) {

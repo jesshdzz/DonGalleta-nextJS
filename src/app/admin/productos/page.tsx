@@ -19,12 +19,12 @@ export default async function AdminProductsPage() {
                     <p className="text-muted-foreground">Gestiona el catálogo y existencias de galletas.</p>
                 </div>
                 <div className="space-x-2">
-                    <Link href="/admin/flavors">
+                    <Link href="/admin/sabores">
                         <Button variant="outline" className="gap-2">
                             <Tag className="h-4 w-4" /> Gestionar Sabores
                         </Button>
                     </Link>
-                    <Link href="/admin/products/new">
+                    <Link href="/admin/productos/nuevo">
                         <Button className="gap-2">
                             <Plus className="h-4 w-4" /> Nuevo Producto
                         </Button>
@@ -83,7 +83,7 @@ export default async function AdminProductsPage() {
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
                                     {/* Botón Editar */}
-                                    <Link href={`/admin/products/${product.id}/edit`}>
+                                    <Link href={`/admin/productos/${product.id}/editar`}>
                                         <Button variant="ghost" size="icon">
                                             <Pencil className="h-4 w-4" />
                                         </Button>

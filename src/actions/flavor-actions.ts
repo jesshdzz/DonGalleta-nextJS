@@ -42,9 +42,9 @@ export async function upsertFlavor(prevState: any, formData: FormData) {
                 data: data,
             });
         }
-        revalidatePath("/admin/flavors");
-        revalidatePath("/admin/products/new");
-        revalidatePath("/admin/products/[id]/edit");
+        revalidatePath("/admin/sabores");
+        revalidatePath("/admin/productos/nuevo");
+        revalidatePath("/admin/productos/[id]/editar");
         return { success: true, message: "Sabor guardado correctamente" };
     } catch (error: any) {
         console.error(error);
@@ -61,7 +61,7 @@ export async function deleteFlavor(id: number) {
         await prisma.flavor.delete({
             where: { id },
         });
-        revalidatePath("/admin/flavors");
+        revalidatePath("/admin/sabores");
         return { success: true, message: "Sabor eliminado" };
     } catch (error) {
         return { success: false, message: "No se pudo eliminar el sabor" };
