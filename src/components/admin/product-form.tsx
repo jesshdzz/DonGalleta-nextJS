@@ -17,9 +17,10 @@ import { Loader2, Save } from "lucide-react";
 // Recibimos un producto opcional por si estamos editando
 interface ProductFormProps {
     defaultValues?: Partial<ProductFormValues> & { id?: number };
+    availableFlavors?: { id: number; name: string }[];
 }
 
-export const ProductForm = ({ defaultValues }: ProductFormProps) => {
+export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFormProps) => {
     const router = useRouter();
     const [isPending, setIsPending] = useState(false);
 
@@ -36,6 +37,7 @@ export const ProductForm = ({ defaultValues }: ProductFormProps) => {
             stock: defaultValues?.stock || 0,
             image: defaultValues?.image || "",
             isActive: defaultValues?.isActive ?? true,
+            flavors: defaultValues?.flavors || [], // Array de IDs
         },
     });
 
@@ -54,6 +56,8 @@ export const ProductForm = ({ defaultValues }: ProductFormProps) => {
         formData.append("stock", data.stock.toString());
         formData.append("image", data.image || "");
         if (data.isActive) formData.append("isActive", "on");
+        // Convertimos el array de IDs a JSON string para enviarlo
+        formData.append("flavors", JSON.stringify(data.flavors));
 
         const result = await upsertProduct(null, formData);
 
@@ -73,7 +77,7 @@ export const ProductForm = ({ defaultValues }: ProductFormProps) => {
                 });
             }
         } else {
-            router.push("/admin/products");
+            router.push("/admin/productos");
             router.refresh();
         }
 
@@ -189,6 +193,50 @@ export const ProductForm = ({ defaultValues }: ProductFormProps) => {
                         </FormItem>
                     )}
                 />
+
+                {/* Sabores */}
+                <div className="space-y-4">
+                    <FormLabel>Sabores Disponibles</FormLabel>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border p-4 rounded-md">
+                        {availableFlavors.map((flavor) => (
+                            <FormField
+                                key={flavor.id}
+                                control={form.control}
+                                name="flavors"
+                                render={({ field }) => {
+                                    return (
+                                        <FormItem
+                                            key={flavor.id}
+                                            className="flex flex-row items-start space-x-3 space-y-0"
+                                        >
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(flavor.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        return checked
+                                                            ? field.onChange([...field.value || [], flavor.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== flavor.id
+                                                                ) || []
+                                                            )
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormLabel className="font-normal cursor-pointer">
+                                                {flavor.name}
+                                            </FormLabel>
+                                        </FormItem>
+                                    )
+                                }}
+                            />
+                        ))}
+                        {availableFlavors.length === 0 && (
+                            <p className="text-sm text-muted-foreground col-span-3">No hay sabores registrados. Ve a "Sabores" para crear uno.</p>
+                        )}
+                    </div>
+                    <FormMessage />
+                </div>
 
                 {/* Activo */}
                 <FormField

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Asegúrate de importar esto
+import { Input } from "@/components/ui/input"; 
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 interface Product {
@@ -14,48 +14,34 @@ interface Product {
 }
 
 export default function AddToCartButton({ product }: { product: Product }) {
-  // Estado permite string temporalmente para dejar borrar el número
   const [quantity, setQuantity] = useState<number | string>(1);
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
 
-  // Variable auxiliar para cálculos (si quantity es "", usamos 1)
   const currentQty = typeof quantity === 'string' ? 1 : quantity;
 
   const handleIncrement = () => {
-    if (currentQty < product.stock) {
-      setQuantity(currentQty + 1);
-    }
+    if (currentQty < product.stock) setQuantity(currentQty + 1);
   };
 
   const handleDecrement = () => {
-    if (currentQty > 1) {
-      setQuantity(currentQty - 1);
-    }
+    if (currentQty > 1) setQuantity(currentQty - 1);
   };
 
-  // 1. Maneja la escritura manual
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
     if (value === "") {
       setQuantity("");
       return;
     }
-
-    // Solo permitir números
     const numValue = parseInt(value);
-    if (!isNaN(numValue)) {
-      setQuantity(numValue);
-    }
+    if (!isNaN(numValue)) setQuantity(numValue);
   };
 
   const handleBlur = () => {
     let finalValue = typeof quantity === 'string' ? 1 : quantity;
-
     if (finalValue < 1) finalValue = 1;
     if (finalValue > product.stock) finalValue = product.stock;
-
     setQuantity(finalValue);
   };
 
@@ -66,13 +52,15 @@ export default function AddToCartButton({ product }: { product: Product }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col items-center gap-4 w-full">
+      
+      <div className="flex items-center justify-center gap-3">
         <Button
           variant="outline"
           size="icon"
           onClick={handleDecrement}
           disabled={currentQty <= 1}
+          className="h-8 w-8 shrink-0"
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -82,7 +70,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
           value={quantity}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="w-16 text-center font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-14 h-9 text-center p-1 font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
 
         <Button
@@ -90,24 +78,41 @@ export default function AddToCartButton({ product }: { product: Product }) {
           size="icon"
           onClick={handleIncrement}
           disabled={currentQty >= product.stock}
+          className="h-8 w-8 shrink-0"
         >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
-      <Button
-        onClick={handleAddToCart}
-        className="w-full text-lg py-6 shadow-md transition-all hover:shadow-lg"
-        size="lg"
-        disabled={isAdded || product.stock === 0}
-      >
-        {isAdded ? "¡Agregado!" : (
-          <>
-            <ShoppingCart className="mr-2 h-5 w-5" />
-            Agregar al carrito (${(product.price * currentQty).toFixed(2)})
-          </>
-        )}
-      </Button>
+      <div className="flex items-center justify-center gap-4 w-full">
+        
+        {/* Precio Total */}
+        <div className="flex flex-col items-end">
+          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+            Total
+          </span>
+          <span className="text-xl font-bold text-primary whitespace-nowrap">
+            ${(product.price * currentQty).toFixed(2)}
+          </span>
+        </div>
+
+        <Button
+          onClick={handleAddToCart}
+          className="px-6 shadow-sm transition-all hover:shadow-md hover:scale-105"
+          size="default" 
+          disabled={isAdded || product.stock === 0}
+        >
+          {isAdded ? (
+            "¡Listo!"
+          ) : (
+            <>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Agregar
+            </>
+          )}
+        </Button>
+      </div>
+
     </div>
   );
 }

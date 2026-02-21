@@ -54,7 +54,7 @@ describe('upsertProduct', () => {
                 isActive: true,
             },
         });
-        expect(revalidatePath).toHaveBeenCalledWith('/admin/products');
+        expect(revalidatePath).toHaveBeenCalledWith('/admin/productos');
         expect(revalidatePath).toHaveBeenCalledWith('/productos');
     });
 
