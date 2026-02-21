@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
 
 interface Product {
   id: number;
@@ -47,19 +48,17 @@ export default function ProductoItem({ product }: { product: Product }) {
             {product.name || "Sin nombre"}
           </h3>
         </div>
-
-        {product.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {product.description}
-          </p>
-        )}
-
         <div className="pt-2">
           <span className="text-2xl font-bold text-primary">
             ${Number(product.price).toFixed(2)}
           </span>
         </div>
       </CardContent>
+
+      {/* Botón de agregar al carrito */}
+      <div className="px-5 pb-5">
+        <AddToCartCarousel product={product} />
+      </div>
 
       {/* Footer con Botón */}
       <CardFooter className="p-5 pt-0">
