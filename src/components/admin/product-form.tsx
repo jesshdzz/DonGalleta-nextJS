@@ -77,7 +77,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                 });
             }
         } else {
-            router.push("/admin/products");
+            router.push("/admin/productos");
             router.refresh();
         }
 
