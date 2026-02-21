@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function NewProductPage() {
+import { getFlavors } from "@/actions/flavor-actions";
+
+export default async function NewProductPage() {
+    const flavors = await getFlavors();
     return (
         <div className="container mx-auto py-10 px-4 max-w-3xl">
             <div className="mb-8">
@@ -17,7 +20,7 @@ export default function NewProductPage() {
             </div>
 
             <div className="bg-card border rounded-lg p-6 shadow-sm">
-                <ProductForm />
+                <ProductForm availableFlavors={flavors} />
             </div>
         </div>
     );

@@ -3,7 +3,7 @@ import { ProductDeleteButton } from "@/components/admin/product-delete-button";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Plus, Package } from "lucide-react";
+import { Pencil, Plus, Package, Tag } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminProductsPage() {
@@ -18,11 +18,18 @@ export default async function AdminProductsPage() {
                     <h1 className="text-3xl font-bold tracking-tight text-primary font-serif">Inventario</h1>
                     <p className="text-muted-foreground">Gestiona el catálogo y existencias de galletas.</p>
                 </div>
-                <Link href="/admin/products/new">
-                    <Button className="gap-2">
-                        <Plus className="h-4 w-4" /> Nuevo Producto
-                    </Button>
-                </Link>
+                <div className="space-x-2">
+                    <Link href="/admin/flavors">
+                        <Button variant="outline" className="gap-2">
+                            <Tag className="h-4 w-4" /> Gestionar Sabores
+                        </Button>
+                    </Link>
+                    <Link href="/admin/products/new">
+                        <Button className="gap-2">
+                            <Plus className="h-4 w-4" /> Nuevo Producto
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Tabla */}

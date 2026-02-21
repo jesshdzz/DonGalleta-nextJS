@@ -1,5 +1,6 @@
 import { ProductForm } from "@/components/admin/product-form";
 import { prisma } from "@/lib/prisma";
+import { getFlavors } from "@/actions/flavor-actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -21,6 +22,7 @@ export default async function EditProductPage({ params }: EditPageProps) {
 
     const product = await prisma.product.findUnique({
         where: { id: productId },
+        include: { flavors: true },
     });
 
     if (!product) {
@@ -31,8 +33,13 @@ export default async function EditProductPage({ params }: EditPageProps) {
         ...product,
         price: Number(product.price),
         description: product.description || "",
+        price: Number(product.price),
+        description: product.description || "",
         image: product.image || "",
+        flavors: product.flavors.map(pf => pf.flavorId),
     };
+
+    const flavors = await getFlavors();
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-3xl">
@@ -47,7 +54,7 @@ export default async function EditProductPage({ params }: EditPageProps) {
             </div>
 
             <div className="bg-card border rounded-lg p-6 shadow-sm">
-                <ProductForm defaultValues={initialData} />
+                <ProductForm defaultValues={initialData} availableFlavors={flavors} />
             </div>
         </div>
     );
