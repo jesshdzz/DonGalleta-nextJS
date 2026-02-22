@@ -164,3 +164,48 @@ export async function getFlavors() {
   });
   return flavors;
 }
+
+// --- BUSCAR PRODUCTOS (LIVE SEARCH) ---
+export async function searchProducts(query: string, limit?:5) {
+  if (!query || query.length < 3) return [];
+
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true, // Solo mostrar productos que no estén "borrados"
+        OR: [
+          { name: { contains: query } }, // Búsqueda por nombre de galleta
+          {
+            flavors: {
+              some: {
+                flavor: {
+                  name: { contains: query }, // Búsqueda por nombre de sabor
+                },
+              },
+            },
+          },
+        ],
+      },
+      take: limit, // Límite para no saturar el menú desplegable
+      include: {
+        flavors: {
+          include: { flavor: true },
+        },
+      },
+    });
+
+    // Formatear los datos para enviarlos limpios al Client Component
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug, // Usaremos el slug para la URL
+      price: p.price.toNumber(),
+      // Juntamos todos los sabores en un solo texto separado por comas
+      flavorText: p.flavors.map((f) => f.flavor.name).join(", "),
+      image: p.image,
+    }));
+  } catch (error) {
+    console.error("Error buscando productos:", error);
+    return [];
+  }
+}
