@@ -52,6 +52,7 @@ model User {
   orders   Order[]
   reviews  Review[]
   cart     Cart? // Relación 1 a 1 con su carrito activo
+  favorites Favorite[] // Lista de productos favoritos del usuario
 }
 
 enum Role {
@@ -74,6 +75,7 @@ model Product {
   orderItems OrderItem[]
   cartItems  CartItem[]
   reviews    Review[]
+  favorites  Favorite[] // Lista de usuarios que marcaron este producto como favorito
 }
 
 // Tabla Pivote: Producto <-> Sabor
@@ -175,6 +177,19 @@ model Review {
 
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+// 8. Sistema de Favoritos
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // Un usuario no puede marcar el mismo producto como favorito más de una vez
 }
 
 model Branch {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
+import FavoriteButton from "@/components/ui/favorite-button";
 
 interface Product {
   id: number;
@@ -15,7 +16,12 @@ interface Product {
   stock?: number; // Agregué stock opcional para mostrar badge
 }
 
-export default function ProductoItem({ product }: { product: Product }) {
+interface ProductoItemProps {
+  product: Product;
+  initialIsFavorite?: boolean;
+}
+
+export default function ProductoItem({ product, initialIsFavorite = false }: ProductoItemProps) {
   // Lógica de imagen (placeholder)
   const imageUrl = product.image && product.image.trim() !== ""
     ? product.image
@@ -33,9 +39,20 @@ export default function ProductoItem({ product }: { product: Product }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={false}
         />
+        
+        {/* Botón de favoritos */}
+        <div className="absolute top-2 right-2">
+          <FavoriteButton 
+            productId={product.id}
+            initialIsFavorite={initialIsFavorite}
+            size="md"
+            variant="ghost"
+          />
+        </div>
+        
         {/* Badge flotante si es necesario (ej: Nuevo, Oferta, Poco stock) */}
         {product.stock === 0 && (
-          <Badge variant="destructive" className="absolute top-2 right-2 shadow-sm">
+          <Badge variant="destructive" className="absolute top-2 left-2 shadow-sm">
             Agotado
           </Badge>
         )}
