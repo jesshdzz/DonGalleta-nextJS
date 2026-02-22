@@ -7,13 +7,7 @@ import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-  SheetTitle
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
