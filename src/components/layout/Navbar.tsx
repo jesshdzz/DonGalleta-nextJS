@@ -1,14 +1,19 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, Cookie, Loader2 } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+  SheetTitle
+} from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
@@ -19,7 +24,7 @@ type SearchResult = {
   name: string;
   price: number;
   flavorText: string;
-  image?: string|null;
+  image?: string | null;
 };
 
 export function Navbar() {
@@ -32,13 +37,13 @@ export function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (e.key === "Enter" && searchQuery.trim().length > 0) {
-    setIsMobileSearchOpen(false);
-    setSearchResults([]); 
-    // Redirigimos a la nueva página
-    router.push(`/busqueda?q=${encodeURIComponent(searchQuery.trim())}`);
-  }
-};
+    if (e.key === "Enter" && searchQuery.trim().length > 0) {
+      setIsMobileSearchOpen(false);
+      setSearchResults([]);
+      // Redirigimos a la nueva página
+      router.push(`/busqueda?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   // ... (tu useEffect se queda igualito)  // BUSCADOR CON DEBOUNCE
   useEffect(() => {
@@ -108,12 +113,10 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 relative">
-
         {/* SEARCH MOBILE OVERLAY */}
         {isMobileSearchOpen && (
           <div className="absolute inset-0 z-50 flex items-center bg-background px-4 md:hidden">
             <div className="relative w-full flex items-center gap-2">
-
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 
@@ -149,39 +152,86 @@ export function Navbar() {
             </Button>
           </SheetTrigger>
 
-          <SheetContent side="left">
-            <nav className="grid gap-6 text-lg font-medium">
+          <SheetContent side="left" className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]">
+          <SheetTitle className="sr-only">Menú</SheetTitle>
 
-              <SheetClose asChild>
-                <Link href="/">
-                  <Image src={Logo} alt="Logo" width={60} height={60} />
-                </Link>
-              </SheetClose>
+          {/* 1. CABECERA: Fondo sutil para destacar el logo */}
+          <div className="p-6 border-b border-[#A6A3A2]/30 bg-[#F7DCBE]/10 flex justify-center">
+            <SheetClose asChild>
+              <Link href="/">
+                <Image src={Logo} alt="Don Galleta Logo" width={140} height={80} className="object-contain drop-shadow-sm" />
+              </Link>
+            </SheetClose>
+          </div>
 
-              <SheetClose asChild>
-                <Link href="/">Inicio</Link>
-              </SheetClose>
+          {/* 2. CUERPO: Enlaces estilo "Píldora/Botón" */}
+          <nav className="flex-1 flex flex-col gap-2 p-4 mt-2 overflow-y-auto">
+            
+            <SheetClose asChild>
+              <Link 
+                href="/" 
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+              >
+                <Home className="size-5" />
+                Inicio
+              </Link>
+            </SheetClose>
 
-              <SheetClose asChild>
-                <Link href="/productos">Productos</Link>
-              </SheetClose>
+            <SheetClose asChild>
+              <Link 
+                href="/productos" 
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+              >
+                <Cookie className="size-5" />
+                Productos
+              </Link>
+            </SheetClose>
 
-              <SheetClose asChild>
-                <Link href="/promociones">Promociones</Link>
-              </SheetClose>
-            </nav>
-          </SheetContent>
+            <SheetClose asChild>
+              <Link 
+                href="/promociones" 
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+              >
+                <Tag className="size-5" />
+                Promociones
+              </Link>
+            </SheetClose>
+
+            <SheetClose asChild>
+              <button
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all w-full text-left"
+                onClick={() => {
+                  setTimeout(() => {
+                    const footer = document.getElementById("footer-section");
+                    if (footer) {
+                      footer.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }, 150);
+                }}
+              >
+                <Phone className="size-5" />
+                Contacto
+              </button>
+            </SheetClose>
+          </nav>
+
+          {/* 3. PIE: Un toque decorativo de marca al fondo */}
+          <div className="p-6 border-t border-[#A6A3A2]/30 bg-[#F7DCBE]/20 mt-auto">
+            <p className="text-center text-sm font-bold text-[#58321D]">
+              ¡Horneadas con amor! 🍪
+            </p>
+          </div>
+        </SheetContent>
         </Sheet>
 
         {/* LOGO */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Image src={Logo} alt="Don Galleta Logo" width={150}/>
+          <Image src={Logo} alt="Don Galleta Logo" width={150} />
         </Link>
 
         {/* SEARCH DESKTOP */}
         <div className="hidden md:flex flex-1 max-w-sm items-center space-x-2">
           <div className="relative w-full">
-
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 
             <Input
@@ -199,7 +249,6 @@ export function Navbar() {
 
         {/* ACTIONS */}
         <div className="flex items-center gap-2 md:gap-4">
-
           {/* SEARCH MOBILE BUTTON */}
           <Button
             variant="ghost"
@@ -213,7 +262,6 @@ export function Navbar() {
           {/* CART */}
           <Link href="/carrito">
             <Button variant="ghost" size="icon" className="relative">
-
               <ShoppingCart className="h-5 w-5" />
 
               {totalItems > 0 && (
@@ -227,7 +275,9 @@ export function Navbar() {
           {/* AUTH DESKTOP */}
           <div className="hidden md:flex items-center gap-2">
             <Link href="/auth/login">
-              <Button variant="ghost" size="sm">Iniciar Sesión</Button>
+              <Button variant="ghost" size="sm">
+                Iniciar Sesión
+              </Button>
             </Link>
 
             <Link href="/auth/register">
@@ -241,7 +291,6 @@ export function Navbar() {
               <User className="h-5 w-5" />
             </Button>
           </Link>
-
         </div>
       </div>
     </header>
