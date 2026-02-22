@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import Providers from "@/components/providers/Providers";
 
 
 const inter = Inter({
@@ -30,14 +31,16 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen flex flex-col`}>
-        <CartProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Toaster />
-          <Footer />
-        </CartProvider>
+        <Providers>
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Toaster />
+            <Footer />
+          </CartProvider>
+        </Providers>
       </body>
     </html>
   );
