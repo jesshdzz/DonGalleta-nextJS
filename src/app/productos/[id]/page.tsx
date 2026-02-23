@@ -1,5 +1,6 @@
 import { getProducts } from "@/actions/product-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
+import FavoriteButton from "@/components/ui/favorite-button";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -65,10 +66,22 @@ export default async function ProductDetailPage({ params }: Props) {
         {/* COLUMNA DERECHA: INFORMACIÓN */}
         <div className="flex flex-col space-y-8">
           <div>
-            <div className="flex justify-between items-start">
-               <h1 className="text-4xl font-bold text-primary mb-3 tracking-tight">{product.name}</h1>
-               {/* Badge de Stock */}
-               {product.stock > 0 ? (
+            {/* Header con título, favoritos y stock */}
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-start gap-4">
+                <h1 className="text-4xl font-bold text-primary tracking-tight">{product.name}</h1>
+                {/* Botón de favoritos */}
+                <div className="mt-1">
+                  <FavoriteButton 
+                    productId={product.id}
+                    size="lg"
+                    variant="outline"
+                  />
+                </div>
+              </div>
+              
+              {/* Badge de Stock */}
+              {product.stock > 0 ? (
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1.5 px-3 py-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> En stock ({product.stock})
                 </Badge>
@@ -79,7 +92,7 @@ export default async function ProductDetailPage({ params }: Props) {
               )}
             </div>
 
-            <p className="text-3xl font-bold text-foreground mt-2">
+            <p className="text-3xl font-bold text-foreground">
               ${product.price.toFixed(2)}
             </p>
           </div>
