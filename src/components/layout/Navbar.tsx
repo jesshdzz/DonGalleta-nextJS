@@ -35,7 +35,7 @@ export function Navbar() {
       setIsMobileSearchOpen(false);
       setSearchResults([]);
       // Redirigimos a la nueva página
-      router.push(`/busqueda?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/productos?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 

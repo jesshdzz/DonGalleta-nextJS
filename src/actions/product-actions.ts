@@ -134,19 +134,27 @@ export async function deleteProduct(id: number) {
 }
 
 // --- OBTENER PRODUCTOS FILTRADOS (CHECKBOXES)---
-export async function getFilteredProducts(filters: { flavors?: string[] }) {
+// En product-actions.ts
+export async function getFilteredProducts(filters: { flavors?: string[]; query?: string }) {
+  const { flavors, query } = filters;
+
   const products = await prisma.product.findMany({
-    where: filters.flavors?.length
-      ? {
+    where: {
+      isActive: true,
+      // 1. Aplica el filtro de checkboxes (si existen)
+      ...(flavors?.length ? {
         flavors: {
-          some: {
-            flavor: {
-              name: { in: filters.flavors },
-            },
-          },
+          some: { flavor: { name: { in: flavors } } },
         },
-      }
-      : undefined,
+      } : {}),
+      // 2. Aplica el filtro de búsqueda por texto (si existe)
+      ...(query ? {
+        OR: [
+          { name: { contains: query } },
+          { flavors: { some: { flavor: { name: { contains: query } } } } },
+        ],
+      } : {}),
+    },
     orderBy: { id: "desc" },
     include: { flavors: { include: { flavor: true } } },
   });
