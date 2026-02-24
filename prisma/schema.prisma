@@ -36,16 +36,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role      @default(USER)
+  role          Role       @default(USER)
   accounts      Account[]
   cart          Cart?
-  favorites     Favorite[] // Lista de productos favoritos del usuario
+  favorites     Favorite[]
   orders        Order[]
   reviews       Review[]
   sessions      Session[]
@@ -61,7 +61,7 @@ model Product {
   slug        String          @unique
   isActive    Boolean         @default(true)
   cartItems   CartItem[]
-  favorites   Favorite[] // Lista de usuarios que marcaron este producto como favorito
+  favorites   Favorite[]
   orderItems  OrderItem[]
   flavors     ProductFlavor[]
   reviews     Review[]
@@ -163,6 +163,19 @@ model Branch {
   phone   String?
 }
 
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "Favorite_productId_fkey")
+  @@index([userId], map: "Favorite_userId_fkey")
+}
+
 enum Role {
   USER
   ADMIN
@@ -179,17 +192,4 @@ enum PaymentMethod {
   PAYPAL
   STRIPE
   CASH
-}
-
-model Favorite {
-  id        String   @id @default(cuid())
-  userId    String
-  productId Int
-  createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-  @@index([productId], map: "Favorite_productId_fkey")
-  @@index([userId], map: "Favorite_userId_fkey")
 }

@@ -198,11 +198,17 @@ function FavoriteProductCard({ favorite }: FavoriteProductCardProps) {
 
         {/* Acciones */}
         <div className="flex gap-2">
-          <AddToCartButton
-            productId={product.id}
-            disabled={product.stock === 0}
-            className="flex-1"
-          />
+          <div className="flex-1">
+            <AddToCartButton
+              product={{
+                id: product.id,
+                name: product.name,
+                price: price,
+                stock: product.stock,
+                image: product.image
+              }}
+            />
+          </div>
           
           <Button variant="outline" size="icon" asChild>
             <Link href={`/productos/${product.id}`}>
