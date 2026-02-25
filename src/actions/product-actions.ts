@@ -147,19 +147,27 @@ export async function deleteProduct(id: number) {
 }
 
 // --- OBTENER PRODUCTOS FILTRADOS (CHECKBOXES)---
-export async function getFilteredProducts(filters: { flavors?: string[] }) {
+// En product-actions.ts
+export async function getFilteredProducts(filters: { flavors?: string[]; query?: string }) {
+  const { flavors, query } = filters;
+
   const products = await prisma.product.findMany({
-    where: filters.flavors?.length
-      ? {
+    where: {
+      isActive: true,
+      // 1. Aplica el filtro de checkboxes (si existen)
+      ...(flavors?.length ? {
         flavors: {
-          some: {
-            flavor: {
-              name: { in: filters.flavors },
-            },
-          },
+          some: { flavor: { name: { in: flavors } } },
         },
-      }
-      : undefined,
+      } : {}),
+      // 2. Aplica el filtro de búsqueda por texto (si existe)
+      ...(query ? {
+        OR: [
+          { name: { contains: query } },
+          { flavors: { some: { flavor: { name: { contains: query } } } } },
+        ],
+      } : {}),
+    },
     orderBy: { id: "desc" },
     include: { flavors: { include: { flavor: true } } },
   });
@@ -176,4 +184,49 @@ export async function getFlavors() {
     orderBy: { name: 'asc' },
   });
   return flavors;
+}
+
+// --- BUSCAR PRODUCTOS (LIVE SEARCH) ---
+export async function searchProducts(query: string, limit?:5) {
+  if (!query || query.length < 3) return [];
+
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true, // Solo mostrar productos que no estén "borrados"
+        OR: [
+          { name: { contains: query } }, // Búsqueda por nombre de galleta
+          {
+            flavors: {
+              some: {
+                flavor: {
+                  name: { contains: query }, // Búsqueda por nombre de sabor
+                },
+              },
+            },
+          },
+        ],
+      },
+      take: limit, // Límite para no saturar el menú desplegable
+      include: {
+        flavors: {
+          include: { flavor: true },
+        },
+      },
+    });
+
+    // Formatear los datos para enviarlos limpios al Client Component
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug, // Usaremos el slug para la URL
+      price: p.price.toNumber(),
+      // Juntamos todos los sabores en un solo texto separado por comas
+      flavorText: p.flavors.map((f) => f.flavor.name).join(", "),
+      image: p.image,
+    }));
+  } catch (error) {
+    console.error("Error buscando productos:", error);
+    return [];
+  }
 }
