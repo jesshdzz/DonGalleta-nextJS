@@ -9,6 +9,7 @@ import { tr } from "zod/v4/locales";
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
   const products = await prisma.product.findMany({
+    where: { isActive: true },
     orderBy: { id: "desc" }, // Los más nuevos primero
     include: { flavors: { include: { flavor: true } } },
   });
@@ -187,7 +188,7 @@ export async function getFlavors() {
 }
 
 // --- BUSCAR PRODUCTOS (LIVE SEARCH) ---
-export async function searchProducts(query: string, limit?:5) {
+export async function searchProducts(query: string, limit?: 5) {
   if (!query || query.length < 3) return [];
 
   try {
