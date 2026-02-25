@@ -185,3 +185,18 @@ model Branch {
   lng     Decimal? @db.Decimal(11, 8)
   phone   String?
 }
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  schedule  String?
+  latitude  Float
+  longitude Float
+  phone     String?
+  
+  
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
