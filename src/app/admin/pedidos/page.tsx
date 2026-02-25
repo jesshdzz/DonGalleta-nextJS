@@ -77,7 +77,7 @@ export default async function AdminOrdersPage() {
                                     {getStatusBadge(order.status)}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Link href={`/admin/orders/${order.id}`}>
+                                    <Link href={`/admin/pedidos/${order.id}`}>
                                         <Button variant="ghost" size="sm" className="gap-2">
                                             <Eye className="h-4 w-4" />
                                             <span className="sr-only md:not-sr-only md:inline">Ver Detalles</span>
