@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { upsertProduct } from '../actions/product-actions';
+import { upsertProduct, searchProducts } from '../actions/product-actions';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
@@ -218,5 +218,83 @@ describe('getFlavors', () => {
         const { getFlavors } = await import('../actions/product-actions');
         const result = await getFlavors();
         expect(result).toEqual(mockFlavors);
+    });
+});
+
+describe('searchProducts', () => {
+    
+    beforeEach(() =>{
+        vi.clearAllMocks();
+    })
+    it('debería retornar un array vacío si la query está vacía o tiene menos de 3 caracteres', async () => {
+        expect(await searchProducts('')).toEqual([]);
+        expect(await searchProducts('ab')).toEqual([]);
+        
+        // Verificamos que Prisma no fue llamado innecesariamente
+        expect(prisma.product.findMany).not.toHaveBeenCalled(); 
+    });
+
+    it('debería llamar a la base de datos y formatear correctamente los productos encontrados', async () => {
+        const mockPrismaProducts = [
+            {
+                id: '1',
+                name: 'Galleta de Chocolate',
+                slug: 'galleta-de-chocolate',
+                price: { toNumber: () => 15.50 },
+                image: 'chocolate.jpg',
+                flavors: [
+                    { flavor: { name: 'Chocolate' } },
+                    { flavor: { name: 'Vainilla' } },
+                ],
+            },
+        ];
+
+        // Usamos vi.mocked para mantener tu estilo de mocks
+        vi.mocked(prisma.product.findMany).mockResolvedValue(mockPrismaProducts as any);
+
+        const query = 'choco';
+        const limit = 5;
+        const result = await searchProducts(query, limit);
+
+        expect(prisma.product.findMany).toHaveBeenCalledWith({
+            where: {
+                isActive: true,
+                OR: [
+                    { name: { contains: query } },
+                    { flavors: { some: { flavor: { name: { contains: query } } } } },
+                ],
+            },
+            take: limit,
+            include: {
+                flavors: {
+                    include: { flavor: true },
+                },
+            },
+        });
+
+        expect(result).toEqual([
+            {
+                id: '1',
+                name: 'Galleta de Chocolate',
+                slug: 'galleta-de-chocolate',
+                price: 15.50,
+                flavorText: 'Chocolate, Vainilla',
+                image: 'chocolate.jpg',
+            },
+        ]);
+    });
+
+    it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const dbError = new Error('Error de conexión');
+        
+        vi.mocked(prisma.product.findMany).mockRejectedValueOnce(dbError);
+
+        const result = await searchProducts('galleta');
+
+        expect(consoleSpy).toHaveBeenCalledWith("Error buscando productos:", dbError);
+        expect(result).toEqual([]);
+        
+        consoleSpy.mockRestore(); // Limpiamos el espía
     });
 });

@@ -176,6 +176,19 @@ model Favorite {
   @@index([userId], map: "Favorite_userId_fkey")
 }
 
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  schedule  String?
+  latitude  Float
+  longitude Float
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   USER
   ADMIN
