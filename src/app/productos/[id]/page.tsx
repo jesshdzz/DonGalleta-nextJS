@@ -1,4 +1,5 @@
 import { getProducts } from "@/actions/product-actions";
+import { isFavorite } from "@/actions/favorite-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
 import Image from "next/image";
@@ -32,7 +33,10 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
-  // 3. Lógica de imagen (Placeholder si está vacía)
+  // 3. Consultar si este producto está en favoritos del usuario
+  const { isFavorite: isProductFavorite } = await isFavorite(productId);
+
+  // 4. Lógica de imagen (Placeholder si está vacía)
   const imageUrl = product.image && product.image.trim() !== "" 
     ? product.image 
     : "https://placehold.co/600x600/png?text=Sin+Imagen";
@@ -74,6 +78,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <div className="mt-1">
                   <FavoriteButton 
                     productId={product.id}
+                    initialIsFavorite={isProductFavorite}
                     size="lg"
                     variant="outline"
                   />

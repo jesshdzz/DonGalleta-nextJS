@@ -1,5 +1,6 @@
 import ProductFilter from '@/components/ui/filters/ProductsFilter';
 import { getFilteredProducts, getFlavors } from '@/actions/product-actions';
+import { getUserFavoriteIds } from '@/actions/favorite-actions';
 import ProductoItem from '@/components/carro/ProductoItem';
 import { Cookie } from "lucide-react";
 import Link from "next/link";
@@ -19,10 +20,11 @@ export default async function ProductosPage({ searchParams }: Props) {
   const flavors = typeof flavorsParam === 'string' ? flavorsParam.split(',') : [];
   const query = typeof queryParam === 'string' ? queryParam : "";
 
-  // 3. Pasamos AMBOS filtros a la base de datos
-  const [products, availableFlavors] = await Promise.all([
+  // 3. Pasamos AMBOS filtros a la base de datos + consultamos favoritos
+  const [products, availableFlavors, { favoriteIds }] = await Promise.all([
     getFilteredProducts({ flavors, query }), // <-- Pasamos el texto también
-    getFlavors()
+    getFlavors(),
+    getUserFavoriteIds() // <-- Obtenemos los favoritos del usuario
   ]);
 
   return (
@@ -55,7 +57,11 @@ export default async function ProductosPage({ searchParams }: Props) {
           {products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {products.map((product) => (
-                <ProductoItem key={product.id} product={product} />
+                <ProductoItem 
+                  key={product.id} 
+                  product={product} 
+                  initialIsFavorite={favoriteIds.includes(product.id)}
+                />
               ))}
             </div>
           ) : (

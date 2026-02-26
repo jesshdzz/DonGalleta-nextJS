@@ -169,6 +169,34 @@ export async function getUserFavorites() {
 }
 
 /**
+ * Obtiene los IDs de productos favoritos del usuario (más eficiente para listas)
+ */
+export async function getUserFavoriteIds() {
+  try {
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return { favoriteIds: [] };
+    }
+
+    const favorites = await prisma.favorite.findMany({
+      where: {
+        userId: session.user.id
+      },
+      select: {
+        productId: true
+      }
+    });
+
+    const favoriteIds = favorites.map(fav => fav.productId);
+    return { favoriteIds };
+  } catch (error) {
+    console.error("Error obteniendo IDs de favoritos:", error);
+    return { favoriteIds: [] };
+  }
+}
+
+/**
  * Verifica si un producto específico está en favoritos del usuario
  */
 export async function isFavorite(productId: number) {
