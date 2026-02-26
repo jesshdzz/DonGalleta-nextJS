@@ -4,10 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/actions/product-actions";
+import { getUserFavoriteIds } from "@/actions/favorite-actions";
 import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
+import FavoriteButton from "@/components/ui/favorite-button";
 
 export async function ProductCarousel() {
-    const products = await getProducts();
+    // Obtener productos y favoritos del usuario
+    const [products, { favoriteIds }] = await Promise.all([
+        getProducts(),
+        getUserFavoriteIds()
+    ]);
+    
     const featuredProducts = products.slice(0, 4); // Show only first 4 for now
 
     return (
@@ -42,6 +49,17 @@ export async function ProductCarousel() {
                                         Sin imagen
                                     </div>
                                 )}
+                                
+                                {/* Botón de favoritos */}
+                                <div className="absolute top-2 right-2">
+                                    <FavoriteButton 
+                                        productId={product.id}
+                                        initialIsFavorite={favoriteIds.includes(product.id)}
+                                        size="sm"
+                                        variant="ghost"
+                                    />
+                                </div>
+                                
                                 {!product.stock && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                                         <Badge variant="destructive" className="text-sm">Agotado</Badge>
