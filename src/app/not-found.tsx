@@ -4,7 +4,7 @@ import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-linear-to-b from-amber-50 to-white flex items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center">
         {/* Ilustración de galleta mordida */}
         <div className="mb-8 flex justify-center">
@@ -22,7 +22,7 @@ export default function NotFoundPage() {
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-white rounded-full border-4 border-white"></div>
               
               {/* Textura de galleta */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-amber-200 opacity-50 rounded-full"></div>
+              <div className="absolute inset-0 bg-linear-to-br from-amber-100 to-amber-200 opacity-50 rounded-full"></div>
             </div>
             
             {/* Migas de galleta */}
