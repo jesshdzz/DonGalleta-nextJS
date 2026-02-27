@@ -1,7 +1,9 @@
 "use client";
+
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -15,50 +17,16 @@ export default function CartPage() {
     clearCart,
     totalItems,
     totalPrice,
-    checkout
   } = useCart();
 
-  const [isCheckoutSuccess, setIsCheckoutSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     setIsLoading(true);
-    try {
-      const success = await checkout();
-      if (success) {
-        setIsCheckoutSuccess(true);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error de conexión. Verifica tu red.");
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirigimos a la pasarela de pago
+    router.push("/pago");
   };
-
-  // --- ESTADO: COMPRA EXITOSA ---
-  if (isCheckoutSuccess) {
-    return (
-      <div className="w-full min-h-[80vh] flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center p-6 border-primary/20 bg-secondary/10 shadow-lg">
-          <CardContent className="space-y-6 pt-6">
-            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-              <CheckCircle2 className="w-12 h-12 text-green-600" />
-            </div>
-            <div className="space-y-3">
-              <h2 className="text-3xl font-serif font-bold text-primary">¡Gracias por tu compra!</h2>
-              <p className="text-muted-foreground">
-                Tu pedido ha sido procesado correctamente. ¡Disfruta tus galletas!
-              </p>
-            </div>
-            <Link href="/productos">
-              <Button className="w-full mt-4 font-bold" size="lg">Volver a la Tienda</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // --- ESTADO: CARRITO VACÍO ---
   if (cart.length === 0) {
@@ -147,7 +115,7 @@ export default function CartPage() {
                   onClick={handleCheckout}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Procesando...' : 'Proceder al Pago'}
+                  {isLoading ? 'Redirigiendo...' : 'Proceder al Pago'}
                 </Button>
                 <div className="text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
                   🔒 Pagos seguros y encriptados
