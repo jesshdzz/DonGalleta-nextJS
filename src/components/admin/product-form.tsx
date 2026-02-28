@@ -27,7 +27,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
     // 1. Configuración del formulario
     // Usamos z.input<typeof productSchema> para que useForm acepte los valores "raw" (strings) antes de la coerción
     // y ProductFormValues para los valores transformados (números) que recibe handleSubmit
-    const form = useForm<z.input<typeof productSchema>, any, ProductFormValues>({
+    const form = useForm<z.input<typeof productSchema>, unknown, ProductFormValues>({
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: defaultValues?.name || "",
@@ -232,7 +232,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                             />
                         ))}
                         {availableFlavors.length === 0 && (
-                            <p className="text-sm text-muted-foreground col-span-3">No hay sabores registrados. Ve a "Sabores" para crear uno.</p>
+                            <p className="text-sm text-muted-foreground col-span-3">No hay sabores registrados. Ve a &quot;Sabores&quot; para crear uno.</p>
                         )}
                     </div>
                     <FormMessage />

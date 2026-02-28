@@ -3,8 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
-import { flattenError, includes } from "zod";
-import { tr } from "zod/v4/locales";
+import { auth } from "@/auth";
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
@@ -35,6 +34,13 @@ export async function checkout(
   items: { productId: number; quantity: number }[],
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      console.log("[AUTH-CHECKOUT] No valid session found. Blocking guest checkout.");
+      return { success: false, message: "Regístrate para procesar tu carrito.", isAuthError: true };
+    }
+    console.log(`[AUTH-CHECKOUT] Session valid for user: ${session.user.email || session.user.id}`);
+
     // Verificar stock de todos primero
     for (const item of items) {
       const currentStock = await checkStock(item.productId);
@@ -67,7 +73,7 @@ export async function checkout(
 }
 
 // --- CREAR / EDITAR PRODUCTO ---
-export async function upsertProduct(prevState: any, formData: FormData) {
+export async function upsertProduct(prevState: unknown, formData: FormData) {
   // 1. Convertir FormData a objeto simple para Zod
   const rawData = {
     name: formData.get("name"),
@@ -142,7 +148,7 @@ export async function deleteProduct(id: number) {
     revalidatePath("/admin/productos");
     revalidatePath("/productos");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { message: "No se pudo eliminar el producto" };
   }
 }

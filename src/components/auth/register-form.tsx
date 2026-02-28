@@ -28,19 +28,21 @@ export const RegisterForm = () => {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Estado y Referencia para el Captcha
   const [captchaToken, setCaptchaToken] = useState<string>('');
   const turnstileRef = useRef<TurnstileInstance>(null);
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(RegisterSchema),
+  });
 
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting }
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(RegisterSchema),
-  });
+  } = form;
 
   const onSubmit = async (data: RegisterFormValues) => {
     setServerError('');
@@ -79,7 +81,7 @@ export const RegisterForm = () => {
           router.refresh();
         }, 1500);
       }
-    } catch (error) {
+    } catch {
       setServerError('Ocurrió un error inesperado. Inténtalo de nuevo.');
       turnstileRef.current?.reset();
     }
@@ -94,7 +96,7 @@ export const RegisterForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-4">
 
           {/* Nombre */}
           <div className="space-y-2">

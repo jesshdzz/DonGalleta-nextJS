@@ -24,7 +24,7 @@ describe('registerUser', () => {
         vi.clearAllMocks();
         global.fetch = vi.fn().mockResolvedValue({
             json: vi.fn().mockResolvedValue({ success: true })
-        } as any);
+        } as never);
     });
 
     it('debería retornar error para datos inválidos', async () => {
@@ -41,7 +41,7 @@ describe('registerUser', () => {
     });
 
     it('debería retornar error si el usuario ya existe', async () => {
-        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1', email: 'test@example.com' } as any);
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1', email: 'test@example.com' } as never);
 
         const formData = new FormData();
         formData.append('cf-turnstile-response', 'valid-token');
@@ -59,7 +59,7 @@ describe('registerUser', () => {
     it('debería crear el usuario exitosamente', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
         vi.mocked(bcrypt.hash).mockResolvedValueOnce('hashed-password' as never);
-        vi.mocked(prisma.user.create).mockResolvedValueOnce({ id: '1' } as any);
+        vi.mocked(prisma.user.create).mockResolvedValueOnce({ id: '1' } as never);
 
         const formData = new FormData();
         formData.append('cf-turnstile-response', 'valid-token');

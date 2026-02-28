@@ -13,7 +13,7 @@ export async function getFlavors() {
 }
 
 // --- CREAR / EDITAR SABOR ---
-export async function upsertFlavor(prevState: any, formData: FormData) {
+export async function upsertFlavor(prevState: unknown, formData: FormData) {
     const rawData = {
         name: formData.get("name"),
     };
@@ -46,9 +46,9 @@ export async function upsertFlavor(prevState: any, formData: FormData) {
         revalidatePath("/admin/productos/nuevo");
         revalidatePath("/admin/productos/[id]/editar");
         return { success: true, message: "Sabor guardado correctamente" };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(error);
-        if (error.code === 'P2002') {
+        if (error instanceof Error && (error as { code?: string }).code === 'P2002') {
             return { success: false, message: "Ya existe un sabor con ese nombre" };
         }
         return { success: false, message: "Error al guardar el sabor" };
@@ -63,7 +63,7 @@ export async function deleteFlavor(id: number) {
         });
         revalidatePath("/admin/sabores");
         return { success: true, message: "Sabor eliminado" };
-    } catch (error) {
+    } catch {
         return { success: false, message: "No se pudo eliminar el sabor" };
     }
 }

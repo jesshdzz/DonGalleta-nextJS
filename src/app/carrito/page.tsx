@@ -3,13 +3,15 @@ import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function CartPage() {
+  const router = useRouter();
   const {
     cart,
     clearCart,
@@ -24,13 +26,16 @@ export default function CartPage() {
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
-      const success = await checkout();
-      if (success) {
+      const result = await checkout();
+      if (result.success) {
         setIsCheckoutSuccess(true);
+      } else if (result.isAuthError) {
+        // Redirigir si no hay sesión y notificar
+        toast.info(result.message || "Regístrate para procesar tu carrito.");
+        router.push('/auth/login');
+      } else {
+        toast.error(result.message || "Error processing checkout.");
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error de conexión. Verifica tu red.");
     } finally {
       setIsLoading(false);
     }

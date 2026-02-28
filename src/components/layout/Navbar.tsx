@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2 } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
+import { signOut } from "next-auth/react";
+
+export type UserSession = { id?: string; name?: string | null; email?: string | null; role?: string; } | undefined | null;
 
 type SearchResult = {
   id: number;
@@ -21,10 +24,65 @@ type SearchResult = {
   image?: string | null;
 };
 
-export function Navbar() {
+function SearchDropdownComponent({
+  searchQuery,
+  isSearching,
+  searchResults,
+  setSearchQuery,
+  setIsMobileSearchOpen,
+}: {
+  searchQuery: string;
+  isSearching: boolean;
+  searchResults: SearchResult[];
+  setSearchQuery: (q: string) => void;
+  setIsMobileSearchOpen: (open: boolean) => void;
+}) {
+  if (searchQuery.length < 3) return null;
+
+  return (
+    <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+      {isSearching ? (
+        <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Buscando...
+        </div>
+      ) : searchResults.length > 0 ? (
+        <ul className="py-2">
+          {searchResults.map((product) => (
+            <li key={product.id}>
+              <Link
+                href={`/productos/${product.id}`}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
+                onClick={() => {
+                  setSearchQuery("");
+                  setIsMobileSearchOpen(false);
+                }}
+              >
+                <Cookie className="h-5 w-5 text-primary" />
+
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold">{product.name}</span>
+                  <span className="text-xs text-muted-foreground italic">
+                    {product.flavorText || "Clásica"}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+          No encontramos galletas con &quot;{searchQuery}&quot;
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Navbar({ user }: { user?: UserSession }) {
   const { totalItems } = useCart();
   const pathname = usePathname();
-  const router = useRouter(); // Inicializamos el router
+  const router = useRouter();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -34,14 +92,13 @@ export function Navbar() {
     if (e.key === "Enter" && searchQuery.trim().length > 0) {
       setIsMobileSearchOpen(false);
       setSearchResults([]);
-      // Redirigimos a la nueva página
       router.push(`/productos?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  // ... (tu useEffect se queda igualito)  // BUSCADOR CON DEBOUNCE
   useEffect(() => {
     if (searchQuery.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchResults([]);
       setIsSearching(false);
       return;
@@ -59,50 +116,6 @@ export function Navbar() {
   }, [searchQuery]);
 
   if (shouldHideLayout(pathname)) return null;
-
-  // DROPDOWN DE RESULTADOS
-  const SearchDropdown = () => {
-    if (searchQuery.length < 3) return null;
-
-    return (
-      <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-        {isSearching ? (
-          <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Buscando...
-          </div>
-        ) : searchResults.length > 0 ? (
-          <ul className="py-2">
-            {searchResults.map((product) => (
-              <li key={product.id}>
-                <Link
-                  href={`/productos/${product.id}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setIsMobileSearchOpen(false);
-                  }}
-                >
-                  <Cookie className="h-5 w-5 text-primary" />
-
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold">{product.name}</span>
-                    <span className="text-xs text-muted-foreground italic">
-                      {product.flavorText || "Clásica"}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-            No encontramos galletas con "{searchQuery}"
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
@@ -124,7 +137,13 @@ export function Navbar() {
                   className="w-full pl-8 pr-4"
                 />
 
-                <SearchDropdown />
+                <SearchDropdownComponent
+                  searchQuery={searchQuery}
+                  isSearching={isSearching}
+                  searchResults={searchResults}
+                  setSearchQuery={setSearchQuery}
+                  setIsMobileSearchOpen={setIsMobileSearchOpen}
+                />
               </div>
 
               <Button
@@ -147,75 +166,98 @@ export function Navbar() {
           </SheetTrigger>
 
           <SheetContent side="left" className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]">
-          <SheetTitle className="sr-only">Menú</SheetTitle>
+            <SheetTitle className="sr-only">Menú</SheetTitle>
 
-          {/* 1. CABECERA: Fondo sutil para destacar el logo */}
-          <div className="p-6 border-b border-[#A6A3A2]/30 bg-[#F7DCBE]/10 flex justify-center">
-            <SheetClose asChild>
-              <Link href="/">
-                <Image src={Logo} alt="Don Galleta Logo" width={140} height={80} className="object-contain drop-shadow-sm" />
-              </Link>
-            </SheetClose>
-          </div>
+            {/* 1. CABECERA: Fondo sutil para destacar el logo */}
+            <div className="p-6 border-b border-[#A6A3A2]/30 bg-[#F7DCBE]/10 flex justify-center">
+              <SheetClose asChild>
+                <Link href="/">
+                  <Image src={Logo} alt="Don Galleta Logo" width={140} height={80} className="object-contain drop-shadow-sm" />
+                </Link>
+              </SheetClose>
+            </div>
 
-          {/* 2. CUERPO: Enlaces estilo "Píldora/Botón" */}
-          <nav className="flex-1 flex flex-col gap-2 p-4 mt-2 overflow-y-auto">
-            
-            <SheetClose asChild>
-              <Link 
-                href="/" 
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
-              >
-                <Home className="size-5" />
-                Inicio
-              </Link>
-            </SheetClose>
+            {/* 2. CUERPO: Enlaces estilo "Píldora/Botón" */}
+            <nav className="flex-1 flex flex-col gap-2 p-4 mt-2 overflow-y-auto">
 
-            <SheetClose asChild>
-              <Link 
-                href="/productos" 
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
-              >
-                <Cookie className="size-5" />
-                Productos
-              </Link>
-            </SheetClose>
+              <SheetClose asChild>
+                <Link
+                  href="/"
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+                >
+                  <Home className="size-5" />
+                  Inicio
+                </Link>
+              </SheetClose>
 
-            <SheetClose asChild>
-              <Link 
-                href="/promociones" 
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
-              >
-                <Tag className="size-5" />
-                Promociones
-              </Link>
-            </SheetClose>
+              {user && (
+                <>
+                  <SheetClose asChild>
+                    <Link
+                      href={user.role === 'ADMIN' ? "/admin/productos" : "/"}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+                    >
+                      <User className="size-5" />
+                      Mi Cuenta
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
+                    >
+                      <LogOut className="size-5" />
+                      Cerrar Sesión
+                    </button>
+                  </SheetClose>
+                </>
+              )}
 
-            <SheetClose asChild>
-              <button
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all w-full text-left"
-                onClick={() => {
-                  setTimeout(() => {
-                    const footer = document.getElementById("footer-section");
-                    if (footer) {
-                      footer.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }, 150);
-                }}
-              >
-                <Phone className="size-5" />
-                Contacto
-              </button>
-            </SheetClose>
-          </nav>
+              <SheetClose asChild>
+                <Link
+                  href="/productos"
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+                >
+                  <Cookie className="size-5" />
+                  Productos
+                </Link>
+              </SheetClose>
 
-          {/* 3. PIE: Un toque decorativo de marca al fondo */}
-          <div className="p-6 border-t border-[#A6A3A2]/30 bg-[#F7DCBE]/20 mt-auto">
-            <p className="text-center text-sm font-bold text-[#58321D]">
-              ¡Horneadas con amor! 🍪
-            </p>
-          </div>
-        </SheetContent>
+              <SheetClose asChild>
+                <Link
+                  href="/promociones"
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+                >
+                  <Tag className="size-5" />
+                  Promociones
+                </Link>
+              </SheetClose>
+
+              <SheetClose asChild>
+                <button
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all w-full text-left"
+                  onClick={() => {
+                    setTimeout(() => {
+                      const footer = document.getElementById("footer-section");
+                      if (footer) {
+                        footer.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }, 150);
+                  }}
+                >
+                  <Phone className="size-5" />
+                  Contacto
+                </button>
+              </SheetClose>
+            </nav>
+
+            {/* 3. PIE: Un toque decorativo de marca al fondo */}
+            <div className="p-6 border-t border-[#A6A3A2]/30 bg-[#F7DCBE]/20 mt-auto">
+              <p className="text-center text-sm font-bold text-[#58321D]">
+                ¡Horneadas con amor! 🍪
+              </p>
+            </div>
+          </SheetContent>
         </Sheet>
 
         {/* LOGO */}
@@ -237,7 +279,13 @@ export function Navbar() {
               className="w-full pl-8"
             />
 
-            <SearchDropdown />
+            <SearchDropdownComponent
+              searchQuery={searchQuery}
+              isSearching={isSearching}
+              searchResults={searchResults}
+              setSearchQuery={setSearchQuery}
+              setIsMobileSearchOpen={setIsMobileSearchOpen}
+            />
           </div>
         </div>
 
@@ -268,23 +316,48 @@ export function Navbar() {
 
           {/* AUTH DESKTOP */}
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/auth/login">
-              <Button variant="ghost" size="sm">
-                Iniciar Sesión
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+                  <Button variant="ghost" size="sm">
+                    <User className="mr-2 h-4 w-4" /> Mi Cuenta
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
+                  <LogOut className="mr-2 h-4 w-4" /> Salir
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
 
-            <Link href="/auth/register">
-              <Button size="sm">Registrarse</Button>
-            </Link>
+                <Link href="/auth/register">
+                  <Button size="sm">Registrarse</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* AUTH MOBILE */}
-          <Link href="/auth/login" className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
+          <div className="md:hidden">
+            {user ? (
+              <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/auth/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>

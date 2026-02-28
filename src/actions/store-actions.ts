@@ -13,7 +13,7 @@ export async function getStores() {
 }
 
 // --- CREAR / EDITAR TIENDA ---
-export async function upsertStore(prevState: any, formData: FormData) {
+export async function upsertStore(prevState: unknown, formData: FormData) {
     // 1. Convertir FormData a objeto simple para Zod
     const rawData = {
         name: formData.get("name"),
@@ -74,7 +74,7 @@ export async function deleteStore(id: string) {
         });
         revalidatePath("/admin/tiendas");
         return { success: true };
-    } catch (error) {
+    } catch {
         return { message: "No se pudo eliminar la sucursal" };
     }
 }
