@@ -52,6 +52,9 @@ describe('upsertProduct', () => {
                 slug: 'new-product',
                 image: 'https://example.com/image.jpg',
                 isActive: true,
+                flavors: {
+                    create: [],
+                },
             },
         });
         expect(revalidatePath).toHaveBeenCalledWith('/admin/productos');
@@ -82,6 +85,10 @@ describe('upsertProduct', () => {
                 slug: 'updated-product',
                 image: '',
                 isActive: true,
+                flavors: {
+                    create: [],
+                    deleteMany: {},
+                },
             },
         });
         expect(revalidatePath).toHaveBeenCalledTimes(2);
@@ -222,16 +229,16 @@ describe('getFlavors', () => {
 });
 
 describe('searchProducts', () => {
-    
-    beforeEach(() =>{
+
+    beforeEach(() => {
         vi.clearAllMocks();
     })
     it('debería retornar un array vacío si la query está vacía o tiene menos de 3 caracteres', async () => {
         expect(await searchProducts('')).toEqual([]);
         expect(await searchProducts('ab')).toEqual([]);
-        
+
         // Verificamos que Prisma no fue llamado innecesariamente
-        expect(prisma.product.findMany).not.toHaveBeenCalled(); 
+        expect(prisma.product.findMany).not.toHaveBeenCalled();
     });
 
     it('debería llamar a la base de datos y formatear correctamente los productos encontrados', async () => {
@@ -285,16 +292,16 @@ describe('searchProducts', () => {
     });
 
     it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         const dbError = new Error('Error de conexión');
-        
+
         vi.mocked(prisma.product.findMany).mockRejectedValueOnce(dbError);
 
         const result = await searchProducts('galleta');
 
         expect(consoleSpy).toHaveBeenCalledWith("Error buscando productos:", dbError);
         expect(result).toEqual([]);
-        
+
         consoleSpy.mockRestore(); // Limpiamos el espía
     });
 });
