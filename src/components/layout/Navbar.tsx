@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2 } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
+import { signOut } from "next-auth/react";
+
+export type UserSession = { id?: string; name?: string | null; email?: string | null; role?: string; } | undefined | null;
 
 type SearchResult = {
   id: number;
@@ -76,7 +79,7 @@ function SearchDropdownComponent({
   );
 }
 
-export function Navbar() {
+export function Navbar({ user }: { user?: UserSession }) {
   const { totalItems } = useCart();
   const pathname = usePathname();
   const router = useRouter();
@@ -187,6 +190,29 @@ export function Navbar() {
                 </Link>
               </SheetClose>
 
+              {user && (
+                <>
+                  <SheetClose asChild>
+                    <Link
+                      href={user.role === 'ADMIN' ? "/admin/productos" : "/"}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
+                    >
+                      <User className="size-5" />
+                      Mi Cuenta
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
+                    >
+                      <LogOut className="size-5" />
+                      Cerrar Sesión
+                    </button>
+                  </SheetClose>
+                </>
+              )}
+
               <SheetClose asChild>
                 <Link
                   href="/productos"
@@ -290,23 +316,48 @@ export function Navbar() {
 
           {/* AUTH DESKTOP */}
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/auth/login">
-              <Button variant="ghost" size="sm">
-                Iniciar Sesión
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+                  <Button variant="ghost" size="sm">
+                    <User className="mr-2 h-4 w-4" /> Mi Cuenta
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
+                  <LogOut className="mr-2 h-4 w-4" /> Salir
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
 
-            <Link href="/auth/register">
-              <Button size="sm">Registrarse</Button>
-            </Link>
+                <Link href="/auth/register">
+                  <Button size="sm">Registrarse</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* AUTH MOBILE */}
-          <Link href="/auth/login" className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
+          <div className="md:hidden">
+            {user ? (
+              <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/auth/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>
