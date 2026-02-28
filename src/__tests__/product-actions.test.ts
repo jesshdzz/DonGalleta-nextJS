@@ -21,6 +21,10 @@ vi.mock('@/lib/prisma', () => ({
     },
 }));
 
+vi.mock('@/auth', () => ({
+    auth: vi.fn().mockResolvedValue({ user: { id: '123' } }),
+}));
+
 vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
 }));

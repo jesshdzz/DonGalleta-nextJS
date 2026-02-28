@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
@@ -33,6 +34,11 @@ export async function checkout(
   items: { productId: number; quantity: number }[],
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, message: "Regístrate para procesar tu carrito." };
+    }
+
     // Verificar stock de todos primero
     for (const item of items) {
       const currentStock = await checkStock(item.productId);

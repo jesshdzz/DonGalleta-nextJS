@@ -7,9 +7,10 @@ import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
+  const router = useRouter();
   const {
     cart,
     clearCart,
@@ -24,13 +25,13 @@ export default function CartPage() {
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
-      const success = await checkout();
-      if (success) {
+      const result = await checkout();
+      if (result.success) {
         setIsCheckoutSuccess(true);
+      } else if (result.message === "Regístrate para procesar tu carrito.") {
+        // Redirigir si no hay sesión
+        router.push('/auth/login');
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error de conexión. Verifica tu red.");
     } finally {
       setIsLoading(false);
     }

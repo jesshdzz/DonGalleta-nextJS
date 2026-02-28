@@ -29,7 +29,7 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
-  checkout: () => Promise<boolean>;
+  checkout: () => Promise<{ success: boolean; message?: string }>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -160,15 +160,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (result.success) {
         clearCart();
         toast.success("¡Compra realizada con éxito!");
-        return true;
+        return { success: true };
       } else {
         toast.error(result.message || "Error al procesar la compra.");
-        return false;
+        return { success: false, message: result.message };
       }
     } catch (error) {
       console.error("Error durante el checkout:", error);
       toast.error("Ocurrió un error inesperado.");
-      return false;
+      return { success: false, message: "Error inesperado" };
     }
   };
 
