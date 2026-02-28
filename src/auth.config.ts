@@ -10,10 +10,9 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isOnAdmin = nextUrl.pathname.startsWith('/admin');
 
-      // Protección de Rutas de Admin
-      if (isOnAdmin) {
-        if (isLoggedIn) return true; // TODO: Agregar validación de rol aquí después
-        return false; // Redirigir al login
+      // Protección de Rutas de Admin (Si no hay sesión redirige al login. El rol se valida en app/admin/layout.tsx)
+      if (isOnAdmin && !isLoggedIn) {
+        return false;
       }
 
       // Permitir acceso a todo lo demás por defecto
