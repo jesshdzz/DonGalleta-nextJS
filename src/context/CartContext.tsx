@@ -29,7 +29,7 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
-  checkout: () => Promise<{ success: boolean; message?: string }>;
+  checkout: () => Promise<{ success: boolean; message?: string; isAuthError?: boolean }>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -162,8 +162,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         toast.success("¡Compra realizada con éxito!");
         return { success: true };
       } else {
-        toast.error(result.message || "Error al procesar la compra.");
-        return { success: false, message: result.message };
+        if (!result.isAuthError) {
+          toast.error(result.message || "Error al procesar la compra.");
+        }
+        return { success: false, message: result.message, isAuthError: result.isAuthError };
       }
     } catch (error) {
       console.error("Error durante el checkout:", error);
