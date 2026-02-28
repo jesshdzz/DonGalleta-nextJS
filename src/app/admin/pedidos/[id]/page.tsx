@@ -2,6 +2,7 @@ import { getAdminOrderById } from "@/actions/orders-actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Cookie } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -75,7 +76,7 @@ export default async function AdminOrderDetailsPage({
                                     <div key={item.id} className="flex items-center justify-between pb-4 border-b last:border-0 last:pb-0">
                                         <div className="flex items-center gap-4">
                                             {item.product.image ? (
-                                                <img src={item.product.image} alt={item.product.name} className="h-16 w-16 rounded-md object-cover border" />
+                                                <Image src={item.product.image} alt={item.product.name} width={64} height={64} className="h-16 w-16 rounded-md object-cover border" />
                                             ) : (
                                                 <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center border">
                                                     <Cookie className="h-6 w-6 text-muted-foreground" />

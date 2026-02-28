@@ -138,7 +138,7 @@ describe('getProducts', () => {
             { id: 1, name: 'P1', price: { toNumber: () => 10.5 }, stock: 5 },
             { id: 2, name: 'P2', price: { toNumber: () => 20.0 }, stock: 10 },
         ];
-        vi.mocked(prisma.product.findMany).mockResolvedValue(mockProducts as any);
+        vi.mocked(prisma.product.findMany).mockResolvedValue(mockProducts as never);
 
         const { getProducts } = await import('../actions/product-actions');
         const result = await getProducts();
@@ -151,7 +151,7 @@ describe('getProducts', () => {
 
 describe('checkStock', () => {
     it('debería retornar el stock correcto', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as never);
         const { checkStock } = await import('../actions/product-actions');
         const stock = await checkStock(1);
         expect(stock).toBe(15);
@@ -168,7 +168,7 @@ describe('checkStock', () => {
 describe('checkout', () => {
     it('debería fallar si el stock es insuficiente', async () => {
         // Mock checkStock behavior (findUnique)
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as never);
 
         const { checkout } = await import('../actions/product-actions');
         const result = await checkout([{ productId: 1, quantity: 5 }]);
@@ -178,8 +178,8 @@ describe('checkout', () => {
     });
 
     it('debería tener éxito y actualizar el stock', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as any);
-        vi.mocked(prisma.$transaction).mockResolvedValue([]);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
+        vi.mocked(prisma.$transaction).mockResolvedValue([] as never);
 
         const { checkout } = await import('../actions/product-actions');
         const result = await checkout([{ productId: 1, quantity: 5 }]);
@@ -189,7 +189,7 @@ describe('checkout', () => {
     });
 
     it('debería manejar errores durante el checkout', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
         vi.mocked(prisma.$transaction).mockRejectedValue(new Error('Tx Failed'));
 
         const { checkout } = await import('../actions/product-actions');
@@ -202,7 +202,7 @@ describe('checkout', () => {
 
 describe('deleteProduct', () => {
     it('debería eliminar el producto exitosamente', async () => {
-        vi.mocked(prisma.product.delete).mockResolvedValue({} as any);
+        vi.mocked(prisma.product.delete).mockResolvedValue({} as never);
         const { deleteProduct } = await import('../actions/product-actions');
         const result = await deleteProduct(1);
         expect(result.success).toBe(true);
@@ -221,7 +221,7 @@ describe('deleteProduct', () => {
 describe('getFlavors', () => {
     it('debería retornar sabores', async () => {
         const mockFlavors = [{ id: 1, name: 'Vainilla' }];
-        vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as any);
+        vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as never);
         const { getFlavors } = await import('../actions/product-actions');
         const result = await getFlavors();
         expect(result).toEqual(mockFlavors);
@@ -257,7 +257,7 @@ describe('searchProducts', () => {
         ];
 
         // Usamos vi.mocked para mantener tu estilo de mocks
-        vi.mocked(prisma.product.findMany).mockResolvedValue(mockPrismaProducts as any);
+        vi.mocked(prisma.product.findMany).mockResolvedValue(mockPrismaProducts as never);
 
         const query = 'choco';
         const limit = 5;

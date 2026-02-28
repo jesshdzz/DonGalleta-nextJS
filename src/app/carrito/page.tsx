@@ -3,7 +3,7 @@ import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";

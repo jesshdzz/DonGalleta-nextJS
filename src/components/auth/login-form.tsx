@@ -51,8 +51,8 @@ export const LoginForm = () => {
         router.push('/');
         router.refresh();
       }
-    } catch (error) {
-      setGlobalError('Ocurrió un error inesperado al iniciar sesión.');
+    } catch {
+      setGlobalError('Ocurrió un error inesperado al intentar iniciar sesión.');
     }
   };
 

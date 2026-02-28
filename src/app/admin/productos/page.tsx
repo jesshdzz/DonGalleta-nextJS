@@ -5,6 +5,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Plus, Package, Tag, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function AdminProductsPage() {
     const products = await getProducts();
@@ -56,7 +57,7 @@ export default async function AdminProductsPage() {
                             <TableRow key={product.id}>
                                 <TableCell>
                                     {product.image ? (
-                                        <img src={product.image} alt={product.name} className="h-10 w-10 rounded-md object-cover" />
+                                        <Image src={product.image} alt={product.name} width={40} height={40} className="h-10 w-10 rounded-md object-cover" />
                                     ) : (
                                         <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
                                             <Package className="h-5 w-5 text-muted-foreground" />
