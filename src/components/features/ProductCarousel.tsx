@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/actions/product-actions";
 import { getUserFavoriteIds } from "@/actions/favorite-actions";
@@ -71,19 +71,19 @@ export async function ProductCarousel() {
                                 <div className="text-xl font-bold text-primary">${product.price.toFixed(2)}</div>
                             </CardHeader>
                             <div className="pt-6 border-t border-border">
-                                        {product.stock > 0 ? (
-                                          <div className="space-y-4">
-                                            {/* Botón de Añadir al Carrito (Componente Cliente) */}
-                                            <div className="align-middle w-full">
-                                                <AddToCartCarousel product={{ ...product}} />
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <Button disabled size="lg" className="w-full text-lg opacity-80" variant="secondary">
-                                            No disponible por el momento
-                                          </Button>
-                                        )}
-                                      </div>
+                                {product.stock > 0 ? (
+                                    <div className="space-y-4">
+                                        {/* Botón de Añadir al Carrito (Componente Cliente) */}
+                                        <div className="align-middle w-full">
+                                            <AddToCartCarousel product={{ ...product }} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Button disabled size="lg" className="w-full text-lg opacity-80" variant="secondary">
+                                        No disponible por el momento
+                                    </Button>
+                                )}
+                            </div>
                             <CardFooter className="p-3 pt-0">
                                 <Link href={`/productos/${product.id}`} className="w-full">
                                     <Button className="w-full h-8 text-sm">Ver Detalles</Button>

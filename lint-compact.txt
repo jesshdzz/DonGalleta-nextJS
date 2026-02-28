@@ -1,0 +1,207 @@
+/home/jess/Documentos/don-galleta/src/__tests__/auth-actions.test.ts:
+  27:14 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/auth-actions.test.ts:
+  44:107 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/auth-actions.test.ts:
+  62:76 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  141:78 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  154:81 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  171:80 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  181:82 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  192:82 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  205:66 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  224:76 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/product-actions.test.ts:
+  260:84 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  56:78 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  140:68 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  162:68 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  164:17 warning 'isActive' is assigned a value but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  197:68 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/__tests__/store-actions.test.ts:
+  231:68 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/auth-actions.ts:
+  70:12 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/contact-actions.ts:
+  15:53 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/flavor-actions.ts:
+  16:47 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/flavor-actions.ts:
+  49:21 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/flavor-actions.ts:
+  66:14 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/product-actions.ts:
+  6:10 warning 'flattenError' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/product-actions.ts:
+  6:24 warning 'includes' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/product-actions.ts:
+  7:10 warning 'tr' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/product-actions.ts:
+  70:48 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/product-actions.ts:
+  145:12 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/actions/store-actions.ts:
+  16:46 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/actions/store-actions.ts:
+  77:14 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/app/admin/pedidos/[id]/page.tsx:
+  78:49 warning Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element (@next/next/no-img-element)
+/home/jess/Documentos/don-galleta/src/app/admin/productos/page.tsx:
+  59:41 warning Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element (@next/next/no-img-element)
+/home/jess/Documentos/don-galleta/src/app/carrito/page.tsx:
+  6:41 warning 'CardHeader' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/app/productos/page.tsx:
+  38:71 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/app/productos/page.tsx:
+  38:79 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/auth.config.ts:
+  12:13 warning 'isOnCart' is assigned a value but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/auth.config.ts:
+  28:7 error Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free. (@typescript-eslint/ban-ts-comment)
+/home/jess/Documentos/don-galleta/src/auth.config.ts:
+  30:9 error Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free. (@typescript-eslint/ban-ts-comment)
+/home/jess/Documentos/don-galleta/src/auth.config.ts:
+  38:9 error Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free. (@typescript-eslint/ban-ts-comment)
+/home/jess/Documentos/don-galleta/src/components/admin/flavor-form.tsx:
+  28:11 warning 'router' is assigned a value but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/components/admin/product-form.tsx:
+  30:57 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/components/admin/product-form.tsx:
+  235:118 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/components/admin/product-form.tsx:
+  235:126 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/components/admin/store-form.tsx:
+  24:55 error Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+/home/jess/Documentos/don-galleta/src/components/auth/login-form.tsx:
+  54:14 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/components/auth/register-form.tsx:
+  82:14 warning 'error' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/components/auth/register-form.tsx:
+  97:38 error Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/jess/Documentos/don-galleta/src/components/auth/register-form.tsx:97:38
+   95 |       </CardHeader>
+   96 |       <CardContent>
+>  97 |         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      |                                      ^^^^^^^^ Passing a ref to a function may read its value during render
+   98 |
+   99 |           {/* Nombre */}
+  100 |           <div className="space-y-2"> (react-hooks/refs)
+/home/jess/Documentos/don-galleta/src/components/carro/ProductoItem.tsx:
+  4:41 warning 'CardHeader' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/components/features/ProductCarousel.tsx:
+  4:16 warning 'CardContent' is defined but never used. (@typescript-eslint/no-unused-vars)
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:
+  45:7 error Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:45:7
+  43 |   useEffect(() => {
+  44 |     if (searchQuery.length < 3) {
+> 45 |       setSearchResults([]);
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |       setIsSearching(false);
+  47 |       return;
+  48 |     } (react-hooks/set-state-in-effect)
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:
+  100:41 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:
+  100:55 error `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`. (react/no-unescaped-entities)
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:
+  127:18 error Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:127:18
+  125 |                 />
+  126 |
+> 127 |                 <SearchDropdown />
+      |                  ^^^^^^^^^^^^^^ This component is created during render
+  128 |               </div>
+  129 |
+  130 |               <Button
+
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:64:26
+   62 |
+   63 |   // DROPDOWN DE RESULTADOS
+>  64 |   const SearchDropdown = () => {
+      |                          ^^^^^^^
+>  65 |     if (searchQuery.length < 3) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  66 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 104 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 105 |   };
+      | ^^^^ The component is created during render here
+  106 |
+  107 |   return (
+  108 |     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur"> (react-hooks/static-components)
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:
+  240:14 error Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:240:14
+  238 |             />
+  239 |
+> 240 |             <SearchDropdown />
+      |              ^^^^^^^^^^^^^^ This component is created during render
+  241 |           </div>
+  242 |         </div>
+  243 |
+
+/home/jess/Documentos/don-galleta/src/components/layout/Navbar.tsx:64:26
+   62 |
+   63 |   // DROPDOWN DE RESULTADOS
+>  64 |   const SearchDropdown = () => {
+      |                          ^^^^^^^
+>  65 |     if (searchQuery.length < 3) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  66 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 104 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 105 |   };
+      | ^^^^ The component is created during render here
+  106 |
+  107 |   return (
+  108 |     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur"> (react-hooks/static-components)
+/home/jess/Documentos/don-galleta/src/context/CartContext.tsx:
+  45:9 error Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/jess/Documentos/don-galleta/src/context/CartContext.tsx:45:9
+  43 |       const savedCart = localStorage.getItem('cart');
+  44 |       if (savedCart) {
+> 45 |         setCart(JSON.parse(savedCart));
+     |         ^^^^^^^ Avoid calling setState() directly within an effect
+  46 |       }
+  47 |     } catch (error) {
+  48 |       console.error('Error al cargar el carrito:', error); (react-hooks/set-state-in-effect)

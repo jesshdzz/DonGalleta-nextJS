@@ -53,7 +53,7 @@ describe('getStores', () => {
             { id: '1', name: 'Tienda A', createdAt: new Date() },
             { id: '2', name: 'Tienda B', createdAt: new Date() },
         ];
-        vi.mocked(prisma.store.findMany).mockResolvedValueOnce(mockStores as any);
+        vi.mocked(prisma.store.findMany).mockResolvedValueOnce(mockStores as never);
 
         const result = await getStores();
 
@@ -137,7 +137,7 @@ describe('upsertStore – creación', () => {
     });
 
     it('debería crear una tienda exitosamente', async () => {
-        vi.mocked(prisma.store.create).mockResolvedValueOnce({} as any);
+        vi.mocked(prisma.store.create).mockResolvedValueOnce({} as never);
         const formData = buildFormData(validStoreFields);
 
         const result = await upsertStore(null, formData);
@@ -159,8 +159,9 @@ describe('upsertStore – creación', () => {
     });
 
     it('debería marcar isActive como false cuando no se envía el checkbox', async () => {
-        vi.mocked(prisma.store.create).mockResolvedValueOnce({} as any);
+        vi.mocked(prisma.store.create).mockResolvedValueOnce({} as never);
         // isActive ausente → formData.get("isActive") !== "on" → false
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { isActive, ...rest } = validStoreFields;
         const formData = buildFormData(rest);
 
@@ -194,7 +195,7 @@ describe('upsertStore – edición', () => {
     });
 
     it('debería editar una tienda existente exitosamente', async () => {
-        vi.mocked(prisma.store.update).mockResolvedValueOnce({} as any);
+        vi.mocked(prisma.store.update).mockResolvedValueOnce({} as never);
         const formData = buildFormData({ id: 'store-42', ...validStoreFields });
 
         const result = await upsertStore(null, formData);
@@ -228,7 +229,7 @@ describe('deleteStore', () => {
     });
 
     it('debería eliminar una tienda exitosamente', async () => {
-        vi.mocked(prisma.store.delete).mockResolvedValueOnce({} as any);
+        vi.mocked(prisma.store.delete).mockResolvedValueOnce({} as never);
 
         const result = await deleteStore('store-1');
 

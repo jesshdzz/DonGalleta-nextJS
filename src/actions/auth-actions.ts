@@ -25,7 +25,7 @@ export async function registerUser(formData: FormData) {
   const data = Object.fromEntries(formData);
   const parsed = RegisterSchema.safeParse(data);
   const token = formData.get('cf-turnstile-response') as string;
-  
+
   if (!token) {
     return { error: 'Por favor, completa la validación de seguridad (Captcha).' };
   }
@@ -34,7 +34,7 @@ export async function registerUser(formData: FormData) {
   if (!isValidToken) {
     return { error: 'Validación de seguridad fallida. Intenta nuevamente.' };
   }
-  
+
   if (!parsed.success) {
     return {
       success: false,
@@ -67,7 +67,7 @@ export async function registerUser(formData: FormData) {
       },
     });
     return { success: true };
-  } catch (error) {
+  } catch {
     return {
       success: false,
       message: 'Error al crear el usuario en la base de datos'

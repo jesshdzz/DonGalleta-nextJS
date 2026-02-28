@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
@@ -13,7 +13,7 @@ interface Product {
   price: number;
   image: string | null;
   description?: string | null;
-  stock?: number; // Agregué stock opcional para mostrar badge
+  stock: number; // Requerido para coincidir con AddToCartCarousel
 }
 
 interface ProductoItemProps {

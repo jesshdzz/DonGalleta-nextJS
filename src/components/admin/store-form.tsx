@@ -21,7 +21,7 @@ export const StoreForm = ({ defaultValues }: StoreFormProps) => {
     const router = useRouter();
     const [isPending, setIsPending] = useState(false);
 
-    const form = useForm<z.input<typeof storeSchema>, any, StoreFormValues>({
+    const form = useForm<z.input<typeof storeSchema>, unknown, StoreFormValues>({
         resolver: zodResolver(storeSchema),
         defaultValues: {
             name: defaultValues?.name || "",
