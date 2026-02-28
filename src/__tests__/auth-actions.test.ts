@@ -22,10 +22,14 @@ vi.mock('bcryptjs', () => ({
 describe('registerUser', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        global.fetch = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue({ success: true })
+        } as any);
     });
 
     it('debería retornar error para datos inválidos', async () => {
         const formData = new FormData();
+        formData.append('cf-turnstile-response', 'valid-token');
         formData.append('email', 'not-an-email');
         formData.append('password', '123'); // Too short
         formData.append('name', '');
@@ -40,6 +44,7 @@ describe('registerUser', () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1', email: 'test@example.com' } as any);
 
         const formData = new FormData();
+        formData.append('cf-turnstile-response', 'valid-token');
         formData.append('email', 'test@example.com');
         formData.append('password', 'password123');
         formData.append('name', 'Test User');
@@ -57,6 +62,7 @@ describe('registerUser', () => {
         vi.mocked(prisma.user.create).mockResolvedValueOnce({ id: '1' } as any);
 
         const formData = new FormData();
+        formData.append('cf-turnstile-response', 'valid-token');
         formData.append('email', 'new@example.com');
         formData.append('password', 'password123');
         formData.append('name', 'New User');
@@ -81,6 +87,7 @@ describe('registerUser', () => {
         vi.mocked(prisma.user.create).mockRejectedValueOnce(new Error('DB Error'));
 
         const formData = new FormData();
+        formData.append('cf-turnstile-response', 'valid-token');
         formData.append('email', 'error@example.com');
         formData.append('password', 'password123');
         formData.append('name', 'Error User');
