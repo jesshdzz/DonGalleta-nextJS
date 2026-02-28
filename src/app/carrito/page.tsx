@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function CartPage() {
   const router = useRouter();
@@ -28,9 +29,12 @@ export default function CartPage() {
       const result = await checkout();
       if (result.success) {
         setIsCheckoutSuccess(true);
-      } else if (result.message === "Regístrate para procesar tu carrito.") {
-        // Redirigir si no hay sesión
+      } else if (result.isAuthError) {
+        // Redirigir si no hay sesión y notificar
+        toast.info(result.message || "Regístrate para procesar tu carrito.");
         router.push('/auth/login');
+      } else {
+        toast.error(result.message || "Error processing checkout.");
       }
     } finally {
       setIsLoading(false);

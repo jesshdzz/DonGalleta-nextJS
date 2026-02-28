@@ -36,8 +36,10 @@ export async function checkout(
   try {
     const session = await auth();
     if (!session?.user) {
-      return { success: false, message: "Regístrate para procesar tu carrito." };
+      console.log("[AUTH-CHECKOUT] No valid session found. Blocking guest checkout.");
+      return { success: false, message: "Regístrate para procesar tu carrito.", isAuthError: true };
     }
+    console.log(`[AUTH-CHECKOUT] Session valid for user: ${session.user.email || session.user.id}`);
 
     // Verificar stock de todos primero
     for (const item of items) {

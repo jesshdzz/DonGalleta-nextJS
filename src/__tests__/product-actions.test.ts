@@ -170,6 +170,15 @@ describe('checkStock', () => {
 });
 
 describe('checkout', () => {
+    it('debería retornar isAuthError si no hay sesión', async () => {
+        const { auth } = await import('@/auth');
+        vi.mocked(auth).mockResolvedValueOnce(null as never);
+        const { checkout } = await import('../actions/product-actions');
+        const result = await checkout([{ productId: 1, quantity: 1 }]);
+        expect(result.success).toBe(false);
+        expect(result).toHaveProperty('isAuthError', true);
+    });
+
     it('debería fallar si el stock es insuficiente', async () => {
         // Mock checkStock behavior (findUnique)
         vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as never);
