@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { auth } from "@/auth";
 
 
 const inter = Inter({
@@ -22,16 +23,18 @@ export const metadata: Metadata = {
   description: "Compra las mejores galletas artesanales en línea.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="es">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <CartProvider>
-          <Navbar />
+          <Navbar user={session?.user} />
           <main className="flex-1">
             {children}
           </main>
