@@ -3,18 +3,39 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, Cookie, Home, Tag, Phone, Loader2, LogOut } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  Cookie,
+  Home,
+  Tag,
+  Phone,
+  Loader2,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
 import { signOut } from "next-auth/react";
 
-export type UserSession = { id?: string; name?: string | null; email?: string | null; role?: string; } | undefined | null;
+export type UserSession =
+  | { id?: string; name?: string | null; email?: string | null; role?: string }
+  | undefined
+  | null;
 
 type SearchResult = {
   id: number;
@@ -165,21 +186,29 @@ export function Navbar({ user }: { user?: UserSession }) {
             </Button>
           </SheetTrigger>
 
-          <SheetContent side="left" className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]">
+          <SheetContent
+            side="left"
+            className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]"
+          >
             <SheetTitle className="sr-only">Menú</SheetTitle>
 
             {/* 1. CABECERA: Fondo sutil para destacar el logo */}
             <div className="p-6 border-b border-[#A6A3A2]/30 bg-[#F7DCBE]/10 flex justify-center">
               <SheetClose asChild>
                 <Link href="/">
-                  <Image src={Logo} alt="Don Galleta Logo" width={140} height={80} className="object-contain drop-shadow-sm" />
+                  <Image
+                    src={Logo}
+                    alt="Don Galleta Logo"
+                    width={140}
+                    height={80}
+                    className="object-contain drop-shadow-sm"
+                  />
                 </Link>
               </SheetClose>
             </div>
 
             {/* 2. CUERPO: Enlaces estilo "Píldora/Botón" */}
             <nav className="flex-1 flex flex-col gap-2 p-4 mt-2 overflow-y-auto">
-
               <SheetClose asChild>
                 <Link
                   href="/"
@@ -194,7 +223,11 @@ export function Navbar({ user }: { user?: UserSession }) {
                 <>
                   <SheetClose asChild>
                     <Link
-                      href={user.role === 'ADMIN' ? "/admin/productos" : "/"}
+                      href={
+                        user.role === "ADMIN"
+                          ? "/admin/productos"
+                          : "/perfil/page.tsx"
+                      }
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
                     >
                       <User className="size-5" />
@@ -203,7 +236,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                   </SheetClose>
                   <SheetClose asChild>
                     <button
-                      onClick={() => signOut({ callbackUrl: '/' })}
+                      onClick={() => signOut({ callbackUrl: "/" })}
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
                     >
                       <LogOut className="size-5" />
@@ -318,12 +351,16 @@ export function Navbar({ user }: { user?: UserSession }) {
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
-                <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+                <Link href={user.role === "ADMIN" ? "/admin/productos" : "/perfil/"}>
                   <Button variant="ghost" size="sm">
                     <User className="mr-2 h-4 w-4" /> Mi Cuenta
                   </Button>
                 </Link>
-                <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
                   <LogOut className="mr-2 h-4 w-4" /> Salir
                 </Button>
               </>
@@ -345,7 +382,7 @@ export function Navbar({ user }: { user?: UserSession }) {
           {/* AUTH MOBILE */}
           <div className="md:hidden">
             {user ? (
-              <Link href={user.role === 'ADMIN' ? "/admin/productos" : "/"}>
+              <Link href={user.role === "ADMIN" ? "/admin/productos" : "/perfil/"}>
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
                 </Button>
