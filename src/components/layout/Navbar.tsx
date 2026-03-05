@@ -15,6 +15,7 @@ import {
   Phone,
   Loader2,
   LogOut,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -219,30 +220,30 @@ export function Navbar({ user }: { user?: UserSession }) {
                 </Link>
               </SheetClose>
 
+              {/* ENLACES DE USUARIO (Arriba) */}
               {user && (
                 <>
                   <SheetClose asChild>
                     <Link
-                      href={
-                        user.role === "ADMIN"
-                          ? "/admin/productos"
-                          : "/perfil/page.tsx"
-                      }
+                      href="/perfil"
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
                     >
                       <User className="size-5" />
                       Mi Cuenta
                     </Link>
                   </SheetClose>
-                  <SheetClose asChild>
-                    <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
-                    >
-                      <LogOut className="size-5" />
-                      Cerrar Sesión
-                    </button>
-                  </SheetClose>
+
+                  {user.role === "ADMIN" && (
+                    <SheetClose asChild>
+                      <Link
+                        href="/admin/productos"
+                        className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-bold text-[#58321D] hover:bg-[#F7DCBE]/60 transition-all"
+                      >
+                        <Shield className="size-5" />
+                        Panel Admin
+                      </Link>
+                    </SheetClose>
+                  )}
                 </>
               )}
 
@@ -272,9 +273,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                   onClick={() => {
                     setTimeout(() => {
                       const footer = document.getElementById("footer-section");
-                      if (footer) {
-                        footer.scrollIntoView({ behavior: "smooth" });
-                      }
+                      if (footer) footer.scrollIntoView({ behavior: "smooth" });
                     }, 150);
                   }}
                 >
@@ -282,6 +281,21 @@ export function Navbar({ user }: { user?: UserSession }) {
                   Contacto
                 </button>
               </SheetClose>
+
+              {/* --- CERRAR SESIÓN (Hasta abajo y separado) --- */}
+              {user && (
+                <div className="mt-4 border-t border-[#A6A3A2]/20 pt-4">
+                  <SheetClose asChild>
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
+                    >
+                      <LogOut className="size-5" />
+                      Cerrar Sesión
+                    </button>
+                  </SheetClose>
+                </div>
+              )}
             </nav>
 
             {/* 3. PIE: Un toque decorativo de marca al fondo */}
@@ -351,7 +365,20 @@ export function Navbar({ user }: { user?: UserSession }) {
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
-                <Link href={user.role === "ADMIN" ? "/admin/productos" : "/perfil/"}>
+                {/* NUEVO BOTÓN SOLO PARA ADMINS */}
+                {user.role === "ADMIN" && (
+                  <Link href="/admin/productos">
+                    <Button
+                      size="sm"
+                      className="bg-[#58321D] text-white hover:bg-[#58321D]/90"
+                    >
+                      <Shield className="mr-2 h-4 w-4" /> Admin
+                    </Button>
+                  </Link>
+                )}
+
+                <Link href="/perfil">
+                  {" "}
                   <Button variant="ghost" size="sm">
                     <User className="mr-2 h-4 w-4" /> Mi Cuenta
                   </Button>
@@ -382,7 +409,7 @@ export function Navbar({ user }: { user?: UserSession }) {
           {/* AUTH MOBILE */}
           <div className="md:hidden">
             {user ? (
-              <Link href={user.role === "ADMIN" ? "/admin/productos" : "/perfil/"}>
+              <Link href="/perfil">
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
                 </Button>
