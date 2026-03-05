@@ -1,4 +1,5 @@
 import { getAdminOrderById } from "@/actions/orders-actions";
+import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Cookie } from "lucide-react";
 import Link from "next/link";
@@ -6,11 +7,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export default async function AdminOrderDetailsPage({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
+export default async function AdminOrderDetailsPage({ params, }: { params: Promise<{ id: string }>; }) {
     const { id } = await params;
     const order = await getAdminOrderById(id);
 
@@ -133,21 +130,10 @@ export default async function AdminOrderDetailsPage({
                     <Card>
                         <CardHeader>
                             <CardTitle>Gestionar Estado</CardTitle>
-                            <CardDescription>Actualiza la etapa de este pedido (Solo Visual).</CardDescription>
+                            <CardDescription>Actualiza la etapa de este pedido manualmente.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Estado del Pedido</label>
-                                <select
-                                    defaultValue={order.status}
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="PENDING">Pendiente</option>
-                                    <option value="PROCESSING">Procesando</option>
-                                    <option value="COMPLETED">Completado</option>
-                                    <option value="CANCELLED">Cancelado</option>
-                                </select>
-                            </div>
+                            <OrderStatusForm id={order.id} status={order.status} />
                         </CardContent>
                     </Card>
                 </div>
