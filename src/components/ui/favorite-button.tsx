@@ -88,8 +88,8 @@ export default function FavoriteButton({
       size="icon"
       className={`${getSize()} transition-all duration-200 hover:scale-110 ${
         isFavorite 
-          ? "text-red-500 hover:text-red-600 bg-red-50" 
-          : "text-gray-400 hover:text-red-500"
+          ? "text-destructive hover:text-destructive/80 bg-background/80 border-border" 
+          : "text-muted-foreground hover:text-destructive bg-background/80 border-border"
       }`}
       onClick={handleToggleFavorite}
       disabled={isPending}
@@ -98,12 +98,12 @@ export default function FavoriteButton({
       {isFavorite ? (
         <Heart 
           size={getIconSize()} 
-          className="fill-current text-red-500" 
+          className="fill-current text-destructive" 
         />
       ) : (
         <Heart 
           size={getIconSize()} 
-          className="hover:text-red-500 transition-colors" 
+          className="text-muted-foreground group-hover:text-destructive transition-colors" 
         />
       )}
       

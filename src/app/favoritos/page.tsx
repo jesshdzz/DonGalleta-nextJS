@@ -25,9 +25,9 @@ export default async function FavoritesPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Heart className="h-8 w-8 text-red-500 fill-current" />
-            <h1 className="text-4xl font-bold text-gray-800">Mis Favoritos</h1>
+            <h1>Mis Favoritos</h1>
           </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="max-w-2xl mx-auto">
             Aquí tienes todos los productos que has marcado como favoritos. 
             ¡Añade los que más te gusten al carrito!
           </p>
@@ -48,8 +48,8 @@ async function FavoritesList() {
   if (result.error) {
     return (
       <div className="text-center py-16">
-        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500 mb-4">Error al cargar tus favoritos</p>
+        <Heart className="h-16 w-16 text-muted mx-auto mb-4" />
+        <p className="text-muted-foreground mb-4">Error al cargar tus favoritos</p>
         <Button asChild>
           <Link href="/productos">Ver Productos</Link>
         </Button>
@@ -62,11 +62,11 @@ async function FavoritesList() {
   if (favorites.length === 0) {
     return (
       <div className="text-center py-16">
-        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+        <Heart className="h-16 w-16 text-muted mx-auto mb-4" />
+        <h2>
           Aún no tienes favoritos
         </h2>
-        <p className="text-gray-500 mb-6">
+        <p className="mb-6">
           Explora nuestros productos y marca los que más te gusten
         </p>
         <Button asChild>
@@ -130,8 +130,8 @@ function FavoriteProductCard({ favorite }: FavoriteProductCardProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-amber-100 flex items-center justify-center">
-            <ShoppingCart className="h-16 w-16 text-amber-300" />
+          <div className="w-full h-full bg-secondary flex items-center justify-center">
+            <ShoppingCart className="h-16 w-16 text-muted" />
           </div>
         )}
         
@@ -154,14 +154,14 @@ function FavoriteProductCard({ favorite }: FavoriteProductCardProps) {
 
       <CardContent className="p-4">
         {/* Título y descripción */}
-        <Link href={`/productos/${product.id}`} className="block hover:text-amber-600">
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors">
+        <Link href={`/productos/${product.id}`} className="block hover:text-primary">
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
         </Link>
 
         {product.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+          <p className="text-muted-foreground text-sm mb-3 line-clamp-2 leading-5">
             {product.description}
           </p>
         )}
@@ -186,12 +186,12 @@ function FavoriteProductCard({ favorite }: FavoriteProductCardProps) {
 
         {/* Precio */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-bold text-amber-600">
+          <span className="text-2xl font-bold text-primary">
             ${price.toFixed(2)}
           </span>
           
           {/* Fecha añadido */}
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             Añadido {new Date(favorite.createdAt).toLocaleDateString()}
           </span>
         </div>
