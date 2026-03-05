@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Trash2, User as UserIcon, Mail, Shield } from "lucide-react";
+import { LogOut, Trash2, User as UserIcon, Mail, Shield, Key } from "lucide-react"; // Añadimos Key
 
-// Tipamos el usuario basándonos en tu Navbar
 type UserSession = {
   id?: string;
   name?: string | null;
@@ -21,7 +20,7 @@ type UserSession = {
   role?: string;
 };
 
-export default function PerfilClient({ user }: { user: UserSession }) {
+export default function VistaPerfil({ user }: { user: UserSession }) {
   const primerNombre = user.name?.split(" ")[0] || "Galletoso";
 
   return (
@@ -42,6 +41,7 @@ export default function PerfilClient({ user }: { user: UserSession }) {
       </div>
 
       <div className="grid gap-8">
+        
         {/* TARJETA 1: Información Personal */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
           <CardHeader className="bg-[#F7DCBE]/10 border-b border-[#A6A3A2]/20 pb-6">
@@ -103,7 +103,47 @@ export default function PerfilClient({ user }: { user: UserSession }) {
           </CardContent>
         </Card>
 
-        {/* TARJETA 2: Gestión de Sesión y Cuenta */}
+        {/* TARJETA 2: Seguridad */}
+        <Card className="border-[#A6A3A2]/40 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl text-[#58321D] flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Seguridad
+            </CardTitle>
+            <CardDescription>
+              Actualiza tus credenciales de acceso.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-4">
+            
+            {/* BOTÓN: Cambiar Correo */}
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
+              onClick={() => {
+                console.log("Compañero: Abrir modal/página para cambiar correo");
+              }}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Cambiar Correo
+            </Button>
+
+            {/* BOTÓN: Cambiar Contraseña */}
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
+              onClick={() => {
+                console.log("Compañero: Abrir modal/página para cambiar contraseña");
+              }}
+            >
+              <Key className="mr-2 h-4 w-4" />
+              Cambiar Contraseña
+            </Button>
+            
+          </CardContent>
+        </Card>
+
+        {/* TARJETA 3: Gestión de Sesión y Cuenta (Zona de Peligro) */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl text-[#58321D]">
@@ -114,33 +154,28 @@ export default function PerfilClient({ user }: { user: UserSession }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4">
-            {/* BOTÓN 1: Cerrar Sesión */}
+            {/* BOTÓN: Cerrar Sesión */}
             <Button
-              variant="outline"
-              className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
-              //onClick={() => {
-              //cerrar sesión
-
-              //}}
+              variant="secondary"
+              className="w-full sm:w-auto bg-muted hover:bg-muted/80"
+              // onClick={() => { Cerrar sesión }}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
             </Button>
 
-            {/* BOTÓN 2: Eliminar Cuenta*/}
+            {/* BOTÓN: Eliminar Cuenta */}
             <Button
               variant="destructive"
               className="w-full sm:w-auto bg-[#A42D2C] hover:bg-[#A42D2C]/90"
-              //onClick={() => {
-              //eliminar cuenta
-
-              //}}
+              // onClick={() => { Eliminar cuenta }}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Eliminar Cuenta
             </Button>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );
