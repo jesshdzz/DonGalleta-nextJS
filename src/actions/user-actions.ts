@@ -69,3 +69,16 @@ export async function deleteAccount(userId: string, currentPassword: string) {
     await prisma.user.delete({ where: { id: userId } });
     return { success: true };
 }
+
+export async function getAllUsers() {
+    const users = await prisma.user.findMany({
+        orderBy: { id: "desc" },
+        include: {
+            _count: {
+                select: { orders: true }
+            }
+        }
+    });
+
+    return users;
+}
