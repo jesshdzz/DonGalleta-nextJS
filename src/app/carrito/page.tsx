@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function CartPage() {
+  const router = useRouter();
   const {
     cart,
     clearCart,

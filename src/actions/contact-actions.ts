@@ -12,7 +12,7 @@ interface ContactResult {
   };
 }
 
-export async function sendContactMessage(prevState: any, formData: FormData): Promise<ContactResult> {
+export async function sendContactMessage(prevState: unknown, formData: FormData): Promise<ContactResult> {
   // Extraer datos
   const rawData = {
     name: formData.get('name'),

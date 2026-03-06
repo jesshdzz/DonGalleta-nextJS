@@ -27,7 +27,7 @@ export default async function ProductosPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto p-4 min-h-screen">
-      
+
       {/* CABECERA DINÁMICA */}
       <div className="mb-8 text-center md:text-left">
         <h1 className="text-4xl font-serif font-bold text-primary mb-2">
@@ -35,7 +35,7 @@ export default async function ProductosPage({ searchParams }: Props) {
         </h1>
         {query && (
           <p className="text-muted-foreground text-lg">
-            Buscaste: <span className="font-semibold text-foreground">"{query}"</span>
+            Buscaste: <span className="font-semibold text-foreground">&quot;{query}&quot;</span>
             <span className="ml-3 bg-secondary/30 text-[#58321D] px-3 py-1 rounded-full text-sm font-bold border border-[#58321D]/20">
               {products.length} resultados
             </span>
@@ -44,7 +44,7 @@ export default async function ProductosPage({ searchParams }: Props) {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
-        
+
         {/* FILTROS LATERALES */}
         <div className="w-full md:w-64 shrink-0">
           <ProductFilter availableFlavors={availableFlavors} />
@@ -53,7 +53,7 @@ export default async function ProductosPage({ searchParams }: Props) {
         {/* CUADRÍCULA O EMPTY STATE */}
         <div className="flex-1">
           {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {products.map((product) => (
                 <ProductoItem key={product.id} product={product} />
               ))}
@@ -63,11 +63,11 @@ export default async function ProductosPage({ searchParams }: Props) {
               <Cookie className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <h2 className="text-xl font-bold text-primary mb-2">¡Ups! No hay galletas aquí</h2>
               <p className="text-muted-foreground mb-6 max-w-md">
-                {query 
+                {query
                   ? `No encontramos ninguna galleta que coincida con "${query}".`
                   : "No se encontraron productos con los filtros seleccionados."}
               </p>
-              
+
               {/* Botón para limpiar si el usuario se quedó sin resultados */}
               {(query || flavors.length > 0) && (
                 <Link href="/productos">

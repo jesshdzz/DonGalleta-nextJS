@@ -21,6 +21,10 @@ vi.mock('@/lib/prisma', () => ({
     },
 }));
 
+vi.mock('@/auth', () => ({
+    auth: vi.fn().mockResolvedValue({ user: { id: '123' } }),
+}));
+
 vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
 }));
@@ -52,6 +56,9 @@ describe('upsertProduct', () => {
                 slug: 'new-product',
                 image: 'https://example.com/image.jpg',
                 isActive: true,
+                flavors: {
+                    create: [],
+                },
             },
         });
         expect(revalidatePath).toHaveBeenCalledWith('/admin/productos');
@@ -82,6 +89,10 @@ describe('upsertProduct', () => {
                 slug: 'updated-product',
                 image: '',
                 isActive: true,
+                flavors: {
+                    create: [],
+                    deleteMany: {},
+                },
             },
         });
         expect(revalidatePath).toHaveBeenCalledTimes(2);
@@ -131,7 +142,7 @@ describe('getProducts', () => {
             { id: 1, name: 'P1', price: { toNumber: () => 10.5 }, stock: 5 },
             { id: 2, name: 'P2', price: { toNumber: () => 20.0 }, stock: 10 },
         ];
-        vi.mocked(prisma.product.findMany).mockResolvedValue(mockProducts as any);
+        vi.mocked(prisma.product.findMany).mockResolvedValue(mockProducts as never);
 
         const { getProducts } = await import('../actions/product-actions');
         const result = await getProducts();
@@ -144,7 +155,7 @@ describe('getProducts', () => {
 
 describe('checkStock', () => {
     it('debería retornar el stock correcto', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as never);
         const { checkStock } = await import('../actions/product-actions');
         const stock = await checkStock(1);
         expect(stock).toBe(15);
@@ -159,9 +170,18 @@ describe('checkStock', () => {
 });
 
 describe('checkout', () => {
+    it('debería retornar isAuthError si no hay sesión', async () => {
+        const { auth } = await import('@/auth');
+        vi.mocked(auth).mockResolvedValueOnce(null as never);
+        const { checkout } = await import('../actions/product-actions');
+        const result = await checkout([{ productId: 1, quantity: 1 }]);
+        expect(result.success).toBe(false);
+        expect(result).toHaveProperty('isAuthError', true);
+    });
+
     it('debería fallar si el stock es insuficiente', async () => {
         // Mock checkStock behavior (findUnique)
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as never);
 
         const { checkout } = await import('../actions/product-actions');
         const result = await checkout([{ productId: 1, quantity: 5 }]);
@@ -171,8 +191,8 @@ describe('checkout', () => {
     });
 
     it('debería tener éxito y actualizar el stock', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as any);
-        vi.mocked(prisma.$transaction).mockResolvedValue([]);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
+        vi.mocked(prisma.$transaction).mockResolvedValue([] as never);
 
         const { checkout } = await import('../actions/product-actions');
         const result = await checkout([{ productId: 1, quantity: 5 }]);
@@ -182,7 +202,7 @@ describe('checkout', () => {
     });
 
     it('debería manejar errores durante el checkout', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as any);
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
         vi.mocked(prisma.$transaction).mockRejectedValue(new Error('Tx Failed'));
 
         const { checkout } = await import('../actions/product-actions');
@@ -195,7 +215,7 @@ describe('checkout', () => {
 
 describe('deleteProduct', () => {
     it('debería eliminar el producto exitosamente', async () => {
-        vi.mocked(prisma.product.delete).mockResolvedValue({} as any);
+        vi.mocked(prisma.product.delete).mockResolvedValue({} as never);
         const { deleteProduct } = await import('../actions/product-actions');
         const result = await deleteProduct(1);
         expect(result.success).toBe(true);
@@ -214,7 +234,7 @@ describe('deleteProduct', () => {
 describe('getFlavors', () => {
     it('debería retornar sabores', async () => {
         const mockFlavors = [{ id: 1, name: 'Vainilla' }];
-        vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as any);
+        vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as never);
         const { getFlavors } = await import('../actions/product-actions');
         const result = await getFlavors();
         expect(result).toEqual(mockFlavors);
@@ -222,16 +242,16 @@ describe('getFlavors', () => {
 });
 
 describe('searchProducts', () => {
-    
-    beforeEach(() =>{
+
+    beforeEach(() => {
         vi.clearAllMocks();
     })
     it('debería retornar un array vacío si la query está vacía o tiene menos de 3 caracteres', async () => {
         expect(await searchProducts('')).toEqual([]);
         expect(await searchProducts('ab')).toEqual([]);
-        
+
         // Verificamos que Prisma no fue llamado innecesariamente
-        expect(prisma.product.findMany).not.toHaveBeenCalled(); 
+        expect(prisma.product.findMany).not.toHaveBeenCalled();
     });
 
     it('debería llamar a la base de datos y formatear correctamente los productos encontrados', async () => {
@@ -250,7 +270,7 @@ describe('searchProducts', () => {
         ];
 
         // Usamos vi.mocked para mantener tu estilo de mocks
-        vi.mocked(prisma.product.findMany).mockResolvedValue(mockPrismaProducts as any);
+        vi.mocked(prisma.product.findMany).mockResolvedValue(mockPrismaProducts as never);
 
         const query = 'choco';
         const limit = 5;
@@ -285,16 +305,16 @@ describe('searchProducts', () => {
     });
 
     it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         const dbError = new Error('Error de conexión');
-        
+
         vi.mocked(prisma.product.findMany).mockRejectedValueOnce(dbError);
 
         const result = await searchProducts('galleta');
 
         expect(consoleSpy).toHaveBeenCalledWith("Error buscando productos:", dbError);
         expect(result).toEqual([]);
-        
+
         consoleSpy.mockRestore(); // Limpiamos el espía
     });
 });

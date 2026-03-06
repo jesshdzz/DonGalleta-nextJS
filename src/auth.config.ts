@@ -9,14 +9,12 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnAdmin = nextUrl.pathname.startsWith('/admin');
-      const isOnCart = nextUrl.pathname.startsWith('/cart');
 
-      // Protección de Rutas de Admin
-      if (isOnAdmin) {
-        if (isLoggedIn) return true; // TODO: Agregar validación de rol aquí después
-        return false; // Redirigir al login
+      // Protección de Rutas de Admin (Si no hay sesión redirige al login. El rol se valida en app/admin/layout.tsx)
+      if (isOnAdmin && !isLoggedIn) {
+        return false;
       }
-      
+
       // Permitir acceso a todo lo demás por defecto
       return true;
     },
@@ -25,9 +23,9 @@ export const authConfig = {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      // @ts-ignore // Ignoramos error de tipado por ahora hasta extender tipos
+      // Ignoramos error de tipado por ahora hasta extender tipos
       if (token.role && session.user) {
-        // @ts-ignore
+        // @ts-expect-error - Types for NextAuth will be extended later
         session.user.role = token.role;
       }
       return session;
@@ -35,7 +33,7 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
-        // @ts-ignore
+        // @ts-expect-error - Types for NextAuth will be extended later
         token.role = user.role;
       }
       return token;
