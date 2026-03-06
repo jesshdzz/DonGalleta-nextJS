@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { loadStripe } from "@stripe/stripe-js";
@@ -21,8 +22,16 @@ export default function PagoPage() {
   // Me traigo el total y también el carrito completo para poder mandarlo a la API
   const { totalPrice, cart } = useCart();
   const [clientSecret, setClientSecret] = useState("");
+  const router = useRouter();
 
   // Pido el Client Secret a mi API en cuanto cargo la página y tengo un total válido
+  useEffect(() => {
+    // Si el carrito está vacío, lo regresamos a la tienda inmediatamente
+    if (cart.length === 0) {
+      router.replace("/carrito");
+    }
+  }, [cart, router]);
+
   useEffect(() => {
     if (totalPrice > 0) {
       fetch("/api/pago", {
@@ -37,11 +46,15 @@ export default function PagoPage() {
         })
         .catch((error) => console.error("Me falló la petición del client secret:", error));
     }
-  }, [totalPrice, cart]); // Agregué cart aquí para que reaccione si cambia
+  }, [totalPrice, cart]);
+
+  // Evitamos renderizar la página si el carrito está vacío
+  if (cart.length === 0) return null; 
 
   return (
-    <div className="container mx-auto py-12 px-4 min-h-screen flex flex-col items-center bg-background">
-      <div className="w-full max-w-5xl mb-6">
+    // Reduje el padding vertical en móviles (py-6) y lo mantuve en escritorio (md:py-12)
+    <div className="container mx-auto py-6 md:py-12 px-4 min-h-screen flex flex-col items-center bg-background">
+      <div className="w-full max-w-5xl mb-4 md:mb-6">
         <Link href="/carrito">
           <Button variant="ghost" size="sm" className="gap-2 pl-0 hover:bg-transparent hover:text-primary transition-colors">
             <ArrowLeft className="w-4 h-4" /> Volver al carrito
@@ -50,33 +63,37 @@ export default function PagoPage() {
       </div>
 
       <Card className="w-full max-w-5xl shadow-xl overflow-hidden border-primary/10">
-        <div className="grid md:grid-cols-2 gap-0">
+        <div className="grid md:grid-cols-2 gap-0 flex-col-reverse md:flex-row">
           
-          <div className="p-8 md:p-12 bg-card">
+          {/* LADO IZQUIERDO: Formulario - Ajuste de paddings para móviles (p-5) y escritorio (md:p-12) */}
+          <div className="p-5 sm:p-8 md:p-12 bg-card order-2 md:order-1">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-3xl font-serif text-primary">Finaliza tu pedido</CardTitle>
-              <p className="text-muted-foreground mt-2">
+              {/* Tipografía adaptativa */}
+              <CardTitle className="text-2xl md:text-3xl font-serif text-primary">Finaliza tu pedido</CardTitle>
+              <p className="text-sm md:text-base text-muted-foreground mt-1 md:mt-2">
                 Ingresa tus datos de pago de forma segura.
               </p>
             </CardHeader>
-            <CardContent className="px-0 space-y-6">
+            <CardContent className="px-0 space-y-4 md:space-y-6">
               
               {clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <FormularioPago amount={totalPrice} />
                 </Elements>
               ) : (
-                <div className="min-h-[300px] border-2 border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center bg-secondary/5 text-muted-foreground">
+                <div className="min-h-[250px] md:min-h-[300px] border-2 border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center bg-secondary/5 text-muted-foreground p-4 text-center">
                   <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-                  <p>Conectando de forma segura...</p>
+                  <p className="text-sm md:text-base">Conectando de forma segura...</p>
                 </div>
               )}
 
             </CardContent>
           </div>
 
-          <div className="bg-secondary/20 p-8 md:p-12 flex flex-col items-center justify-center relative border-l border-primary/5">
-            <div className="relative w-64 h-64 md:w-80 md:h-80 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
+          {/* LADO DERECHO: Imagen - Ajuste de espacio y orden visual en móviles */}
+          <div className="bg-secondary/20 p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center relative border-b md:border-b-0 md:border-l border-primary/5 order-1 md:order-2">
+            {/* Escalado responsivo de la imagen: pequeña en celular, grande en PC */}
+            <div className="relative w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
               <Image 
                 src={doncookImg} 
                 alt="Don Cook - El maestro galletero"
@@ -85,9 +102,9 @@ export default function PagoPage() {
                 priority
               />
             </div>
-            <div className="mt-8 text-center space-y-2">
-              <h3 className="text-xl font-serif font-bold text-foreground">¡Casi listas para el horno!</h3>
-              <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            <div className="mt-4 md:mt-8 text-center space-y-1 md:space-y-2">
+              <h3 className="text-lg md:text-xl font-serif font-bold text-foreground">¡Casi listas para el horno!</h3>
+              <p className="text-xs md:text-sm text-muted-foreground max-w-xs mx-auto px-4 md:px-0">
                 Tus galletas están a un paso de llegar a tus manos, calientitas y deliciosas.
               </p>
             </div>

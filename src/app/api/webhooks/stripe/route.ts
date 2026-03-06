@@ -1,22 +1,38 @@
+// Webhook de Stripe para procesar pagos exitosos
+// Actualiza el inventario de productos cuando se realiza un pago exitoso
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-// Me traigo mi conexión a la base de datos de MariaDB con Prisma
-// OJO: Ajusta esta ruta dependiendo de dónde guardaste tu archivo de conexión
-import { prisma } from "@/lib/prisma"; 
+import { prisma } from "@/lib/prisma";
+import { z } from "zod"; 
 
-// Vuelvo a instanciar Stripe y saco la llave secreta especial de mi Webhook
+// Inicializa el cliente de Stripe con la clave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover", 
 });
 
+// Clave secreta del webhook de Stripe para validar peticiones
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-// Aquí mi servidor se queda escuchando los avisos que me manda Stripe por detrás
+// Schema de validación para los productos en el carrito
+// Valida que cada producto tenga un ID y una cantidad válida
+const CarritoMetadataSchema = z.array(
+  z.object({
+    id: z.number().int().positive("El ID debe ser un número positivo"),
+    cantidad: z.number().int().positive("La cantidad debe ser mayor a 0"),
+  })
+);
+
+// Endpoint POST que recibe y procesa eventos del webhook de Stripe
+// Maneja el evento de pago exitoso y actualiza el inventario de productos
 export async function POST(req: Request) {
-  // Necesito leer el texto crudo para que Stripe pueda validar su firma criptográfica
+  // Obtiene el cuerpo de la solicitud como texto
   const body = await req.text();
+  
+  // Extrae la firma de Stripe del header de la solicitud para validación
   const sig = req.headers.get("stripe-signature");
 
+  // Valida que existan las credenciales necesarias del webhook
   if (!sig || !endpointSecret) {
     return NextResponse.json(
       { error: "Me faltan credenciales del webhook" },
@@ -24,59 +40,58 @@ export async function POST(req: Request) {
     );
   }
 
+  // Declara variable para almacenar el evento de Stripe
   let event: Stripe.Event;
 
   try {
-    // Esto verifica que el aviso realmente venga de Stripe y no de alguien intentando hackear
+    // Construye y valida el evento usando la firma de Stripe
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
   } catch (err: any) {
-    console.error(`❌ Chin, error de firma en mi Webhook: ${err.message}`);
+    // Retorna error si la firma no es válida
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
 
-  // Me enfoco solo en los eventos donde el cliente sí pudo pagar
+  // Verifica si el evento es un pago exitoso
   if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    // Extrae los datos del pago de la solicitud
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;    
     
-    console.log(`✅ ¡Pago exitoso verificado por mi servidor! Monto: ${paymentIntent.amount}`);
-    
-    // Despego el "post-it" (metadata) que le puse en la otra API para saber qué descontar
+    // Obtiene la string con los productos comprados desde los metadatos del pago
     const productosCompradosString = paymentIntent.metadata.productos;
 
+    // Procesa el inventario si existen productos en el pago
     if (productosCompradosString) {
-      // Convierto el texto de vuelta a un arreglo para poder leerlo en JS
-      const productos = JSON.parse(productosCompradosString);
-      console.log("🛒 Productos listos para descontarse de mi DB:", productos);
-
       try {
-        // Hago un ciclo para pasar por cada galleta que compraron
-        for (const item of productos) {
-          
-          // Le digo a mi base de datos de MariaDB que busque la galleta por su ID 
-          // y le reste la cantidad exacta que compraron a mi columna de stock.
-          // OJO: Si en tu modelo de Prisma la tabla no se llama 'producto' o la columna no es 'stock', cámbialo aquí.
-          await prisma.product.update({
-            where: { 
-              id: item.id 
-            },
-            data: { 
-              stock: { 
-                decrement: item.cantidad // decrement le resta automáticamente de forma segura
-              } 
-            }
-          });
+        // Parsea el string JSON de productos a un objeto
+        const parsedData = JSON.parse(productosCompradosString);
+        
+        // Valida que los datos del carrito cumplan con el schema definido
+        const productosValidados = CarritoMetadataSchema.parse(parsedData);
+        
+        // Prepara las actualizaciones de stock para cada producto comprado
+        const updates = productosValidados.map((item) => 
+          prisma.product.update({
+            where: { id: item.id },
+            data: { stock: { decrement: item.cantidad } }  // Disminuye el stock en la cantidad comprada
+          })
+        );
 
-          console.log(`✅ ¡Listo! Se descontaron ${item.cantidad} unidades de la galleta con ID ${item.id}`);
+        // Ejecuta todas las actualizaciones en una transacción de base de datos
+        // Garantiza que todas se ejecuten juntas o ninguna
+        await prisma.$transaction(updates);
+      } catch (error) {
+        // Captura errores de validación del schema
+        if (error instanceof z.ZodError) {
+          // Los errores de validación se ignoran silenciosamente
+        } else {
+          // Registra otros tipos de errores desconocidos
+          console.log("Error desconocido al actualizar la orden:", error);
         }
-      } catch (dbError) {
-        // Si MariaDB falla (ej. se cae la conexión), lo registro aquí.
-        // OJO: Stripe ya cobró, así que esto es grave. Aquí en un futuro 
-        // podría programar que me mande un correo o un mensaje de WhatsApp automático para arreglarlo.
-        console.error("🚨 ¡Alerta! El cobro pasó pero falló mi base de datos al descontar:", dbError);
+        return NextResponse.json({ error: "Error interno actualizando la orden" }, { status: 500 });
       }
     }
   }
 
-  // Siempre le respondo con un 200 a Stripe rápido, para que sepan que recibí su mensaje
+  // Retorna confirmación de que el webhook fue procesado exitosamente
   return NextResponse.json({ received: true });
 }
