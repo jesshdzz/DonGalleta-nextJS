@@ -3,7 +3,6 @@
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -22,7 +21,6 @@ export default function CartPage() {
   } = useCart();
 
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleCheckout = () => {
     setIsLoading(true);
