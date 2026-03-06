@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card"; // Cambiamos CardHeader por CardContent
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/actions/product-actions";
 import { getUserFavoriteIds } from "@/actions/favorite-actions";
@@ -31,21 +32,23 @@ export async function ProductCarousel() {
                     </div>
                 </div>
 
-                {/* Adjusted grid for smaller cards: more columns on larger screens */}
+                {/* Grid ajustado para responsive */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {featuredProducts.map((product) => (
-                        <Card key={product.id} className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
-                            <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                        <Card key={product.id} className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 group overflow-hidden">
+                            
+                            {/* Imagen */}
+                            <div className="relative aspect-square overflow-hidden bg-secondary/30">
                                 {product.image ? (
                                     <Image
                                         src={product.image}
                                         alt={product.name}
                                         fill
-                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                                     />
                                 ) : (
-                                    <div className="flex h-full items-center justify-center bg-muted text-muted-foreground text-xs">
+                                    <div className="flex h-full items-center justify-center text-muted-foreground text-xs font-medium">
                                         Sin imagen
                                     </div>
                                 )}
@@ -61,40 +64,56 @@ export async function ProductCarousel() {
                                 </div>
                                 
                                 {!product.stock && (
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <Badge variant="destructive" className="text-sm">Agotado</Badge>
+                                    <div className="absolute top-2 right-2 z-10">
+                                        <Badge variant="destructive" className="shadow-sm text-[10px] sm:text-xs px-1.5 py-0 sm:px-2.5 sm:py-0.5">Agotado</Badge>
                                     </div>
                                 )}
                             </div>
-                            <CardHeader className="p-3">
-                                <CardTitle className="text-base line-clamp-1">{product.name}</CardTitle>
-                                <div className="text-xl font-bold text-primary">${product.price.toFixed(2)}</div>
-                            </CardHeader>
-                            <div className="pt-6 border-t border-border">
+
+                            {/* Cabecera (Nombre y Precio Unitario) - IDÉNTICO A ProductoItem.tsx */}
+                            <CardContent className="grow p-3 sm:p-5 space-y-1 sm:space-y-2">
+                                <div className="flex justify-between items-start gap-2">
+                                    <h3 className="font-semibold text-sm sm:text-lg leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                                        {product.name}
+                                    </h3>
+                                </div>
+                                <div className="pt-1 sm:pt-2">
+                                    <span className="text-lg sm:text-2xl font-bold text-primary">
+                                        ${product.price.toFixed(2)}
+                                    </span>
+                                </div>
+                            </CardContent>
+
+                            {/* SECCIÓN DEL CARRUSEL - ADIÓS A LA LÍNEA Y AL ESPACIOTE */}
+                            {/* Usamos el mismo px-3 y pb-0 que en la vista de productos */}
+                            <div className="px-3 sm:px-5 pb-0 sm:pb-1 w-full">
                                 {product.stock > 0 ? (
-                                    <div className="space-y-4">
-                                        {/* Botón de Añadir al Carrito (Componente Cliente) */}
-                                        <div className="align-middle w-full">
-                                            <AddToCartCarousel product={{ ...product }} />
-                                        </div>
-                                    </div>
+                                    <AddToCartCarousel product={{ ...product }} />
                                 ) : (
-                                    <Button disabled size="lg" className="w-full text-lg opacity-80" variant="secondary">
-                                        No disponible por el momento
+                                    <Button disabled size="sm" className="w-full opacity-80 h-9 sm:h-11" variant="secondary">
+                                        No disponible
                                     </Button>
                                 )}
                             </div>
-                            <CardFooter className="p-3 pt-0">
-                                <Link href={`/productos/${product.id}`} className="w-full">
-                                    <Button className="w-full h-8 text-sm">Ver Detalles</Button>
+
+                            {/* Footer con Ver Detalles - Con su margen negativo para acercarlo */}
+                            <CardFooter className="p-3 sm:p-5 pt-0 sm:pt-0 -mt-2 sm:-mt-1">
+                                <Link href={`/productos/${product.id}`} className="w-full block">
+                                    <Button className="w-full font-bold shadow-sm h-9 sm:h-11 text-xs sm:text-base" variant="secondary">
+                                        Ver Detalles
+                                    </Button>
                                 </Link>
                             </CardFooter>
+                            
                         </Card>
                     ))}
                 </div>
+                
                 <div className="mt-10 flex justify-center">
                     <Link href="/productos">
-                        <Button variant="outline" size="lg">Ver Todos los Productos</Button>
+                        <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10">
+                            Ver Todos los Productos
+                        </Button>
                     </Link>
                 </div>
             </div>
