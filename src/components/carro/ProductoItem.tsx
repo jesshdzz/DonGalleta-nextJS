@@ -52,7 +52,7 @@ export default function ProductoItem({ product, initialIsFavorite = false }: Pro
         
         {/* Badge flotante si es necesario (ej: Nuevo, Oferta, Poco stock) */}
         {product.stock === 0 && (
-          <Badge variant="destructive" className="absolute top-2 right-2 shadow-sm">
+          <Badge variant="destructive" className="absolute top-2 left-2 shadow-sm">
             Agotado
           </Badge>
         )}
