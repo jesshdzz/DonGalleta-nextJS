@@ -21,11 +21,12 @@ export function ImageUpload({ onChange, onRemove, value }: ImageUploadProps) {
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                     src={value}
                     alt="Product Upload"
-                    className="object-cover w-full h-full"
+                    className="object-contain w-full h-full"
+                    width={500}
+                    height={500}
                 />
             </div>
         );
@@ -47,10 +48,11 @@ export function ImageUpload({ onChange, onRemove, value }: ImageUploadProps) {
             content={{
                 label: "Elige una imagen o arrástrala aquí",
                 allowedContent: "Imágenes de hasta 4MB (PNG, JPG)",
-                button: ({ ready, isUploading }) => {
+                button: ({ ready, isUploading, files, uploadProgress}) => {
                     if (isUploading) return "Subiendo...";
-                    if (ready) return "Seleccionar Archivo";
-                    return "Preparando...";
+                    if (files.length > 1) return "Solo se permite un archivo";
+                    if (files.length == 1) return `subir archivo seleccionado`;
+                    if (ready && !isUploading) return "Seleccionar Archivo";
                 },
             }}
             appearance={{

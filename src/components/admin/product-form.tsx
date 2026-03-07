@@ -164,7 +164,6 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                     />
                 </div>
 
-                {/* Imagen (URL por ahora) */}
                 {/* Imagen (Uploadthing) */}
                 <FormField
                     control={form.control}
