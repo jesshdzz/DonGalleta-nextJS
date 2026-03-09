@@ -11,7 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Trash2, User as UserIcon, Mail, Shield, Key } from "lucide-react"; // Añadimos Key
+import { LogOut, User as UserIcon, Mail, Shield, Key } from "lucide-react";
+import { EditEmailModal } from "@/components/perfil/edit-email-modal";
+import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
+import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
 
 type UserSession = {
   id?: string;
@@ -41,7 +44,7 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
       </div>
 
       <div className="grid gap-8">
-        
+
         {/* TARJETA 1: Información Personal */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
           <CardHeader className="bg-[#F7DCBE]/10 border-b border-[#A6A3A2]/20 pb-6">
@@ -115,35 +118,17 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4">
-            
-            {/* BOTÓN: Cambiar Correo */}
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
-              onClick={() => {
-                console.log("Compañero: Abrir modal/página para cambiar correo");
-              }}
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Cambiar Correo
-            </Button>
-
-            {/* BOTÓN: Cambiar Contraseña */}
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
-              onClick={() => {
-                console.log("Compañero: Abrir modal/página para cambiar contraseña");
-              }}
-            >
-              <Key className="mr-2 h-4 w-4" />
-              Cambiar Contraseña
-            </Button>
-            
+            {/* Modal: Cambiar Correo */}
+            <EditEmailModal
+              userId={user.id!}
+              currentEmail={user.email || ""}
+            />
+            {/* Modal: Cambiar Contraseña */}
+            <EditPasswordModal userId={user.id!} />
           </CardContent>
         </Card>
 
-        {/* TARJETA 3: Gestión de Sesión y Cuenta (Zona de Peligro) */}
+        {/* TARJETA 3: Gestión de Cuenta  */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl text-[#58321D]">
@@ -154,25 +139,18 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4">
-            {/* BOTÓN: Cerrar Sesión */}
+            {/* Cerrar Sesión */}
             <Button
               variant="secondary"
               className="w-full sm:w-auto bg-muted hover:bg-muted/80"
-              // onClick={() => { Cerrar sesión }}
+              onClick={() => signOut({ callbackUrl: "/" })}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
             </Button>
 
-            {/* BOTÓN: Eliminar Cuenta */}
-            <Button
-              variant="destructive"
-              className="w-full sm:w-auto bg-[#A42D2C] hover:bg-[#A42D2C]/90"
-              // onClick={() => { Eliminar cuenta }}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar Cuenta
-            </Button>
+            {/* Eliminar Cuenta */}
+            <DeleteAccountButton userId={user.id!} />
           </CardContent>
         </Card>
 
