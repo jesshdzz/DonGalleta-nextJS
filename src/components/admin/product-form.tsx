@@ -13,6 +13,7 @@ import { upsertProduct } from "@/actions/product-actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Save } from "lucide-react";
+import { ImageUpload } from "./image-upload";
 
 // Recibimos un producto opcional por si estamos editando
 interface ProductFormProps {
@@ -163,18 +164,20 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                     />
                 </div>
 
-                {/* Imagen (URL por ahora) */}
+                {/* Imagen (Uploadthing) */}
                 <FormField
                     control={form.control}
                     name="image"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL de Imagen</FormLabel>
+                            <FormLabel>Imagen del Producto</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://..." {...field} />
+                                <ImageUpload
+                                    value={field.value ?? ""}
+                                    onChange={(url) => field.onChange(url)}
+                                    onRemove={() => field.onChange("")}
+                                />
                             </FormControl>
-                            <FormDescription style={{ marginTop: "0" }}>Pega una URL de imagen externa para probar.</FormDescription>
-                            <FormMessage style={{ marginTop: "0" }} />
                         </FormItem>
                     )}
                 />
