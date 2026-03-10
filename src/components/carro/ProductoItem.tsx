@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
+import FavoriteButton from "@/components/ui/favorite-button";
 
 interface Product {
   id: number;
@@ -12,14 +13,19 @@ interface Product {
   price: number;
   image: string | null;
   description?: string | null;
-  stock: number;
+  stock: number; // Requerido para coincidir con AddToCartCarousel
 }
 
-export default function ProductoItem({ product }: { product: Product }) {
-  const imageUrl =
-    product.image && product.image.trim() !== ""
-      ? product.image
-      : "https://placehold.co/400x400/png?text=Sin+Imagen";
+interface ProductoItemProps {
+  product: Product;
+  initialIsFavorite?: boolean;
+}
+
+export default function ProductoItem({ product, initialIsFavorite = false }: ProductoItemProps) {
+  // Lógica de imagen (placeholder)
+  const imageUrl = product.image && product.image.trim() !== ""
+    ? product.image
+    : "https://placehold.co/400x400/png?text=Sin+Imagen";
 
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/50 group">
@@ -33,6 +39,18 @@ export default function ProductoItem({ product }: { product: Product }) {
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           priority={false}
         />
+        
+        {/* Botón de favoritos */}
+        <div className="absolute top-2 right-2">
+          <FavoriteButton 
+            productId={product.id}
+            initialIsFavorite={initialIsFavorite}
+            size="md"
+            variant="ghost"
+          />
+        </div>
+        
+        {/* Badge flotante si es necesario (ej: Nuevo, Oferta, Poco stock) */}
         {product.stock === 0 && (
           <Badge
             variant="destructive"

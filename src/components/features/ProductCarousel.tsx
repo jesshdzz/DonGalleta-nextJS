@@ -1,14 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card"; // Cambiamos CardHeader por CardContent
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "@/actions/product-actions";
+import { getUserFavoriteIds } from "@/actions/favorite-actions";
 import AddToCartCarousel from "@/components/carro/AddToCartCarousel";
+import FavoriteButton from "@/components/ui/favorite-button";
 
 export async function ProductCarousel() {
-    const products = await getProducts();
-    const featuredProducts = products.slice(0, 4); // Show only first 4 for now
+    const [products, { favoriteIds }] = await Promise.all([
+        getProducts(),
+        getUserFavoriteIds()
+    ]);
+
+    const featuredProducts = products.slice(0, 4);
 
     return (
         <section className="w-full py-12 md:py-24">
@@ -28,7 +34,7 @@ export async function ProductCarousel() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {featuredProducts.map((product) => (
                         <Card key={product.id} className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 group overflow-hidden">
-                            
+
                             {/* Imagen */}
                             <div className="relative aspect-square overflow-hidden bg-secondary/30">
                                 {product.image ? (
@@ -44,6 +50,17 @@ export async function ProductCarousel() {
                                         Sin imagen
                                     </div>
                                 )}
+
+                                {/* Botón de favoritos */}
+                                <div className="absolute top-2 right-2">
+                                    <FavoriteButton
+                                        productId={product.id}
+                                        initialIsFavorite={favoriteIds.includes(product.id)}
+                                        size="sm"
+                                        variant="ghost"
+                                    />
+                                </div>
+
                                 {!product.stock && (
                                     <div className="absolute top-2 right-2 z-10">
                                         <Badge variant="destructive" className="shadow-sm text-[10px] sm:text-xs px-1.5 py-0 sm:px-2.5 sm:py-0.5">Agotado</Badge>
@@ -51,7 +68,6 @@ export async function ProductCarousel() {
                                 )}
                             </div>
 
-                            {/* Cabecera (Nombre y Precio Unitario) - IDÉNTICO A ProductoItem.tsx */}
                             <CardContent className="grow p-3 sm:p-5 space-y-1 sm:space-y-2">
                                 <div className="flex justify-between items-start gap-2">
                                     <h3 className="font-semibold text-sm sm:text-lg leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
@@ -65,8 +81,6 @@ export async function ProductCarousel() {
                                 </div>
                             </CardContent>
 
-                            {/* SECCIÓN DEL CARRUSEL - ADIÓS A LA LÍNEA Y AL ESPACIOTE */}
-                            {/* Usamos el mismo px-3 y pb-0 que en la vista de productos */}
                             <div className="px-3 sm:px-5 pb-0 sm:pb-1 w-full">
                                 {product.stock > 0 ? (
                                     <AddToCartCarousel product={{ ...product }} />
@@ -85,11 +99,10 @@ export async function ProductCarousel() {
                                     </Button>
                                 </Link>
                             </CardFooter>
-                            
                         </Card>
                     ))}
                 </div>
-                
+
                 <div className="mt-10 flex justify-center">
                     <Link href="/productos">
                         <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10">
