@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getUserFavorites } from "@/actions/favorite-actions";
+import { Prisma } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,7 +100,7 @@ interface FavoriteProductCardProps {
       id: number;
       name: string;
       description: string | null;
-      price: any; // Decimal from Prisma
+      price: Prisma.Decimal; // Decimal from Prisma
       image: string | null;
       stock: number;
       slug: string;
