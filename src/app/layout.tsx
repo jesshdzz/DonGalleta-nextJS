@@ -11,6 +11,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 
+import { Providers } from "@/components/Providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,14 +39,16 @@ export default async function RootLayout({
     <html lang="es">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-        <CartProvider>
-          <Navbar user={session?.user} />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Toaster />
-          <Footer />
-        </CartProvider>
+        <Providers>
+          <CartProvider>
+            <Navbar user={session?.user} />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Toaster />
+            <Footer />
+          </CartProvider>
+        </Providers>
       </body>
     </html>
   );
