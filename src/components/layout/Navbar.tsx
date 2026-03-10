@@ -142,13 +142,11 @@ export function Navbar({ user }: { user?: UserSession }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 relative">
-        {/* SEARCH MOBILE OVERLAY */}
         {isMobileSearchOpen && (
           <div className="absolute inset-0 z-50 flex items-center bg-background px-4 md:hidden">
             <div className="relative w-full flex items-center gap-2">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-
                 <Input
                   type="search"
                   placeholder="Buscar galletas..."
@@ -167,19 +165,13 @@ export function Navbar({ user }: { user?: UserSession }) {
                   setIsMobileSearchOpen={setIsMobileSearchOpen}
                 />
               </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMobileSearchOpen(false)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileSearchOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
           </div>
         )}
 
-        {/* MOBILE MENU */}
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden">
@@ -307,16 +299,13 @@ export function Navbar({ user }: { user?: UserSession }) {
           </SheetContent>
         </Sheet>
 
-        {/* LOGO */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Image src={Logo} alt="Don Galleta Logo" width={150} />
         </Link>
 
-        {/* SEARCH DESKTOP */}
         <div className="hidden md:flex flex-1 max-w-sm items-center space-x-2">
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-
             <Input
               type="search"
               placeholder="Buscar galletas..."
@@ -336,23 +325,14 @@ export function Navbar({ user }: { user?: UserSession }) {
           </div>
         </div>
 
-        {/* ACTIONS */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* SEARCH MOBILE BUTTON */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setIsMobileSearchOpen(true)}
-          >
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileSearchOpen(true)}>
             <Search className="h-5 w-5" />
           </Button>
 
-          {/* CART */}
           <Link href="/carrito">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-
               {totalItems > 0 && (
                 <Badge className="absolute -right-1 -top-1 h-5 w-5 justify-center rounded-full p-0 text-[10px]">
                   {totalItems}
@@ -361,7 +341,6 @@ export function Navbar({ user }: { user?: UserSession }) {
             </Button>
           </Link>
 
-          {/* AUTH DESKTOP */}
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
