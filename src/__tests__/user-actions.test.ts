@@ -51,7 +51,7 @@ describe('updateEmail', () => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar error si el correo tiene formato inválido', async () => {
+    it('HU-11: debería retornar error si el correo tiene formato inválido', async () => {
         const result = await updateEmail('user-1', 'not-an-email', 'pass123');
 
         expect(result.success).toBe(false);
@@ -59,7 +59,7 @@ describe('updateEmail', () => {
         expect(prisma.user.findUnique).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
+    it('HU-11: debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'user-1', password: null } as any);
 
         const result = await updateEmail('user-1', 'new@example.com', 'pass123');
@@ -68,7 +68,7 @@ describe('updateEmail', () => {
         expect(result.message).toBe('No se puede cambiar el correo en esta cuenta.');
     });
 
-    it('debería retornar error si usuario no existe', async () => {
+    it('HU-11: debería retornar error si usuario no existe', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
 
         const result = await updateEmail('user-1', 'new@example.com', 'pass123');
@@ -77,7 +77,7 @@ describe('updateEmail', () => {
         expect(result.message).toBe('No se puede cambiar el correo en esta cuenta.');
     });
 
-    it('debería retornar error si la contraseña actual es incorrecta', async () => {
+    it('HU-11: debería retornar error si la contraseña actual es incorrecta', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
         vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as never);
 
@@ -88,7 +88,7 @@ describe('updateEmail', () => {
         expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si el nuevo correo ya está en uso', async () => {
+    it('HU-11: debería retornar error si el nuevo correo ya está en uso', async () => {
         vi.mocked(prisma.user.findUnique)
             .mockResolvedValueOnce(MOCK_USER as any)           // busca usuario actual
             .mockResolvedValueOnce({ id: 'other-user' } as any); // correo ya existe
@@ -101,7 +101,7 @@ describe('updateEmail', () => {
         expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it('debería actualizar el correo exitosamente', async () => {
+    it('HU-11: debería actualizar el correo exitosamente', async () => {
         vi.mocked(prisma.user.findUnique)
             .mockResolvedValueOnce(MOCK_USER as any) // usuario actual
             .mockResolvedValueOnce(null);            // nuevo correo libre
@@ -127,7 +127,7 @@ describe('updatePassword', () => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar error si la nueva contraseña es muy corta', async () => {
+    it('HU-11: debería retornar error si la nueva contraseña es muy corta', async () => {
         const result = await updatePassword('user-1', 'pass123', '123');
 
         expect(result.success).toBe(false);
@@ -135,7 +135,7 @@ describe('updatePassword', () => {
         expect(prisma.user.findUnique).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
+    it('HU-11: debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'user-1', password: null } as any);
 
         const result = await updatePassword('user-1', 'pass123', 'newpassword');
@@ -144,7 +144,7 @@ describe('updatePassword', () => {
         expect(result.message).toBe('No se puede cambiar la contraseña en esta cuenta.');
     });
 
-    it('debería retornar error si la contraseña actual es incorrecta', async () => {
+    it('HU-11: debería retornar error si la contraseña actual es incorrecta', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
         vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as never);
 
@@ -155,7 +155,7 @@ describe('updatePassword', () => {
         expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it('debería actualizar la contraseña exitosamente', async () => {
+    it('HU-11: debería actualizar la contraseña exitosamente', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
         vi.mocked(bcrypt.compare).mockResolvedValueOnce(true as never);
         vi.mocked(bcrypt.hash).mockResolvedValueOnce('new-hashed-password' as never);
@@ -181,7 +181,7 @@ describe('deleteAccount', () => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
+    it('HU-41: debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'user-1', password: null } as any);
 
         const result = await deleteAccount('user-1', 'pass123');
@@ -191,7 +191,7 @@ describe('deleteAccount', () => {
         expect(prisma.user.delete).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si el usuario no existe', async () => {
+    it('HU-41: debería retornar error si el usuario no existe', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
 
         const result = await deleteAccount('user-1', 'pass123');
@@ -200,7 +200,7 @@ describe('deleteAccount', () => {
         expect(result.message).toBe('No se puede eliminar esta cuenta desde aquí.');
     });
 
-    it('debería retornar error si la contraseña es incorrecta', async () => {
+    it('HU-41: debería retornar error si la contraseña es incorrecta', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
         vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as never);
 
@@ -211,7 +211,7 @@ describe('deleteAccount', () => {
         expect(prisma.user.delete).not.toHaveBeenCalled();
     });
 
-    it('debería eliminar la cuenta exitosamente', async () => {
+    it('HU-41: debería eliminar la cuenta exitosamente', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
         vi.mocked(bcrypt.compare).mockResolvedValueOnce(true as never);
         vi.mocked(prisma.user.delete).mockResolvedValueOnce({} as any);
