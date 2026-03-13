@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { UnauthorizedView } from "@/components/auth/unauthorized-view";
+import { AdminNotificationProvider } from "@/components/admin/AdminNotificationProvider";
 
 export default async function AdminLayout({
     children,
@@ -15,5 +16,9 @@ export default async function AdminLayout({
         return <UnauthorizedView />;
     }
 
-    return <>{children}</>;
+    return (
+        <AdminNotificationProvider>
+            {children}
+        </AdminNotificationProvider>
+    );
 }

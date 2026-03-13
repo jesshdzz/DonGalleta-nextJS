@@ -4,7 +4,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod"; 
+import { z } from "zod";
+import { pusher } from "@/lib/pusher"; 
 
 // Inicializa el cliente de Stripe con la clave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -53,14 +54,22 @@ export async function POST(req: Request) {
 
   // Verifica si el evento es un pago exitoso
   if (event.type === "payment_intent.succeeded") {
+    console.log('🎯 Webhook recibido: payment_intent.succeeded');
+    
     // Extrae los datos del pago de la solicitud
     const paymentIntent = event.data.object as Stripe.PaymentIntent;    
     
+    // DEBUG: Ver todos los metadatos
+    console.log('📋 Metadatos completos:', paymentIntent.metadata);
+    
     // Obtiene la string con los productos comprados desde los metadatos del pago
     const productosCompradosString = paymentIntent.metadata.productos;
+    
+    console.log('🛒 Productos string:', productosCompradosString);
 
     // Procesa el inventario si existen productos en el pago
     if (productosCompradosString) {
+      console.log('✅ Productos encontrados, procesando...');
       try {
         // Parsea el string JSON de productos a un objeto
         const parsedData = JSON.parse(productosCompradosString);
@@ -79,6 +88,19 @@ export async function POST(req: Request) {
         // Ejecuta todas las actualizaciones en una transacción de base de datos
         // Garantiza que todas se ejecuten juntas o ninguna
         await prisma.$transaction(updates);
+
+        console.log('✅ Stock actualizado exitosamente');
+
+        // 🔥 NOTIFICACIÓN PUSHER (solo texto simple)
+        try {
+          await pusher.trigger('admin-notifications', 'nuevo-pedido', {
+            mensaje: 'Nuevo pedido recibido',
+            timestamp: new Date().toISOString()
+          });
+          console.log('🔔 Notificación Pusher enviada exitosamente');
+        } catch (pusherError) {
+          console.error('❌ Error enviando notificación Pusher:', pusherError);
+        }
       } catch (error) {
         // Captura errores de validación del schema
         if (error instanceof z.ZodError) {
@@ -89,6 +111,8 @@ export async function POST(req: Request) {
         }
         return NextResponse.json({ error: "Error interno actualizando la orden" }, { status: 500 });
       }
+    } else {
+      console.log('❌ No se encontraron productos en los metadatos');
     }
   }
 
