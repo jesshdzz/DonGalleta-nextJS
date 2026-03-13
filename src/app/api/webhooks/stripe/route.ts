@@ -4,7 +4,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod"; 
+import { z } from "zod";
+import { processMultipleStockNotifications } from "@/lib/stock-notifications"; 
 
 // Inicializa el cliente de Stripe con la clave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -68,7 +69,30 @@ export async function POST(req: Request) {
         // Valida que los datos del carrito cumplan con el schema definido
         const productosValidados = CarritoMetadataSchema.parse(parsedData);
         
-        // Prepara las actualizaciones de stock para cada producto comprado
+        // 1. Obtener stock actual y nombres de productos ANTES de actualizar
+        const productInfoPromises = productosValidados.map(async (item) => {
+          const product = await prisma.product.findUnique({
+            where: { id: item.id },
+            select: { stock: true, name: true }
+          });
+          
+          if (!product) {
+            throw new Error(`Producto ${item.id} no encontrado`);
+          }
+          
+          return {
+            id: item.id,
+            name: product.name,
+            oldStock: product.stock,
+            quantity: item.cantidad,
+            // Calcular nuevo stock (lo que quedará después de la compra)
+            newStock: Math.max(0, product.stock - item.cantidad)
+          };
+        });
+        
+        const productsInfo = await Promise.all(productInfoPromises);
+        
+        // 2. Prepara las actualizaciones de stock para cada producto comprado
         const updates = productosValidados.map((item) => 
           prisma.product.update({
             where: { id: item.id },
@@ -76,9 +100,24 @@ export async function POST(req: Request) {
           })
         );
 
-        // Ejecuta todas las actualizaciones en una transacción de base de datos
+        // 3. Ejecuta todas las actualizaciones en una transacción de base de datos
         // Garantiza que todas se ejecuten juntas o ninguna
         await prisma.$transaction(updates);
+        
+        // 4. Procesar notificaciones de stock DESPUÉS de actualización exitosa
+        const stockNotificationData = productsInfo.map(product => ({
+          productId: product.id,
+          productName: product.name,
+          oldStock: product.oldStock,
+          newStock: product.newStock,
+        }));
+        
+        // Enviar notificaciones sin bloquear la respuesta del webhook
+        // Las notificaciones se procesan de forma asíncrona
+        processMultipleStockNotifications(stockNotificationData)
+          .catch(error => {
+            console.error('❌ Error procesando notificaciones de stock:', error);
+          });
       } catch (error) {
         // Captura errores de validación del schema
         if (error instanceof z.ZodError) {
