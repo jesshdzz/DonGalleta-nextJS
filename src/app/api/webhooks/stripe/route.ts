@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod"; 
+import { z } from "zod";
+import { pusher } from "@/lib/pusher"; 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover", 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;    
     
+    // Obtiene la string con los productos comprados desde los metadatos del pago
     const productosCompradosString = paymentIntent.metadata.productos;
     const userId = paymentIntent.metadata.userId; 
 
@@ -73,6 +75,16 @@ export async function POST(req: Request) {
             });
           }
         });
+
+        try {
+          await pusher.trigger('admin-notifications', 'nuevo-pedido', {
+            mensaje: 'Nuevo pedido recibido',
+            timestamp: new Date().toISOString()
+          });
+          console.log('🔔 Notificación Pusher enviada exitosamente');
+        } catch (pusherError) {
+          console.error('❌ Error enviando notificación Pusher:', pusherError);
+        }
       } catch (error) {
         if (error instanceof z.ZodError) {
           console.error("Error de Zod:", error.issues);
@@ -81,6 +93,8 @@ export async function POST(req: Request) {
         }
         return NextResponse.json({ error: "Error interno" }, { status: 500 });
       }
+    } else {
+      console.log('❌ No se encontraron productos en los metadatos');
     }
   }
 
