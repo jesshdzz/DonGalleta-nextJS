@@ -1,17 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { revalidatePath } from 'next/cache';
 import {
     updateEmail,
     updatePassword,
     deleteAccount,
     getAllUsers,
 } from '../actions/user-actions';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import { revalidatePath } from 'next/cache';
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 vi.mock('@/lib/prisma', () => ({
     prisma: {
         user: {
@@ -34,19 +31,13 @@ vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 const MOCK_USER = {
     id: 'user-1',
     email: 'test@example.com',
     password: 'hashed-password',
 };
 
-// ---------------------------------------------------------------------------
-// updateEmail
-// ---------------------------------------------------------------------------
-describe('updateEmail', () => {
+describe('HU-11: Cambiar correo', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -119,10 +110,7 @@ describe('updateEmail', () => {
     });
 });
 
-// ---------------------------------------------------------------------------
-// updatePassword
-// ---------------------------------------------------------------------------
-describe('updatePassword', () => {
+describe('HU-11: Cambiar contraseña', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -173,10 +161,7 @@ describe('updatePassword', () => {
     });
 });
 
-// ---------------------------------------------------------------------------
-// deleteAccount
-// ---------------------------------------------------------------------------
-describe('deleteAccount', () => {
+describe('HU-41: Eliminar cuenta', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -223,35 +208,32 @@ describe('deleteAccount', () => {
     });
 });
 
-// ---------------------------------------------------------------------------
-// getAllUsers
-// ---------------------------------------------------------------------------
-describe('getAllUsers', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
-
-    it('debería retornar todos los usuarios con el conteo de órdenes', async () => {
+describe('HU-21: Ver todos los usuarios', () => {
+    it('HU-21: Debería retornar la lista de usuarios con el conteo de pedidos', async () => {
         const mockUsers = [
-            { id: 'user-1', email: 'a@a.com', _count: { orders: 3 } },
-            { id: 'user-2', email: 'b@b.com', _count: { orders: 0 } },
+            { id: '1', name: 'User 1', email: 'user1@test.com', _count: { orders: 5 } },
+            { id: '2', name: 'User 2', email: 'user2@test.com', _count: { orders: 2 } },
         ];
-        vi.mocked(prisma.user.findMany).mockResolvedValueOnce(mockUsers as any);
+
+        vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
 
         const result = await getAllUsers();
 
-        expect(result).toEqual(mockUsers);
         expect(prisma.user.findMany).toHaveBeenCalledWith({
-            orderBy: { id: 'desc' },
+            orderBy: { id: "desc" },
             include: {
                 _count: {
-                    select: { orders: true },
-                },
-            },
+                    select: { orders: true }
+                }
+            }
         });
+        expect(result).toHaveLength(2);
+        expect(result[0].name).toBe('User 1');
+        expect(result[0]._count.orders).toBe(5);
+        expect(result[1]._count.orders).toBe(2);
     });
 
-    it('debería retornar un arreglo vacío si no hay usuarios', async () => {
+    it('HU-21: Debería retornar un arreglo vacío si no hay usuarios', async () => {
         vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
 
         const result = await getAllUsers();
@@ -259,3 +241,4 @@ describe('getAllUsers', () => {
         expect(result).toEqual([]);
     });
 });
+
