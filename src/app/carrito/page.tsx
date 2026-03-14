@@ -1,18 +1,22 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
+import { useSession } from "next-auth/react"; 
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ShoppingBag, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { CartItemRow } from "@/components/carro/CartItemRow";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function CartPage() {
   const router = useRouter();
+  // 2. Extraemos el status de la sesión
+  const { status } = useSession(); 
+  
   const {
     cart,
     clearCart,
@@ -23,8 +27,16 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckout = () => {
+    // Verificamos si NO tiene sesión iniciada
+    if (status === "unauthenticated") {
+      toast.error("Necesitas iniciar sesión", {
+        description: "Para poder rastrear tus galletas en tiempo real, primero entra a tu cuenta."
+      });
+      router.push("/auth/login");
+      return; 
+    }
+
     setIsLoading(true);
-    // Redirigimos a la pasarela de pago
     router.push("/pago");
   };
 
@@ -65,7 +77,6 @@ export default function CartPage() {
 
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
 
-        {/* COLUMNA IZQUIERDA: LISTA DE ITEMS (Ocupa 8/12 columnas) */}
         <div className="lg:col-span-8 space-y-6">
           <div className="space-y-4">
             {cart.map((item) => (
@@ -84,7 +95,6 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: RESUMEN (Ocupa 4/12 columnas) */}
         <div className="lg:col-span-4">
           <div className="sticky top-24">
             <Card className="bg-card shadow-xl border-primary/10 overflow-hidden">
@@ -115,7 +125,7 @@ export default function CartPage() {
                   onClick={handleCheckout}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Redirigiendo...' : 'Proceder al Pago'}
+                  {isLoading ? 'Cargando...' : 'Proceder al Pago'}
                 </Button>
                 <div className="text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
                   🔒 Pagos seguros y encriptados
