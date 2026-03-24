@@ -79,7 +79,7 @@ function EstadoDelPago() {
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'in', format: [3.15, 6.5] as [number, number], orientation: 'portrait' as const }
       };
-      toast.success("Generando recibo profesional...");
+      toast.success("Generando recibo...");
       html2pdf.default().set(opt).from(element).save();
     });
   };
@@ -149,7 +149,7 @@ function EstadoDelPago() {
 
       <div className="order-2 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl p-4 md:p-8 border border-primary/10 h-full">
         <div id="ticket-compra" className="w-full max-w-[320px] bg-[#ffffff] px-6 py-8 shadow-xl relative font-mono text-[#1f2937]" style={{ color: '#000000', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb' }}>
-          <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-[length:10px_10px] -mt-2"></div>
+          <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-size-[10px_10px] -mt-2"></div>
 
           <div className="flex flex-col items-center mb-6 text-center">
             <Image src={logoImg} alt="Don Galleta Logo" width={100} height={60} className="object-contain mb-3 grayscale opacity-90" unoptimized />
@@ -171,7 +171,7 @@ function EstadoDelPago() {
             </div>
             <div className="flex justify-between">
               <span className="font-bold">CLIENTE:</span>
-              <span className="truncate max-w-[140px] text-right">{ordenDb?.user?.name || "Invitado"}</span>
+              <span className="truncate max-w-35 text-right">{ordenDb?.user?.name || "Invitado"}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">MÉTODO:</span>
@@ -218,14 +218,14 @@ function EstadoDelPago() {
             <p className="font-bold text-[#000000] text-xs">¡GRACIAS POR TU COMPRA!</p>
             <p>Dudas o aclaraciones: hola@dongalleta.com</p>
             <p>Este documento no es un comprobante fiscal.</p>
-            <div className="mt-4 flex justify-center gap-[2px] h-8 opacity-70">
+            <div className="mt-4 flex justify-center gap-0.5 h-8 opacity-70">
               {/* simulacion de codigo de barras */}
-              <div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-3 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[3px] bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div>
+              <div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-3 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.75 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div>
             </div>
             <p className="text-[8px] tracking-widest mt-1">{paymentIntent?.slice(0, 14).toUpperCase()}</p>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-[length:10px_10px] -mb-2 rotate-180"></div>
+          <div className="absolute bottom-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-size-[10px_10px] -mb-2 rotate-180"></div>
         </div>
       </div>
     </div>
