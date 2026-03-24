@@ -8,6 +8,7 @@ vi.mock('@/lib/prisma', () => ({
     prisma: {
         order: {
             update: vi.fn(),
+            findFirst: vi.fn(),
         },
     },
 }));
@@ -43,5 +44,35 @@ describe('HU-20: Cambiar el estado de un pedido', () => {
         expect(result.id).toBe(orderId);
         expect(result.status).toBe(newStatus);
         expect(result.total).toBe(150.50);
+    });
+});
+
+import { verifyPaymentIntent } from '../actions/orders-actions';
+
+describe('Orders Architecture Refactor: verifyPaymentIntent', () => {
+    it('debe regresar la orden parseada si existe el intention ID', async () => {
+        const mockOrder = {
+            id: 'ord-123',
+            total: { toNumber: () => 200.50 },
+            items: [
+                { price: { toNumber: () => 100 }, product: { price: { toNumber: () => 100 } } }
+            ]
+        };
+        vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
+
+        const result = await verifyPaymentIntent('pi_yes');
+        
+        expect(result.success).toBe(true);
+        expect(result.order?.total).toBe(200.50);
+        expect(result.order?.items[0].price).toBe(100);
+    });
+
+    it('debe regresar error not found si la orden no existe', async () => {
+        vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
+
+        const result = await verifyPaymentIntent('pi_no');
+        
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('No encontrada');
     });
 });
