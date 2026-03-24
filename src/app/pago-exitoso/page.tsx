@@ -11,6 +11,8 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import logoImg from "@/assets/images/logo.png";
+import { verifyPaymentIntent } from "@/actions/orders-actions";
+import { generarTicketPDF } from "@/utils/pdf-generator";
 
 // componente que maneja el estado de pago
 function EstadoDelPago() {
@@ -35,18 +37,13 @@ function EstadoDelPago() {
       
       let intentos = 0;
       
-      // funcion para buscar la orden en la base de datos
+      // funcion para buscar la orden verificando con un server action
       const buscarOrden = async () => {
         try {
-          const res = await fetch(`/api/pedidos/verificar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ intent: paymentIntent })
-          });
+          const res = await verifyPaymentIntent(paymentIntent);
 
-          if (res.ok) {
-            const data = await res.json();
-            setOrdenDb(data);
+          if (res.success && res.order) {
+            setOrdenDb(res.order);
             setStatus("success");
           } else {
             intentos++;
@@ -67,21 +64,9 @@ function EstadoDelPago() {
     }
   }, [paymentIntent, redirectStatus, clearCart]);
 
-  // funcion para descargar el recibo en PDF usando html2pdf.js
+  // funcion para descargar el recibo en PDF usando el utilitario abstracto
   const descargarPDF = () => {
-    const element = document.getElementById("ticket-compra");
-    if (!element) return;
-    import("html2pdf.js").then((html2pdf) => {
-      const opt = {
-        margin: 0.3,
-        filename: `Ticket-DonGalleta-${ordenDb?.id?.slice(0, 8) || 'Comprobante'}.pdf`,
-        image: { type: 'png' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'in', format: [3.15, 6.5] as [number, number], orientation: 'portrait' as const }
-      };
-      toast.success("Generando recibo...");
-      html2pdf.default().set(opt).from(element).save();
-    });
+    generarTicketPDF("ticket-compra", ordenDb?.id?.slice(0, 8) || 'Comprobante');
   };
 
   const enviarWhatsApp = () => toast.info("Función de WhatsApp en desarrollo");

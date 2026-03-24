@@ -61,3 +61,36 @@ export async function updateOrderStatus(id: string, status: string) {
         total: order.total.toNumber(),
     };
 }
+
+export async function verifyPaymentIntent(intentId: string) {
+    try {
+        const order = await prisma.order.findFirst({
+            where: { payment: { transactionId: intentId } },
+            include: {
+                items: { include: { product: true } }, 
+                user: true 
+            }
+        });
+
+        if (!order) return { success: false, error: "No encontrada" };
+
+        return { 
+            success: true, 
+            order: {
+                ...order,
+                total: order.total.toNumber(),
+                items: order.items.map(item => ({
+                    ...item,
+                    price: item.price.toNumber(),
+                    product: item.product ? {
+                        ...item.product,
+                        price: item.product.price.toNumber(),
+                    } : null
+                }))
+            } 
+        };
+    } catch (error) {
+        console.error("Error validando intent:", error);
+        return { success: false, error: "Error interno" };
+    }
+}

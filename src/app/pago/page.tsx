@@ -14,6 +14,7 @@ import { useCart } from "@/context/CartContext";
 // Imagen
 import doncookImg from "@/assets/images/doncook.png"; 
 import { FormularioPago } from "@/components/pago/Formulario";
+import { createPaymentIntent } from "@/actions/payment-actions";
 
 // Inicializo la conexión con Stripe usando mi llave pública
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
@@ -34,15 +35,13 @@ export default function PagoPage() {
 
   useEffect(() => {
     if (totalPrice > 0) {
-      fetch("/api/pago", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Le mando a mi backend tanto lo que voy a cobrar como los productos (para la metadata)
-        body: JSON.stringify({ amount: totalPrice, cart: cart }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setClientSecret(data.clientSecret);
+      createPaymentIntent(totalPrice, cart)
+        .then((res) => {
+          if (res.success && res.clientSecret) {
+            setClientSecret(res.clientSecret);
+          } else {
+            console.error(res.error);
+          }
         })
         .catch((error) => console.error("Me falló la petición del client secret:", error));
     }
