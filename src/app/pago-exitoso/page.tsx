@@ -32,12 +32,8 @@ function EstadoDelPago() {
     if (!paymentIntent) { setStatus("error"); return; }
 
     if (redirectStatus === "succeeded") {
-      clearCart();
       yaProcesado.current = true;
       
-      let intentos = 0;
-      
-      // funcion para buscar la orden verificando con un server action
       const buscarOrden = async () => {
         try {
           const res = await verifyPaymentIntent(paymentIntent);
@@ -45,13 +41,9 @@ function EstadoDelPago() {
           if (res.success && res.order) {
             setOrdenDb(res.order);
             setStatus("success");
+            clearCart();
           } else {
-            intentos++;
-            if (intentos < 10) {
-              setTimeout(buscarOrden, 2000); // reintenta cada 2 segundos
-            } else {
-              setStatus("error"); // fallo despues de 10 intentos
-            }
+            setStatus("error"); 
           }
         } catch (error) {
           setStatus("error");

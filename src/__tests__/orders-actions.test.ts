@@ -49,8 +49,23 @@ describe('HU-20: Cambiar el estado de un pedido', () => {
 
 import { verifyPaymentIntent } from '../actions/orders-actions';
 
+vi.mock('stripe', () => ({
+    default: function() {
+        return {
+            paymentIntents: {
+                retrieve: vi.fn().mockResolvedValue({ status: 'requires_payment' })
+            }
+        }
+    }
+}));
+
+vi.mock('../actions/payment-actions', () => ({
+    processSuccessfulPayment: vi.fn(),
+    createPaymentIntent: vi.fn()
+}));
+
 describe('Orders Architecture Refactor: verifyPaymentIntent', () => {
-    it('debe regresar la orden parseada si existe el intention ID', async () => {
+    it('debe regresar la orden parseada si existe el intention ID directamente en la BD', async () => {
         const mockOrder = {
             id: 'ord-123',
             total: { toNumber: () => 200.50 },
@@ -67,12 +82,12 @@ describe('Orders Architecture Refactor: verifyPaymentIntent', () => {
         expect(result.order?.items[0].price).toBe(100);
     });
 
-    it('debe regresar error not found si la orden no existe', async () => {
+    it('debe buscar en Stripe de refilón si no existe, y regresar error si stripe dice que el pago falló', async () => {
         vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
 
         const result = await verifyPaymentIntent('pi_no');
         
         expect(result.success).toBe(false);
-        expect(result.error).toBe('No encontrada');
+        expect(result.error).toBe('No encontrada y el pago no ha sido liquidado');
     });
 });
