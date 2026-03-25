@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { pusher } from "@/lib/pusher"; 
+import { processSuccessfulPayment } from "@/actions/payment-actions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover", 
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
-const CarritoMetadataSchema = z.array(
-  z.object({
-    id: z.number().int().positive(),
-    cantidad: z.number().int().positive(),
-    precio: z.number().positive()
-  })
-);
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -34,68 +24,7 @@ export async function POST(req: Request) {
 
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;    
-    
-    // Obtiene la string con los productos comprados desde los metadatos del pago
-    const productosCompradosString = paymentIntent.metadata.productos;
-    const userId = paymentIntent.metadata.userId; 
-
-    if (productosCompradosString && userId) {
-      try {
-        const parsedData = JSON.parse(productosCompradosString);
-        const productosValidados = CarritoMetadataSchema.parse(parsedData);
-        
-        await prisma.$transaction(async (tx) => {
-          await tx.order.create({
-            data: {
-              userId: userId,
-              total: paymentIntent.amount / 100,
-              status: "PENDING", 
-              items: {
-                create: productosValidados.map((item) => ({
-                  productId: item.id,
-                  quantity: item.cantidad,
-                  price: item.precio
-                }))
-              },
-              payment: {
-                create: {
-                  method: "STRIPE",
-                  transactionId: paymentIntent.id, 
-                  amount: paymentIntent.amount / 100,
-                  status: "paid"
-                }
-              }
-            }
-          });
-
-          for (const item of productosValidados) {
-            await tx.product.update({
-              where: { id: item.id },
-              data: { stock: { decrement: item.cantidad } }
-            });
-          }
-        });
-
-        try {
-          await pusher.trigger('admin-notifications', 'nuevo-pedido', {
-            mensaje: 'Nuevo pedido recibido',
-            timestamp: new Date().toISOString()
-          });
-          console.log('🔔 Notificación Pusher enviada exitosamente');
-        } catch (pusherError) {
-          console.error('❌ Error enviando notificación Pusher:', pusherError);
-        }
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          console.error("Error de Zod:", error.issues);
-        } else {
-          console.error("Error crítico en BD:", error);
-        }
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
-      }
-    } else {
-      console.log('❌ No se encontraron productos en los metadatos');
-    }
+    await processSuccessfulPayment(paymentIntent.id, paymentIntent.amount, paymentIntent.metadata);
   }
 
   return NextResponse.json({ received: true });

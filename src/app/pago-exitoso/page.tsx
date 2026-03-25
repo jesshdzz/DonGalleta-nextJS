@@ -11,6 +11,8 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import logoImg from "@/assets/images/logo.png";
+import { verifyPaymentIntent } from "@/actions/orders-actions";
+import { generarTicketPDF } from "@/utils/pdf-generator";
 
 // componente que maneja el estado de pago
 function EstadoDelPago() {
@@ -30,31 +32,18 @@ function EstadoDelPago() {
     if (!paymentIntent) { setStatus("error"); return; }
 
     if (redirectStatus === "succeeded") {
-      clearCart();
       yaProcesado.current = true;
       
-      let intentos = 0;
-      
-      // funcion para buscar la orden en la base de datos
       const buscarOrden = async () => {
         try {
-          const res = await fetch(`/api/pedidos/verificar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ intent: paymentIntent })
-          });
+          const res = await verifyPaymentIntent(paymentIntent);
 
-          if (res.ok) {
-            const data = await res.json();
-            setOrdenDb(data);
+          if (res.success && res.order) {
+            setOrdenDb(res.order);
             setStatus("success");
+            clearCart();
           } else {
-            intentos++;
-            if (intentos < 10) {
-              setTimeout(buscarOrden, 2000); // reintenta cada 2 segundos
-            } else {
-              setStatus("error"); // fallo despues de 10 intentos
-            }
+            setStatus("error"); 
           }
         } catch (error) {
           setStatus("error");
@@ -67,21 +56,9 @@ function EstadoDelPago() {
     }
   }, [paymentIntent, redirectStatus, clearCart]);
 
-  // funcion para descargar el recibo en PDF usando html2pdf.js
+  // funcion para descargar el recibo en PDF usando el utilitario abstracto
   const descargarPDF = () => {
-    const element = document.getElementById("ticket-compra");
-    if (!element) return;
-    import("html2pdf.js").then((html2pdf) => {
-      const opt = {
-        margin: 0.3,
-        filename: `Ticket-DonGalleta-${ordenDb?.id?.slice(0, 8) || 'Comprobante'}.pdf`,
-        image: { type: 'png' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'in', format: [3.15, 6.5] as [number, number], orientation: 'portrait' as const }
-      };
-      toast.success("Generando recibo profesional...");
-      html2pdf.default().set(opt).from(element).save();
-    });
+    generarTicketPDF("ticket-compra", ordenDb?.id?.slice(0, 8) || 'Comprobante');
   };
 
   const enviarWhatsApp = () => toast.info("Función de WhatsApp en desarrollo");
@@ -149,7 +126,7 @@ function EstadoDelPago() {
 
       <div className="order-2 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl p-4 md:p-8 border border-primary/10 h-full">
         <div id="ticket-compra" className="w-full max-w-[320px] bg-[#ffffff] px-6 py-8 shadow-xl relative font-mono text-[#1f2937]" style={{ color: '#000000', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb' }}>
-          <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-[length:10px_10px] -mt-2"></div>
+          <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-size-[10px_10px] -mt-2"></div>
 
           <div className="flex flex-col items-center mb-6 text-center">
             <Image src={logoImg} alt="Don Galleta Logo" width={100} height={60} className="object-contain mb-3 grayscale opacity-90" unoptimized />
@@ -171,7 +148,7 @@ function EstadoDelPago() {
             </div>
             <div className="flex justify-between">
               <span className="font-bold">CLIENTE:</span>
-              <span className="truncate max-w-[140px] text-right">{ordenDb?.user?.name || "Invitado"}</span>
+              <span className="truncate max-w-35 text-right">{ordenDb?.user?.name || "Invitado"}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">MÉTODO:</span>
@@ -218,14 +195,14 @@ function EstadoDelPago() {
             <p className="font-bold text-[#000000] text-xs">¡GRACIAS POR TU COMPRA!</p>
             <p>Dudas o aclaraciones: hola@dongalleta.com</p>
             <p>Este documento no es un comprobante fiscal.</p>
-            <div className="mt-4 flex justify-center gap-[2px] h-8 opacity-70">
+            <div className="mt-4 flex justify-center gap-0.5 h-8 opacity-70">
               {/* simulacion de codigo de barras */}
-              <div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-3 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-[2px] bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-[3px] bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div>
+              <div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-3 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-0.5 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-0.75 bg-[#000000]"></div><div className="w-1 bg-[#000000]"></div><div className="w-2 bg-[#000000]"></div>
             </div>
             <p className="text-[8px] tracking-widest mt-1">{paymentIntent?.slice(0, 14).toUpperCase()}</p>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-[length:10px_10px] -mb-2 rotate-180"></div>
+          <div className="absolute bottom-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-size-[10px_10px] -mb-2 rotate-180"></div>
         </div>
       </div>
     </div>
