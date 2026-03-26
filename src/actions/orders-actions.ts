@@ -124,3 +124,43 @@ export async function verifyPaymentIntent(intentId: string) {
         return { success: false, error: "Error interno" };
     }
 }
+
+export async function getUserOrders() {
+    try {
+        const { auth } = await import('@/auth');
+        const session = await auth();
+
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado" };
+        }
+
+        const orders = await prisma.order.findMany({
+            where: { userId: session.user.id },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                items: {
+                    include: { product: true }
+                }
+            }
+        });
+
+        // Convert Prisma Decimals to Numbers to avoid serialization errors in Client Components
+        const parsedOrders = orders.map(order => ({
+            ...order,
+            total: order.total.toNumber(),
+            items: order.items.map(item => ({
+                ...item,
+                price: item.price.toNumber(),
+                product: item.product ? {
+                    ...item.product,
+                    price: item.product.price.toNumber(),
+                } : null
+            }))
+        }));
+
+        return { success: true, orders: parsedOrders };
+    } catch (error) {
+        console.error("Error obteniendo pedidos del usuario:", error);
+        return { success: false, error: "Error al recuperar los pedidos" };
+    }
+}

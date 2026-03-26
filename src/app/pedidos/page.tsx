@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getUserOrders } from "@/actions/orders-actions";
 
 // definimos los tipos de datos
 type OrderItem = {
@@ -77,13 +78,13 @@ export default function MisPedidosPage() {
   // obtener los pedidos del usuario
   const obtenerPedidos = async () => {
     try {
-      
-      const res = await fetch(`/api/pedidos?t=${new Date().getTime()}`, {
-        cache: 'no-store'
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPedidos(data);
+      const response = await getUserOrders();
+      if (response.success && response.orders) {
+        // Ignoramos el tipado estricto entre Prisma Generated y OrderType custom temporalmente
+        // @ts-expect-error Types mismatched from Prisma mapping vs UI custom type
+        setPedidos(response.orders);
+      } else {
+        console.error(response.error);
       }
     } catch (error) {
       console.error("Error cargando los pedidos:", error);

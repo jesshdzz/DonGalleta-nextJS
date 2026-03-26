@@ -1,5 +1,4 @@
 import { getAllUsers } from "@/actions/user-actions";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CircleUserRound, ShieldUser, User as UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
