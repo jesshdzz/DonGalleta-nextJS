@@ -14,7 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Key } from "lucide-react";
+import { Eye, EyeOff, Key } from "lucide-react";
 import { toast } from "sonner";
 
 interface EditPasswordModalProps {
@@ -26,6 +26,9 @@ export function EditPasswordModal({ userId }: EditPasswordModalProps) {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -69,36 +72,60 @@ export function EditPasswordModal({ userId }: EditPasswordModalProps) {
                 <form onSubmit={handleSubmit} className="space-y-4 py-2">
                     <div className="grid gap-2">
                         <Label htmlFor="current-password">Contraseña actual</Label>
-                        <Input
-                            id="current-password"
-                            type="password"
-                            placeholder="Tu contraseña actual"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="current-password"
+                                type={showCurrent ? "text" : "password"}
+                                placeholder="Tu contraseña actual"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                                className="pr-10"
+                            />
+                            <button type="button" tabIndex={-1} onClick={() => setShowCurrent((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                aria-label={showCurrent ? "Ocultar" : "Mostrar"}>
+                                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="new-password">Nueva contraseña</Label>
-                        <Input
-                            id="new-password"
-                            type="password"
-                            placeholder="Mínimo 6 caracteres"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="new-password"
+                                type={showNew ? "text" : "password"}
+                                placeholder="Mínimo 6 caracteres"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                className="pr-10"
+                            />
+                            <button type="button" tabIndex={-1} onClick={() => setShowNew((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                aria-label={showNew ? "Ocultar" : "Mostrar"}>
+                                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="confirm-password">Confirmar nueva contraseña</Label>
-                        <Input
-                            id="confirm-password"
-                            type="password"
-                            placeholder="Repite la nueva contraseña"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="confirm-password"
+                                type={showConfirm ? "text" : "password"}
+                                placeholder="Repite la nueva contraseña"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                className="pr-10"
+                            />
+                            <button type="button" tabIndex={-1} onClick={() => setShowConfirm((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                aria-label={showConfirm ? "Ocultar" : "Mostrar"}>
+                                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
                     </div>
                     <DialogFooter className="pt-2">
                         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

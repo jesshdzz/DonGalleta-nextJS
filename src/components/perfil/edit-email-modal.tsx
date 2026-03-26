@@ -15,7 +15,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Mail } from "lucide-react";
+import { Eye, EyeOff, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 interface EditEmailModalProps {
@@ -27,6 +27,7 @@ export function EditEmailModal({ userId, currentEmail }: EditEmailModalProps) {
     const [open, setOpen] = useState(false);
     const [newEmail, setNewEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -76,14 +77,26 @@ export function EditEmailModal({ userId, currentEmail }: EditEmailModalProps) {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email-password">Contraseña actual</Label>
-                        <Input
-                            id="email-password"
-                            type="password"
-                            placeholder="Tu contraseña actual"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="email-password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Tu contraseña actual"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="pr-10"
+                            />
+                            <button
+                                type="button"
+                                tabIndex={-1}
+                                onClick={() => setShowPassword((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
                     </div>
                     <DialogFooter className="pt-2">
                         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
