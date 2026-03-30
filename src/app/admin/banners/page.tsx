@@ -13,6 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import "@uploadthing/react/styles.css";
+import { z } from "zod";
+
+// Copiamos el esquema de validación para usarlo en el front (sin el imageUrl porque ese lo da UploadThing)
+const clientBannerSchema = z.object({
+  title: z.string().min(3, { message: "El título debe tener al menos 3 caracteres." }),
+  targetUrl: z.string()
+    .optional()
+    .refine((val) => {
+      if (!val || val === "") return true;
+      return val.startsWith("/") || val.startsWith("http://") || val.startsWith("https://");
+    }, { message: "Ruta inválida. Usa /ruta o https://..." })
+});
+
 type Banner = {
   id: number;
   title: string;
@@ -28,6 +41,11 @@ export default function AdminBannersPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
+
+  // Evaluamos en tiempo real si el formulario es válido
+  const validation = clientBannerSchema.safeParse({ title, targetUrl });
+  const formErrors = !validation.success ? validation.error.format() : null;
+  const isFormValid = validation.success;
 
   const loadBanners = async () => {
     setIsLoadingBanners(true);
@@ -90,7 +108,13 @@ export default function AdminBannersPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={isSaving}
+                // Si hay error en el título, le ponemos un borde rojo
+                className={formErrors?.title ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {/* Mensaje de error de Zod para el título */}
+              {formErrors?.title && (
+                <p className="text-xs text-red-500 font-medium">{formErrors.title._errors[0]}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="enlace" className="font-bold text-[#58321D]">Enlace (Opcional)</Label>
@@ -100,15 +124,21 @@ export default function AdminBannersPage() {
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
                 disabled={isSaving}
+                // Si hay error en la URL, le ponemos un borde rojo
+                className={formErrors?.targetUrl ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {/* Mensaje de error de Zod para la URL */}
+              {formErrors?.targetUrl && (
+                <p className="text-xs text-red-500 font-medium">{formErrors.targetUrl._errors[0]}</p>
+              )}
             </div>
           </div>
 
           <div className="border-2 border-dashed rounded-lg p-3 sm:p-4 bg-muted/10 relative">
-            {!title && (
-              <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-center justify-center rounded-lg p-4 text-center">
-                <span className="bg-background px-3 py-2 sm:px-4 sm:py-2 rounded-md shadow-sm text-xs sm:text-sm font-medium text-destructive">
-                  Escribe un título primero para habilitar la subida
+            {!isFormValid && (
+              <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[1px] flex items-center justify-center rounded-lg p-4 text-center transition-all">
+                <span className="bg-background px-3 py-2 sm:px-4 sm:py-2 rounded-md shadow-sm text-xs sm:text-sm font-medium text-destructive border border-destructive/20">
+                  Corrige los errores del formulario para subir la imagen
                 </span>
               </div>
             )}

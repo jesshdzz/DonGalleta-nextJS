@@ -2,16 +2,41 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-// 1. Guardar el banner en la base de datos
+// 1. DEFINIMOS EL ESQUEMA DE ZOD
+const bannerSchema = z.object({
+  title: z.string().min(3, { message: "El título debe tener al menos 3 caracteres." }),
+  imageUrl: z.string().url(),
+  targetUrl: z.string()
+    .optional()
+    .refine((val) => {
+      // Si está vacío, es válido
+      if (!val || val === "") return true;
+      // Si tiene texto, DEBE empezar con "/" (ruta interna) o con "http" (ruta externa)
+      return val.startsWith("/") || val.startsWith("http://") || val.startsWith("https://");
+    }, { 
+      message: "El enlace debe ser una ruta interna (ej: /productos) o una URL válida (ej: https://...)" 
+    })
+});
+
+// 2. Guardar el banner en la base de datos (AHORA CON VALIDACIÓN)
 export async function createBanner({ title, imageUrl, targetUrl }: { title: string, imageUrl: string, targetUrl?: string }) {
     try {
+        // Pasamos los datos por el filtro de Zod
+        const validatedData = bannerSchema.safeParse({ title, imageUrl, targetUrl: targetUrl || "" });
+
+        if (!validatedData.success) {
+            // Si Zod detecta un error, sacamos el primer mensaje de error y lo mandamos al cliente
+            return { success: false, error: validatedData.error.issues[0].message };
+        }
+
         const banner = await prisma.banner.create({
             data: { 
-                title,
-                imageUrl, 
-                targetUrl: targetUrl || "",
-                isActive: true // <-- Agregamos esto para que al crearlo nazca prendido
+                title: validatedData.data.title,
+                imageUrl: validatedData.data.imageUrl, 
+                targetUrl: validatedData.data.targetUrl,
+                isActive: true
             }
         });
         
