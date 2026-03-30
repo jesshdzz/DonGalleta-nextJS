@@ -16,8 +16,8 @@ export interface StockAlertData {
 export async function sendLowStockAlert(data: StockAlertData) {
   try {
     const result = await resend.emails.send({
-      from: 'DonGalleta <gos94337@gmail.com>',
-      to: ['gos94337@gmail.com'],
+      from: 'DonGalleta <onboarding@resend.dev>',
+      to: ['locg030916@gs.utm.mx'],
       subject: `⚠️ Stock Bajo - ${data.productName}`,
       react: LowStockEmail({ 
         productId: data.productId,
@@ -50,8 +50,8 @@ export async function sendLowStockAlert(data: StockAlertData) {
 export async function sendOutOfStockAlert(data: StockAlertData) {
   try {
     const result = await resend.emails.send({
-      from: 'DonGalleta <gos94337@gmail.com>',
-      to: ['gos94337@gmail.com'],
+      from: 'DonGalleta <onboarding@resend.dev>',
+      to: ['locg030916@gs.utm.mx'],
       subject: `🚨 AGOTADO - ${data.productName}`,
       react: OutOfStockEmail({ 
         productId: data.productId,

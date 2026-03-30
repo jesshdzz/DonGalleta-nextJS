@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +25,7 @@ type LoginFormValues = z.infer<typeof LoginSchema>;
 export const LoginForm = () => {
   const router = useRouter();
   const [globalError, setGlobalError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -94,12 +95,25 @@ export const LoginForm = () => {
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-            <Input
-              id="password"
-              type="password"
-              {...register('password')}
-              disabled={isSubmitting}
-            />
+            {/* Toggle show/hide */}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register('password')}
+                disabled={isSubmitting}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-xs text-destructive font-medium mt-0">{errors.password.message}</p>
             )}

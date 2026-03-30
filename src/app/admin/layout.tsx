@@ -15,5 +15,9 @@ export default async function AdminLayout({
         return <UnauthorizedView />;
     }
 
-    return <>{children}</>;
+    return (
+        <>
+            {children}
+        </>
+    );
 }
