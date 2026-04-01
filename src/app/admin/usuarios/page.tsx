@@ -3,9 +3,13 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { CircleUserRound, ShieldUser, User as UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { auth } from "@/auth";
+import { ChangeRoleButton } from "@/components/admin/change-role-button";
 
 export default async function AdminUsersPage() {
     const usuarios = await getAllUsers();
+    const session = await auth();
+    const me = session?.user?.name;
 
     return (
         <div className="container mx-auto py-10 px-4">
@@ -25,6 +29,7 @@ export default async function AdminUsersPage() {
                             <TableHead>Email</TableHead>
                             <TableHead>Rol</TableHead>
                             <TableHead className="text-center">Total de Pedidos</TableHead>
+                            <TableHead className="text-center">Cambiar Rol</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -49,7 +54,7 @@ export default async function AdminUsersPage() {
                                                     <CircleUserRound className="h-5 w-5 text-muted-foreground" />
                                                 </div>)
                                         }
-                                        <span className="font-semibold text-foreground">{user.name || "Usuario Sin Nombre"}</span>
+                                        <span className="font-semibold text-foreground">{me === user.name ? user.name + " (tú)" : user.name || "Usuario Sin Nombre"}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
@@ -76,6 +81,9 @@ export default async function AdminUsersPage() {
                                     ) : (
                                         <span className="text-muted-foreground">0</span>
                                     )}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <ChangeRoleButton userId={user.id} newRole={user.role === 'ADMIN' ? 'USER' : 'ADMIN'} />
                                 </TableCell>
                             </TableRow>
                         ))}
