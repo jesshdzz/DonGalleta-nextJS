@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { pusher } from "@/lib/pusher"; 
 import { z } from "zod";
 import { CarritoMetadataSchema } from "@/lib/validators/stripe-schema";
+import { processMultipleStockNotifications } from "@/lib/stock-notifications";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2026-02-25.clover", 
@@ -63,6 +64,31 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
         const parsedData = JSON.parse(productosCompradosString);
         const productosValidados = CarritoMetadataSchema.parse(parsedData);
         
+        // 1. Obtener información de productos ANTES de actualizar stock
+        const productInfoPromises = productosValidados.map(async (item) => {
+            const product = await prisma.product.findUnique({
+                where: { id: item.id },
+                select: { stock: true, name: true }
+            });
+            
+            if (!product) {
+                throw new Error(`Producto ${item.id} no encontrado`);
+            }
+            
+            return {
+                id: item.id,
+                name: product.name,
+                oldStock: product.stock,
+                quantity: item.cantidad,
+                precio: item.precio,
+                // Calcular nuevo stock (lo que quedará después de la compra)
+                newStock: Math.max(0, product.stock - item.cantidad)
+            };
+        });
+        
+        const productsInfo = await Promise.all(productInfoPromises);
+        
+        // 2. Procesar transacción de base de datos
         await prisma.$transaction(async (tx) => {
             const existingOrder = await tx.order.findFirst({
                 where: { payment: { transactionId: paymentIntentId } }
@@ -105,7 +131,22 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
         });
 
         console.log('✅ Stock actualizado exitosamente');
+        
+        // 3. Procesar notificaciones de stock por email DESPUÉS de actualización exitosa
+        const stockNotificationData = productsInfo.map(product => ({
+            productId: product.id,
+            productName: product.name,
+            oldStock: product.oldStock,
+            newStock: product.newStock,
+        }));
+        
+        // Enviar notificaciones de stock por email (asíncrono)
+        processMultipleStockNotifications(stockNotificationData)
+            .catch(error => {
+                console.error('❌ Error procesando notificaciones de stock por email:', error);
+            });
 
+        // 4. Enviar notificación Pusher en tiempo real
         try {
             await pusher.trigger('admin-notifications', 'nuevo-pedido', {
                 mensaje: 'Nuevo pedido recibido',
