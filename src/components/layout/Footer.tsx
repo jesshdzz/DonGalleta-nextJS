@@ -52,6 +52,9 @@ function FooterComponent() {
               Legal
             </h3>
             <div className="flex flex-col gap-2">
+              <Link href="/faq" className={LINK_STYLES}>
+                Preguntas Frecuentes
+              </Link>
               <Link href="/terminos" className={LINK_STYLES}>
                 Términos
               </Link>
