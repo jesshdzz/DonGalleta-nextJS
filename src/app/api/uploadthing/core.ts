@@ -28,6 +28,23 @@ export const ourFileRouter = {
             // DEBEMOS retornar algo al cliente
             return { url: file.url };
         }),
+        // Agrega esto justo debajo de tu productImage en ourFileRouter
+    bannerImage: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+        .middleware(async () => {
+            const session = await auth();
+            // @ts-expect-error Types for NextAuth user role are extended in auth.config
+            if (!session?.user || session.user.role !== "ADMIN") {
+                throw new UploadThingError("No autorizado.");
+            }
+            return { userId: session.user.id };
+        })
+        .onUploadComplete(async ({ metadata, file }) => {
+            console.log("Banner subido por admin:", metadata.userId);
+            return { url: file.url };
+        }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
+
+
+//TODO: agregar endpoints para los banners, nuevo archivo banner-actions.ts, y la pagina en admin/banners
