@@ -93,17 +93,6 @@ export default function AdminPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Productos Activos</CardTitle>
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">128</div>
-                        <p className="text-xs text-muted-foreground">+19 nuevos productos este mes</p>
-                    </CardContent>
-                </Card>
-
                 <Card
                     className={`cursor-pointer transition-all hover:bg-muted/50 ${activeMetric === "visitas" ? "ring-2 ring-purple-500 bg-muted/20" : ""}`}
                     onClick={() => setActiveMetric("visitas")}
@@ -115,6 +104,17 @@ export default function AdminPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">+12,234</div>
                         <p className="text-xs text-muted-foreground">+19% con respecto al mes anterior</p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Productos Activos</CardTitle>
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">128</div>
+                        <p className="text-xs text-muted-foreground">+19 nuevos productos este mes</p>
                     </CardContent>
                 </Card>
             </div>
