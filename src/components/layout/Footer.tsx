@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { shouldHideLayout } from "@/lib/constants";
 import { Facebook, Instagram } from "lucide-react";
 
-// Estilos constantes fuera del componente para que no se re-creen en cada render
 const LINK_STYLES =
   "text-sm text-[#A6A3A2] hover:text-[#58321D] transition-colors duration-200";
 const ICON_STYLES =
@@ -52,6 +51,9 @@ function FooterComponent() {
               Legal
             </h3>
             <div className="flex flex-col gap-2">
+              <Link href="/faq" className={LINK_STYLES}>
+                Preguntas Frecuentes
+              </Link>
               <Link href="/terminos" className={LINK_STYLES}>
                 Términos
               </Link>
@@ -99,5 +101,4 @@ function FooterComponent() {
   );
 }
 
-// Exportamos el componente memoizado
 export const Footer = memo(FooterComponent);
