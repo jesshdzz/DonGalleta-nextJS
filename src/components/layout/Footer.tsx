@@ -48,7 +48,10 @@ function FooterComponent() {
             <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
               Legal
             </h3>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col gap-2">
+              <Link href="/faq" className={LINK_STYLES}>
+                Preguntas Frecuentes
+              </Link>
               <Link href="/terminos" className={LINK_STYLES}>
                 Términos
               </Link>
