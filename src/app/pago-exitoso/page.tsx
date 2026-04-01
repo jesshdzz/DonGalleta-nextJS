@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Home, FileText, MessageCircle, Loader2, Package } from "lucide-react";
+import { CheckCircle2, Home, FileText, MessageCircle, Loader2, Package, Mail } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
@@ -61,7 +61,87 @@ function EstadoDelPago() {
     generarTicketPDF("ticket-compra", ordenDb?.id?.slice(0, 8) || 'Comprobante');
   };
 
-  const enviarWhatsApp = () => toast.info("Función de WhatsApp en desarrollo");
+  const compartirWhatsApp = () => {
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
+    const subtotalCalc = Number(ordenDb.total) / 1.16;
+    const ivaCalc = Number(ordenDb.total) - subtotalCalc;
+
+    const mensaje = `DON GALLETA S.A. DE C.V.
+RFC: DGA260305XXX
+Acatlima, Huajuapan de Leon
+Oaxaca, Mexico. C.P. 69004
+Tel: (951) 555-0123
+
+========================================
+COMPROBANTE DE COMPRA
+========================================
+
+ORDEN BD: #${ordenDb?.id?.slice(0, 8).toUpperCase()}
+FECHA: ${new Date(ordenDb?.createdAt || Date.now()).toLocaleDateString('es-MX')}
+CLIENTE: ${ordenDb?.user?.name || "Invitado"}
+METODO: Stripe
+
+----------------------------------------
+CANT / ART.          P.U.        TOTAL
+----------------------------------------
+${ordenDb?.items?.map((item: any) => 
+  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(item.price * item.quantity).toFixed(2).padStart(6)}`
+).join('\n')}
+
+----------------------------------------
+SUBTOTAL:                    $${subtotalCalc.toFixed(2)}
+IVA (16%):                   $${ivaCalc.toFixed(2)}
+----------------------------------------
+TOTAL MXN:                   $${Number(ordenDb?.total || 0).toFixed(2)}
+========================================
+
+GRACIAS POR TU COMPRA!
+
+Dudas o aclaraciones: hola@dongalleta.com
+Este documento no es un comprobante fiscal.
+
+Mas productos en dongalleta.com`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success("WhatsApp abierto con tu comprobante");
+  };
+
+  const compartirEmail = () => {
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
+    const subject = `Comprobante Don Galleta #${ordenDb?.id?.slice(0, 8).toUpperCase()}`;
+    
+    const body = `Hola,
+
+Te comparto mi comprobante de compra de Don Galleta:
+
+REFERENCIA: #${ordenDb?.id?.slice(0, 8).toUpperCase()}
+FECHA: ${new Date(ordenDb?.createdAt || Date.now()).toLocaleDateString('es-MX')}
+TOTAL PAGADO: $${Number(ordenDb?.total || 0).toFixed(2)} MXN
+
+PRODUCTOS:
+${ordenDb?.items?.map((item: any) => 
+  `- ${item.quantity}x ${item.product?.name || 'Producto'} - $${(item.price * item.quantity).toFixed(2)}`
+).join('\n')}
+
+Pago procesado exitosamente con Stripe.
+
+Saludos,
+Don Galleta
+dongalleta.com`;
+
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
+    toast.success("Cliente de email abierto con tu comprobante");
+  };
 
   const subtotalCalc = ordenDb ? Number(ordenDb.total) / 1.16 : 0;
   const ivaCalc = ordenDb ? Number(ordenDb.total) - subtotalCalc : 0;
@@ -106,16 +186,19 @@ function EstadoDelPago() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
           <Button variant="outline" className="gap-2 h-12 border-primary/20 hover:bg-primary/5 shadow-sm" onClick={descargarPDF}>
-            <FileText className="w-5 h-5" /> Descargar Recibo
+            <FileText className="w-5 h-5" /> Descargar recibo
           </Button>
-          <Button variant="outline" className="gap-2 h-12 border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600 shadow-sm" onClick={enviarWhatsApp}>
-            <MessageCircle className="w-5 h-5" /> Enviar WhatsApp
+          <Button variant="outline" className="gap-2 h-12 border-blue-200 hover:bg-blue-50 hover:text-blue-700 text-blue-600 shadow-sm" onClick={compartirEmail}>
+            <Mail className="w-5 h-5" /> Por Email
+          </Button>
+          <Button variant="outline" className="gap-2 h-12 border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600 shadow-sm" onClick={compartirWhatsApp}>
+            <MessageCircle className="w-5 h-5" /> WhatsApp
           </Button>
         </div>
 
-        <div className="pt-2 w-full max-w-md">
+        <div className="pt-2 w-full max-w-lg">
           <Link href="/">
             <Button size="lg" className="font-bold gap-2 w-full bg-primary hover:bg-primary/90">
               <Package className="w-5 h-5" /> Volver al inicio
