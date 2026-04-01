@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Role } from "@prisma/client";
 
 export async function updateEmail(
     userId: string,
@@ -81,4 +82,13 @@ export async function getAllUsers() {
     });
 
     return users;
+}
+
+export async function changeRole(userId: string, newRole: Role) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return { success: false, message: "Usuario no encontrado." };
+
+    await prisma.user.update({ where: { id: userId }, data: { role: newRole } });
+    revalidatePath("/admin/usuarios");
+    return { success: true };
 }
