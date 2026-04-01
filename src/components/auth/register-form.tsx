@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { registerUser } from '@/actions/auth-actions';
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,6 +20,10 @@ const RegisterSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Ingresa un correo electrónico válido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirma tu contraseña"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
 });
 
 type RegisterFormValues = z.infer<typeof RegisterSchema>;
@@ -28,6 +32,10 @@ export const RegisterForm = () => {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // mostrar/ocultar contraseñas
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Estado y Referencia para el Captcha
   const [captchaToken, setCaptchaToken] = useState<string>('');
@@ -132,18 +140,57 @@ export const RegisterForm = () => {
             )}
           </div>
 
-          {/* Password */}
+          {/* toggle show/hide */}
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Mínimo 6 caracteres"
-              {...register('password')}
-              disabled={isSubmitting}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Mínimo 6 caracteres"
+                {...register('password')}
+                disabled={isSubmitting}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-xs text-destructive font-medium mt-0">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirmar contraseña */}
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                placeholder="Repite tu contraseña"
+                {...register('confirmPassword')}
+                disabled={isSubmitting}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showConfirm ? "Ocultar confirmación" : "Mostrar confirmación"}
+              >
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-xs text-destructive font-medium mt-0">{errors.confirmPassword.message}</p>
             )}
           </div>
 

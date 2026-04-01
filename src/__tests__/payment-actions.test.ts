@@ -3,7 +3,6 @@ import { createPaymentIntent, processSuccessfulPayment } from '../actions/paymen
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { pusher } from '@/lib/pusher';
-import Stripe from 'stripe';
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
