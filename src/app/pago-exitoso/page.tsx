@@ -25,6 +25,11 @@ function EstadoDelPago() {
   
   const [ordenDb, setOrdenDb] = useState<any>(null);
   const yaProcesado = useRef(false);
+  
+  // Estados para el modal de email
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   //efecto que verifica el estado del pago y busca la orden en la base de datos
   useEffect(() => {
@@ -111,36 +116,60 @@ Mas productos en dongalleta.com`;
     toast.success("WhatsApp abierto con tu comprobante");
   };
 
-  const compartirEmail = () => {
+  const compartirEmail = async () => {
     if (!ordenDb) {
       toast.error("Datos del pedido no disponibles");
       return;
     }
 
-    const subject = `Comprobante Don Galleta #${ordenDb?.id?.slice(0, 8).toUpperCase()}`;
-    
-    const body = `Hola,
+    // Abrir modal para capturar email
+    setShowEmailModal(true);
+  };
 
-Te comparto mi comprobante de compra de Don Galleta:
+  const enviarComprobantePorEmail = async () => {
+    if (!email.trim()) {
+      toast.error("Por favor ingresa un email válido");
+      return;
+    }
 
-REFERENCIA: #${ordenDb?.id?.slice(0, 8).toUpperCase()}
-FECHA: ${new Date(ordenDb?.createdAt || Date.now()).toLocaleDateString('es-MX')}
-TOTAL PAGADO: $${Number(ordenDb?.total || 0).toFixed(2)} MXN
+    setIsSending(true);
+    try {
+      toast.info("Enviando comprobante por email...");
+      
+      const response = await fetch('/api/send-receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderNumber: ordenDb.id.slice(0, 8).toUpperCase(),
+          customerName: ordenDb.user?.name || 'Cliente',
+          customerEmail: email,
+          items: ordenDb.items?.map((item: any) => ({
+            quantity: item.quantity,
+            name: item.product?.name || 'Producto',
+            price: Number(item.price)
+          })) || [],
+          total: Number(ordenDb.total || 0),
+          date: new Date(ordenDb.createdAt || Date.now()).toLocaleDateString('es-MX'),
+        }),
+      });
 
-PRODUCTOS:
-${ordenDb?.items?.map((item: any) => 
-  `- ${item.quantity}x ${item.product?.name || 'Producto'} - $${(item.price * item.quantity).toFixed(2)}`
-).join('\n')}
+      const result = await response.json();
 
-Pago procesado exitosamente con Stripe.
-
-Saludos,
-Don Galleta
-dongalleta.com`;
-
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl, '_blank');
-    toast.success("Cliente de email abierto con tu comprobante");
+      if (result.success) {
+        toast.success(`Comprobante enviado a ${email} exitosamente!`);
+        setShowEmailModal(false);
+        setEmail("");
+      } else {
+        throw new Error(result.error || 'Error desconocido');
+      }
+    } catch (error) {
+      console.error('Error enviando email:', error);
+      toast.error("Error al enviar el comprobante por email");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const subtotalCalc = ordenDb ? Number(ordenDb.total) / 1.16 : 0;
@@ -191,7 +220,7 @@ dongalleta.com`;
             <FileText className="w-5 h-5" /> Descargar recibo
           </Button>
           <Button variant="outline" className="gap-2 h-12 border-blue-200 hover:bg-blue-50 hover:text-blue-700 text-blue-600 shadow-sm" onClick={compartirEmail}>
-            <Mail className="w-5 h-5" /> Por Email
+            <Mail className="w-5 h-5" /> Enviar Email
           </Button>
           <Button variant="outline" className="gap-2 h-12 border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600 shadow-sm" onClick={compartirWhatsApp}>
             <MessageCircle className="w-5 h-5" /> WhatsApp
@@ -206,6 +235,56 @@ dongalleta.com`;
           </Link>
         </div>
       </div>
+
+      {/* Modal para capturar email */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
+            <h3 className="text-lg font-semibold mb-4">Enviar comprobante por email</h3>
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-sm font-medium mb-2">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@correo.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSending}
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setEmail("");
+                }}
+                className="flex-1"
+                disabled={isSending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={enviarComprobantePorEmail}
+                className="flex-1"
+                disabled={isSending || !email.trim()}
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  "Enviar"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="order-2 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl p-4 md:p-8 border border-primary/10 h-full">
         <div id="ticket-compra" className="w-full max-w-[320px] bg-[#ffffff] px-6 py-8 shadow-xl relative font-mono text-[#1f2937]" style={{ color: '#000000', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb' }}>
