@@ -5,17 +5,16 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Definimos la estructura de lo que necesita cada banner
 export interface BannerItem {
   id: number;
   image: string;
   alt: string;
-  targetUrl?: string | null; // El enlace opcional
+  targetUrl?: string | null;
 }
 
 interface BannerProps {
   banners: BannerItem[];
-  autoPlayInterval?: number; // Tiempo en milisegundos
+  autoPlayInterval?: number;
 }
 
 export default function Banner({
@@ -45,16 +44,15 @@ export default function Banner({
 
   // Efecto para el Autoplay
   useEffect(() => {
-    if (banners.length <= 1) return; // Si solo hay 1 banner, no hacemos autoplay
+    if (banners.length <= 1) return;
 
     const timer = setInterval(nextSlide, autoPlayInterval);
-    return () => clearInterval(timer); // Limpiamos el intervalo
+    return () => clearInterval(timer);
   }, [nextSlide, autoPlayInterval, banners.length]);
 
   if (!banners || banners.length === 0) return null;
 
   return (
-    // group: nos permite detectar el hover en todo el contenedor
     <div className="relative w-full overflow-hidden group bg-secondary/20 rounded-lg">
       
       {/* 1. Contenedor de Imágenes */}
@@ -69,14 +67,12 @@ export default function Banner({
               alt={banner.alt}
               fill
               className="object-cover"
-              // Solo la primera imagen carga de inmediato
               priority={index === 0}
             />
           );
 
           return (
             <div key={banner.id} className="relative w-full h-full shrink-0">
-              {/* Si hay un targetUrl, hacemos que toda la imagen sea clickeable */}
               {banner.targetUrl ? (
                 <Link href={banner.targetUrl} className="block w-full h-full">
                   {imageContent}
@@ -117,7 +113,7 @@ export default function Banner({
         </Button>
       )}
 
-      {/* 4. Puntitos Inferiores (Dots) - ¡Con el centrado perfecto para móvil! */}
+      {/* 4. Puntitos Inferiores (Dots)*/}
       {banners.length > 1 && (
         <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
           <div className="flex items-center space-x-2 bg-background/20 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto shadow-sm">
@@ -125,12 +121,12 @@ export default function Banner({
               <button
                 key={index}
                 onClick={(e) => {
-                  e.preventDefault(); // Evita que se abra el link de atrás por accidente
+                  e.preventDefault();
                   goToSlide(index);
                 }}
                 className={`h-2.5 rounded-full transition-all duration-300 ${
                   currentIndex === index
-                    ? "bg-primary w-6" // Efecto píldora
+                    ? "bg-primary w-6"
                     : "bg-primary/50 w-2.5 hover:bg-primary/80"
                 }`}
                 aria-label={`Ir al banner ${index + 1}`}

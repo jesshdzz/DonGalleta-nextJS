@@ -60,7 +60,6 @@ export default function AdminBannersPage() {
   };
 
   return (
-    // Ajuste de padding: menos espacio en celular (p-4), normal en desktop (sm:p-6)
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6 sm:space-y-8 mb-20">
       <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#58321D]">Gestión de Banners</h1>

@@ -20,8 +20,6 @@ const Switch = React.forwardRef<
     <SwitchPrimitives.Thumb
       className={cn(
         "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-all duration-200 ease-in-out",
-        // 🔥 EL HACK MAESTRO APLICADO A RADIX UI:
-        // En lugar de translate-x, forzamos el margen izquierdo dependiendo del data-state
         "data-[state=unchecked]:ml-0 data-[state=checked]:ml-5"
       )}
     />

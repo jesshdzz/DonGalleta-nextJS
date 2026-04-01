@@ -19,7 +19,7 @@ export async function createBanner({
         title,
         imageUrl,
         targetUrl: targetUrl || "",
-        isActive: true, // <-- Agregamos esto para que al crearlo nazca prendido
+        isActive: true,
       },
     });
 
@@ -39,7 +39,6 @@ export async function createBanner({
 export async function getBanners(onlyActive: boolean = false) {
   try {
     return await prisma.banner.findMany({
-      // Si onlyActive es true, filtramos; si es false, traemos todos (para el panel admin)
       where: onlyActive ? { isActive: true } : undefined,
       orderBy: { createdAt: "desc" },
     });
