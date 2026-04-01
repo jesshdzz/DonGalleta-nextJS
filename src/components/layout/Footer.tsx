@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { shouldHideLayout } from "@/lib/constants";
 import { Facebook, Instagram } from "lucide-react";
 
-// Estilos constantes fuera del componente para que no se re-creen en cada render
 const LINK_STYLES =
   "text-sm text-[#A6A3A2] hover:text-[#58321D] transition-colors duration-200";
 const ICON_STYLES =
@@ -22,14 +21,13 @@ function FooterComponent() {
       id="footer-section"
       className="w-full bg-white scroll-mt-16 border-t border-[#A6A3A2] contain-intrinsic-size-[auto_300px]"
     >
-      <div className="container mx-auto px-4 py-12 md:px-6">
-        <div className="flex flex-col gap-10 md:flex-row md:justify-between md:items-start text-center md:text-left">
-          {/* Contacto */}
-          <div className="flex-1">
+      <div className="container mx-auto max-w-7xl px-4 py-12 md:px-6">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
               Contacto
             </h3>
-            <ul className="space-y-2 flex flex-col">
+            <ul className="space-y-2 flex flex-col items-center md:items-start">
               <li>
                 <a href="mailto:hola@dongalleta.com" className={LINK_STYLES}>
                   Email: hola@dongalleta.com
@@ -46,12 +44,11 @@ function FooterComponent() {
             </ul>
           </div>
 
-          {/* Legal */}
-          <div className="flex-1">
+          <div className="flex flex-col items-center md:items-center text-center">
             <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
               Legal
             </h3>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col items-center gap-2">
               <Link href="/terminos" className={LINK_STYLES}>
                 Términos
               </Link>
@@ -61,12 +58,11 @@ function FooterComponent() {
             </div>
           </div>
 
-          {/* Redes */}
-          <div className="flex-1 flex flex-col items-center md:items-start">
+          <div className="flex flex-col items-center md:items-end text-center md:text-right">
             <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
               Síguenos
             </h3>
-            <div className="flex gap-6">
+            <div className="flex justify-center md:justify-end gap-6 w-full">
               <a
                 href="https://facebook.com/dongalleta.mx"
                 target="_blank"
@@ -98,6 +94,4 @@ function FooterComponent() {
     </footer>
   );
 }
-
-// Exportamos el componente memoizado
 export const Footer = memo(FooterComponent);

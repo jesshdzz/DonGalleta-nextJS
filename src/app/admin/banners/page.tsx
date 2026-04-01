@@ -63,7 +63,6 @@ export default function AdminBannersPage() {
     // Ajuste de padding: menos espacio en celular (p-4), normal en desktop (sm:p-6)
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6 sm:space-y-8 mb-20">
       <div className="mb-4 sm:mb-8">
-        {/* Ajuste de título: más pequeño en móvil */}
         <h1 className="text-2xl sm:text-3xl font-bold text-[#58321D]">Gestión de Banners</h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Sube y administra las imágenes promocionales de la página principal.</p>
       </div>
@@ -80,7 +79,6 @@ export default function AdminBannersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
-          {/* El grid ya estaba responsivo (grid-cols-1 a md:grid-cols-2), lo dejamos igual */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title" className="font-bold text-[#58321D]">Título <span className="text-red-500">*</span></Label>
@@ -168,7 +166,6 @@ export default function AdminBannersPage() {
               No hay banners registrados aún.
             </div>
           ) : (
-            // MAGIA RESPONSIVA: overflow-x-auto permite hacer scroll lateral en celular si la tabla es muy ancha
             <div className="rounded-md border overflow-x-auto">
               <Table className="min-w-[600px]"> 
                 <TableHeader>
