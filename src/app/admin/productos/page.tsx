@@ -20,11 +20,6 @@ export default async function AdminProductsPage() {
                     <p className="text-muted-foreground">Gestiona el catálogo y existencias de galletas.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Link href="/admin/pedidos">
-                        <Button variant="outline" className="gap-2">
-                            <ShoppingCart className="h-4 w-4" /> Ver Pedidos
-                        </Button>
-                    </Link>
                     <Link href="/admin/sabores">
                         <Button variant="outline" className="gap-2">
                             <Tag className="h-4 w-4" /> Gestionar Sabores

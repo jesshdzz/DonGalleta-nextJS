@@ -194,7 +194,7 @@ export function Navbar({ user }: { user?: UserSession }) {
 
           <SheetContent
             side="left"
-            className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]"
+            className="flex flex-col w-75 sm:w-87.5 p-0 border-r border-[#A6A3A2]"
           >
             <SheetTitle className="sr-only">Menú</SheetTitle>
 
@@ -360,7 +360,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                     <span className="font-medium">{user.name?.split(" ")[0] || "Mi Cuenta"}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                
+
                 <DropdownMenuContent align="end" className="w-56 mt-1">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
@@ -369,7 +369,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  
+
                   {/* Opciones de Cliente */}
                   <DropdownMenuItem asChild>
                     <Link href="/perfil" className="w-full cursor-pointer">
@@ -398,7 +398,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                       <DropdownMenuSeparator />
                       <DropdownMenuLabel className="text-[#58321D]">Administración</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <Link href="/admin/productos" className="w-full cursor-pointer font-medium">
+                        <Link href="/admin" className="w-full cursor-pointer font-medium">
                           <Shield className="mr-2 h-4 w-4 text-[#58321D]" /> Panel Admin
                         </Link>
                       </DropdownMenuItem>
@@ -406,9 +406,9 @@ export function Navbar({ user }: { user?: UserSession }) {
                   )}
 
                   <DropdownMenuSeparator />
-                  
+
                   {/* Botón de Cerrar Sesión */}
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => signOut({ callbackUrl: "/" })}
                     className="text-red-500 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                   >
