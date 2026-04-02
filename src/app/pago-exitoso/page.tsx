@@ -217,7 +217,7 @@ Mas productos en dongalleta.com`;
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
           <Button variant="outline" className="gap-2 h-12 border-primary/20 hover:bg-primary/5 shadow-sm" onClick={descargarPDF}>
-            <FileText className="w-5 h-5" /> Descargar recibo
+            <FileText className="w-5 h-5" /> Descargar
           </Button>
           <Button variant="outline" className="gap-2 h-12 border-blue-200 hover:bg-blue-50 hover:text-blue-700 text-blue-600 shadow-sm" onClick={compartirEmail}>
             <Mail className="w-5 h-5" /> Enviar Email
