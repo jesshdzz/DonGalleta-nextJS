@@ -1,11 +1,12 @@
 import { type Metadata } from "next"
-import { 
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Preguntas Frecuentes | Don Galleta",
@@ -97,11 +98,11 @@ export default function FAQPage() {
           Preguntas Frecuentes
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Encuentra respuestas rápidas a las preguntas más comunes sobre nuestros productos, 
-          envíos, pagos y pedidos. Si no encuentras lo que buscas, 
-          <a href="/contacto" className="text-primary hover:underline font-medium"> 
+          Encuentra respuestas rápidas a las preguntas más comunes sobre nuestros productos,
+          envíos, pagos y pedidos. Si no encuentras lo que buscas,
+          <Link href="/contacto" className="text-primary hover:underline font-medium">
             {" "}contáctanos
-          </a>.
+          </Link>.
         </p>
       </div>
 
@@ -209,13 +210,13 @@ export default function FAQPage() {
           Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta adicional.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
+          <a
             href="/contacto"
             className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-md font-medium transition-colors inline-block"
           >
             Contactar Soporte
           </a>
-          <a 
+          <a
             href="https://wa.me/1234567890"
             target="_blank"
             rel="noopener noreferrer"
