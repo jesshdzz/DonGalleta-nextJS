@@ -46,7 +46,7 @@ import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
 import { signOut } from "next-auth/react";
 
-export type UserSession =
+type UserSession =
   | { id?: string; name?: string | null; email?: string | null; role?: string }
   | undefined
   | null;

@@ -1,13 +1,13 @@
 import { sendLowStockAlert, sendOutOfStockAlert } from '@/lib/email';
 
-export interface StockComparisonData {
+interface StockComparisonData {
   productId: number;
   productName: string;
   oldStock: number;
   newStock: number;
 }
 
-export interface StockThresholdResult {
+interface StockThresholdResult {
   shouldSendLowStockAlert: boolean;
   shouldSendOutOfStockAlert: boolean;
   crossedLowStockThreshold: boolean;
@@ -40,7 +40,7 @@ export function analyzeStockThreshold(
  * Procesa notificaciones de stock para un producto específico
  * Analiza el cambio y envía las notificaciones correspondientes
  */
-export async function processStockNotification(data: StockComparisonData) {
+async function processStockNotification(data: StockComparisonData) {
   const { productId, productName, oldStock, newStock } = data;
   
   console.log('🔍 Analizando cambio de stock:', {
