@@ -6,7 +6,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
-export const { auth, signIn, signOut, handlers } = NextAuth({
+export const { auth, handlers } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' }, // Obligatorio con Prisma + Credentials

@@ -4,7 +4,7 @@ import { checkStock, checkout as checkoutAction } from "@/actions/product-action
 import { toast } from "sonner";
 
 // Definición estricta de Producto (lo mínimo que necesita el carrito)
-export interface Product {
+interface Product {
   id: number;
   name: string;
   price: number;

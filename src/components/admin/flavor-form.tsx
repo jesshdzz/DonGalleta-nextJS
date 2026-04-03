@@ -23,7 +23,7 @@ interface FlavorFormProps {
     onClose?: () => void;
 }
 
-export const FlavorForm = ({ flavorToEdit, onClose }: FlavorFormProps) => {
+const FlavorForm = ({ flavorToEdit, onClose }: FlavorFormProps) => {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FlavorFormValues>({

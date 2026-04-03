@@ -17,7 +17,7 @@ interface OutOfStockEmailProps {
   productName: string;
 }
 
-export const OutOfStockEmail = ({
+const OutOfStockEmail = ({
   productId,
   productName = "Producto DonGalleta",
 }: OutOfStockEmailProps) => {
