@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { notifyWaitingList } from "./waiting-list-actions";
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {
@@ -101,8 +102,20 @@ export async function upsertProduct(prevState: unknown, formData: FormData) {
   const id = formData.get("id") as string | null; // Si viene ID, es edición
 
   try {
+    let oldStock = 0;
+    
     if (id) {
       // --- MODO EDICIÓN ---
+      // Obtener el stock anterior para detectar reabastecimiento
+      const existingProduct = await prisma.product.findUnique({
+        where: { id: parseInt(id) },
+        select: { stock: true }
+      });
+      
+      if (existingProduct) {
+        oldStock = existingProduct.stock;
+      }
+      
       await prisma.product.update({
         where: { id: parseInt(id) },
         data: {
@@ -113,6 +126,15 @@ export async function upsertProduct(prevState: unknown, formData: FormData) {
           }
         },
       });
+      
+      // Detectar reabastecimiento (agotado -> disponible)
+      const newStock = data.stock;
+      if (oldStock === 0 && newStock > 0) {
+        // Notificar de forma asíncrona sin bloquear la respuesta
+        notifyWaitingList(parseInt(id)).catch((error) => {
+          console.error("Error al notificar lista de espera:", error);
+        });
+      }
     } else {
       // --- MODO CREACIÓN ---
       await prisma.product.create({

@@ -1,5 +1,6 @@
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -12,18 +13,24 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-interface LowStockEmailProps {
-  productId: number;
+interface RestockEmailProps {
+  userName: string;
   productName: string;
+  productId: number;
   currentStock: number;
+  price: string;
+  productUrl?: string;
 }
 
-export const LowStockEmail = ({
-  productId,
+export const RestockEmail = ({
+  userName = "Cliente",
   productName = "Producto DonGalleta",
+  productId,
   currentStock = 0,
-}: LowStockEmailProps) => {
-  const previewText = `Stock bajo: ${productName} (${currentStock} unidades restantes)`;
+  price = "0.00",
+  productUrl = `https://dongalleta.com/productos/${productId}`,
+}: RestockEmailProps) => {
+  const previewText = `${productName} está disponible de nuevo en DonGalleta`;
 
   return (
     <Html>
@@ -33,35 +40,31 @@ export const LowStockEmail = ({
         <Container style={container}>
           {/* Header */}
           <Section style={header}>
-            <Heading style={h1}>Stock Bajo</Heading>
+            <Heading style={h1}>Buenas noticias</Heading>
           </Section>
           
           {/* Alert Box */}
           <Section style={alertBox}>
             <Text style={alertText}>
-              ¡Atención Administrador!
+              El producto que esperabas está disponible de nuevo
             </Text>
           </Section>
 
-          {/* Product Details */}
+          {/* Content */}
           <Section style={content}>
-            <Text style={description}>
-              El siguiente producto ha alcanzado un nivel de stock bajo y requiere reabastecimiento:
+            <Text style={greeting}>
+              Hola {userName},
             </Text>
             
+            <Text style={description}>
+              Te informamos que <strong>{productName}</strong> ha sido reabastecido y ahora está disponible para compra en nuestra tienda.
+            </Text>
+            
+            {/* Product Details */}
             <Section style={productCard}>
               <Row>
                 <Column style={labelColumn}>
-                  <Text style={label}>ID del Producto:</Text>
-                </Column>
-                <Column style={valueColumn}>
-                  <Text style={value}>#{productId}</Text>
-                </Column>
-              </Row>
-              
-              <Row>
-                <Column style={labelColumn}>
-                  <Text style={label}>Nombre:</Text>
+                  <Text style={label}>Producto:</Text>
                 </Column>
                 <Column style={valueColumn}>
                   <Text style={value}>{productName}</Text>
@@ -70,24 +73,44 @@ export const LowStockEmail = ({
               
               <Row>
                 <Column style={labelColumn}>
-                  <Text style={label}>Cantidad restante:</Text>
+                  <Text style={label}>Stock disponible:</Text>
                 </Column>
                 <Column style={valueColumn}>
-                  <Text style={{...value, color: '#f59e0b', fontWeight: 'bold'}}>
+                  <Text style={{...value, color: '#16a34a', fontWeight: 'bold'}}>
                     {currentStock} unidades
                   </Text>
                 </Column>
               </Row>
+              
+              <Row>
+                <Column style={labelColumn}>
+                  <Text style={label}>Precio:</Text>
+                </Column>
+                <Column style={valueColumn}>
+                  <Text style={value}>${price}</Text>
+                </Column>
+              </Row>
+            </Section>
+
+            <Text style={urgencyText}>
+              No dejes pasar esta oportunidad, el stock es limitado y podría agotarse pronto.
+            </Text>
+
+            {/* CTA Button */}
+            <Section style={btnContainer}>
+              <Button style={button} href={productUrl}>
+                Ver producto
+              </Button>
             </Section>
           </Section>
 
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              Este es un mensaje automático del sistema DonGalleta.
+              Recibiste este correo porque te suscribiste a notificaciones de reabastecimiento para este producto.
             </Text>
             <Text style={footerText}>
-              Por favor, considera reabastecer el inventario para evitar quedarse sin stock.
+              DonGalleta - Las mejores galletas artesanales
             </Text>
           </Section>
         </Container>
@@ -95,6 +118,8 @@ export const LowStockEmail = ({
     </Html>
   );
 };
+
+export default RestockEmail;
 
 // Estilos
 const main = {
@@ -117,7 +142,7 @@ const header = {
 };
 
 const h1 = {
-  color: '#f59e0b',
+  color: '#16a34a',
   fontSize: '28px',
   fontWeight: '600',
   lineHeight: '40px',
@@ -125,8 +150,8 @@ const h1 = {
 };
 
 const alertBox = {
-  backgroundColor: '#fef3c7',
-  border: '1px solid #f59e0b',
+  backgroundColor: '#dcfce7',
+  border: '1px solid #16a34a',
   borderRadius: '6px',
   padding: '20px',
   textAlign: 'center' as const,
@@ -134,7 +159,7 @@ const alertBox = {
 };
 
 const alertText = {
-  color: '#92400e',
+  color: '#14532d',
   fontSize: '16px',
   fontWeight: '600',
   margin: '0',
@@ -142,6 +167,13 @@ const alertText = {
 
 const content = {
   marginBottom: '30px',
+};
+
+const greeting = {
+  color: '#111827',
+  fontSize: '16px',
+  lineHeight: '24px',
+  marginBottom: '16px',
 };
 
 const description = {
@@ -178,8 +210,34 @@ const label = {
 const value = {
   color: '#111827',
   fontSize: '16px',
-  fontWeight: '600',
+  fontWeight: '500',
   margin: '0 0 8px 0',
+};
+
+const urgencyText = {
+  color: '#ea580c',
+  fontSize: '14px',
+  lineHeight: '20px',
+  marginBottom: '24px',
+  fontStyle: 'italic',
+};
+
+const btnContainer = {
+  textAlign: 'center' as const,
+  marginBottom: '30px',
+};
+
+const button = {
+  backgroundColor: '#16a34a',
+  borderRadius: '6px',
+  color: '#fff',
+  fontSize: '16px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'inline-block',
+  padding: '12px 32px',
+  cursor: 'pointer',
 };
 
 const footer = {
@@ -190,9 +248,7 @@ const footer = {
 
 const footerText = {
   color: '#9ca3af',
-  fontSize: '14px',
-  lineHeight: '20px',
-  margin: '0 0 10px 0',
+  fontSize: '12px',
+  lineHeight: '18px',
+  margin: '0 0 8px 0',
 };
-
-export default LowStockEmail;
