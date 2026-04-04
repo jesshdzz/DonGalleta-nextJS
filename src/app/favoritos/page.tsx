@@ -3,12 +3,12 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getUserFavorites } from "@/actions/favorite-actions";
 import { Prisma } from "@prisma/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart, Trash2 } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import FavoriteButton from "@/components/ui/favorite-button";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 

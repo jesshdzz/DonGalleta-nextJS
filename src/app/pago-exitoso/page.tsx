@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Home, FileText, MessageCircle, Loader2, Package } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Loader2, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 

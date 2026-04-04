@@ -3,7 +3,7 @@ import { ProductDeleteButton } from "@/components/admin/product-delete-button";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Plus, Package, Tag, ShoppingCart } from "lucide-react";
+import { Pencil, Plus, Package, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
