@@ -55,7 +55,15 @@ export default function AdminBannersPage() {
   };
 
   useEffect(() => {
-    loadBanners();
+    let mounted = true;
+    (async () => {
+      const data = await getBanners();
+      if (mounted) {
+        setBanners(data as Banner[]);
+        setIsLoadingBanners(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {
