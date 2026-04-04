@@ -29,7 +29,7 @@ function EstadoDelPago() {
   //efecto que verifica el estado del pago y busca la orden en la base de datos
   useEffect(() => {
     if (yaProcesado.current) return;
-    if (!paymentIntent) { setStatus("error"); return; }
+    if (!paymentIntent) { queueMicrotask(() => setStatus("error")); return; }
 
     if (redirectStatus === "succeeded") {
       yaProcesado.current = true;
@@ -52,7 +52,7 @@ function EstadoDelPago() {
 
       buscarOrden();
     } else {
-      setStatus("error");
+      queueMicrotask(() => setStatus("error"));
     }
   }, [paymentIntent, redirectStatus, clearCart]);
 
