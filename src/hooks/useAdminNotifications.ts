@@ -25,7 +25,7 @@ export function useAdminNotifications(isAdmin: boolean) {
       console.log('✅ Conectado al canal admin-notifications');
     });
 
-    channel.bind('nuevo-pedido', (data: any) => {
+    channel.bind('nuevo-pedido', (data: unknown) => {
       console.log('🔔 Notificación recibida:', data);
       toast.success('🛒 ¡Nuevo pedido recibido!', {
         description: 'Revisa la sección de pedidos',

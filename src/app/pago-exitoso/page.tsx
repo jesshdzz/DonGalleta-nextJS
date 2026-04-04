@@ -164,13 +164,13 @@ function EstadoDelPago() {
             </div>
             
             <div className="space-y-2 text-[11px] text-[#374151]">
-              {ordenDb?.items?.map((item: any) => (
+              {ordenDb?.items?.map((item: { id: number | string; quantity: number; product?: { name: string }; price: number | string }) => (
                 <div key={item.id} className="flex justify-between items-start">
                   <div className="w-1/2 pr-2 leading-tight">
                     <span className="font-bold">{item.quantity}x</span> {item.product?.name || 'Galleta'}
                   </div>
                   <span className="w-1/4 text-right">${Number(item.price).toFixed(2)}</span>
-                  <span className="w-1/4 text-right font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="w-1/4 text-right font-bold">${(Number(item.price) * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
