@@ -45,7 +45,7 @@ function EstadoDelPago() {
           } else {
             setStatus("error"); 
           }
-        } catch (error) {
+        } catch {
           setStatus("error");
         }
       };

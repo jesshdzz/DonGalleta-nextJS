@@ -44,7 +44,7 @@ export async function createBanner({ title, imageUrl, targetUrl }: { title: stri
         revalidatePath("/admin/banners");
         
         return { success: true, banner };
-    } catch (error) {
+    } catch {
         return { success: false, error: "Error al guardar el banner en la base de datos." };
     }
 }
@@ -56,7 +56,7 @@ export async function getBanners(onlyActive: boolean = false) {
       where: onlyActive ? { isActive: true } : undefined,
       orderBy: { createdAt: "desc" },
     });
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -71,7 +71,7 @@ export async function toggleBannerStatus(id: number, isActive: boolean) {
     revalidatePath("/");
     revalidatePath("/admin/banners");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Error al cambiar el estado del banner." };
   }
 }
@@ -83,7 +83,7 @@ export async function deleteBanner(id: string | number) {
     revalidatePath("/");
     revalidatePath("/admin/banners");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Error al eliminar el banner." };
   }
 }
