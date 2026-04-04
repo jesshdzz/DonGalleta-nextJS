@@ -48,7 +48,7 @@ export function ImageUpload({ onChange, onRemove, value }: ImageUploadProps) {
             content={{
                 label: "Elige una imagen o arrástrala aquí",
                 allowedContent: "Imágenes de hasta 4MB (PNG, JPG)",
-                button: ({ ready, isUploading, files, uploadProgress}) => {
+                button: ({ ready, isUploading, files }) => {
                     if (isUploading) return "Subiendo...";
                     if (files.length > 1) return "Solo se permite un archivo";
                     if (files.length == 1) return `subir archivo seleccionado`;
