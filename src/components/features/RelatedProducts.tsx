@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 
 interface RelatedProductsProps {
   currentProductId: number;
-  flavorText?: string | null;
 }
 
-export async function RelatedProducts({ currentProductId, flavorText }: RelatedProductsProps) {
-  // Llamamos a la base de datos directamente desde el componente de servidor
-  const products = await getRelatedProducts(currentProductId, flavorText, 4);
+export async function RelatedProducts({ currentProductId }: RelatedProductsProps) {
+  // Solo necesitamos pasar el ID del producto actual
+  const products = await getRelatedProducts(currentProductId, 4);
 
-  // Si por alguna razón no hay más productos en toda la tienda, no renderizamos nada
   if (!products || products.length === 0) return null;
 
   return (
@@ -23,7 +21,6 @@ export async function RelatedProducts({ currentProductId, flavorText }: RelatedP
           También te podría gustar...
         </h2>
         
-        {/* Grid responsivo: 1 columna en móvil, 2 en tablet, 4 en PC */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <Card 
@@ -32,7 +29,6 @@ export async function RelatedProducts({ currentProductId, flavorText }: RelatedP
             >
               <Link href={`/productos/${product.id}`} className="flex flex-col flex-1">
                 <div className="relative aspect-square w-full bg-[#F7DCBE]/20 overflow-hidden">
-                  {/* Usamos el placeholder en caso de no tener imagen, ajusta 'product.image' según tu esquema */}
                   {product.image ? (
                     <Image 
                       src={product.image} 
@@ -54,7 +50,11 @@ export async function RelatedProducts({ currentProductId, flavorText }: RelatedP
                       {product.name}
                     </h3>
                     <p className="text-xs text-muted-foreground italic line-clamp-1">
-                      {product.flavors?.map((f: any) => f.flavor.name).join(", ") || "Clásica"}
+                      {/* Extraemos los nombres de los sabores desde la relación de Prisma */}
+                      {product.flavors && product.flavors.length > 0 
+                        ? product.flavors.map(pf => pf.flavor.name).join(", ")
+                        : "Clásica"
+                      }
                     </p>
                   </div>
                   <p className="font-black text-xl text-[#58321D]">
@@ -65,6 +65,7 @@ export async function RelatedProducts({ currentProductId, flavorText }: RelatedP
               
               <div className="p-4 pt-0 mt-auto">
                 <Button asChild className="w-full bg-[#58321D] hover:bg-[#58321D]/90 text-white font-medium">
+                  {/* Usamos el slug en la URL ya que lo tienes como @unique en tu esquema */}
                   <Link href={`/productos/${product.id}`}>Ver detalles</Link>
                 </Button>
               </div>

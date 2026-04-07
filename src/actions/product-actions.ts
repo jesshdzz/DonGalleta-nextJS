@@ -238,50 +238,51 @@ export async function searchProducts(query: string, limit?: 5) {
   }
 }
 
-export async function getRelatedProducts(currentProductId: number, flavor?: string | null, limit: number = 4) {
+export async function getRelatedProducts(currentProductId: number, limit: number = 4) {
   try {
-    // Buscamos productos que coincidan con el sabor, excluyendo el actual
+    // 1. Obtener los IDs de los sabores del producto actual
+    const currentProduct = await prisma.product.findUnique({
+      where: { id: currentProductId },
+      include: { flavors: true },
+    });
+
+    const flavorIds = currentProduct?.flavors.map((f) => f.flavorId) || [];
+
+    // 2. Buscar productos que tengan al menos uno de esos sabores
     let related = await prisma.product.findMany({
       where: {
         id: { not: currentProductId },
-        isActive: true, // Asumiendo que solo quieres mostrar productos activos
-        ...(flavor ? {
-          flavors: {
-            some: {
-              flavor: {
-                name: { contains: flavor }
-              }
-            }
-          }
-        } : {}),
-      },
-      include: {
-        flavors: {
-          include: { flavor: true }
-        }
+        isActive: true,
+        // Solo aplicamos este filtro si el producto original tiene sabores asignados
+        ...(flavorIds.length > 0
+          ? { flavors: { some: { flavorId: { in: flavorIds } } } }
+          : {}),
       },
       take: limit,
+      // Incluimos los sabores para poder mostrarlos en la tarjeta
+      include: {
+        flavors: {
+          include: { flavor: true },
+        },
+      },
     });
 
-    // Si no encontramos suficientes productos con ese sabor exacto,
-    // rellenamos los espacios con otros productos activos al azar o los más recientes
+    // 3. Rellenar con productos recientes si no alcanzamos el límite
     if (related.length < limit) {
       const moreProducts = await prisma.product.findMany({
         where: {
           id: { notIn: [currentProductId, ...related.map((p) => p.id)] },
           isActive: true,
         },
+        take: limit - related.length,
+        orderBy: { id: "desc" },
         include: {
           flavors: {
-            include: { flavor: true }
-          }
+            include: { flavor: true },
+          },
         },
-        take: limit - related.length,
-        orderBy: {
-          id: 'desc'
-        }
       });
-      
+
       related = [...related, ...moreProducts];
     }
 

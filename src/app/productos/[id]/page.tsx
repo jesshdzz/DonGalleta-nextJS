@@ -11,11 +11,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
 interface Props {
-  params: Promise<{ id: string }>; // En Next.js 15+ params es una Promesa
+  params: Promise<{ id: string }>;
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-  // 1. Desempaquetar los parámetros (obligatorio en Next.js reciente)
   const { id } = await params;
   const productId = parseInt(id);
 
@@ -146,10 +145,7 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
-      <RelatedProducts
-        currentProductId={product.id}
-        flavorText={product.flavors?.[0]?.flavor.name}
-      />
+      <RelatedProducts currentProductId={product.id} />
     </div>
   );
 }
