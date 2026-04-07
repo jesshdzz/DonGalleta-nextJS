@@ -298,7 +298,7 @@ describe('searchProducts', () => {
                 name: 'Galleta de Chocolate',
                 slug: 'galleta-de-chocolate',
                 price: 15.50,
-                flavorText: 'Chocolate, Vainilla',
+                flavor: 'Chocolate, Vainilla',
                 image: 'chocolate.jpg',
             },
         ]);
@@ -313,6 +313,98 @@ describe('searchProducts', () => {
         const result = await searchProducts('galleta');
 
         expect(consoleSpy).toHaveBeenCalledWith("Error buscando productos:", dbError);
+        expect(result).toEqual([]);
+
+        consoleSpy.mockRestore(); // Limpiamos el espía
+    });
+});
+
+describe('getRelatedProducts', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('debería retornar productos relacionados por sabor sin llamar a la base secundaria si alcanza el límite', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        
+        // Mock current product with a flavor
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({
+            id: 1,
+            flavors: [{ flavorId: 10 }]
+        } as never);
+
+        // Mock exact number of products to reach the limit
+        const mockRelatedProducts = Array.from({ length: 4 }).map((_, i) => ({ id: i + 2 }));
+        vi.mocked(prisma.product.findMany).mockResolvedValueOnce(mockRelatedProducts as never);
+
+        const result = await getRelatedProducts(1, 4);
+
+        expect(result).toHaveLength(4);
+        expect(prisma.product.findUnique).toHaveBeenCalledWith({
+            where: { id: 1 },
+            include: { flavors: true }
+        });
+        
+        expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+        expect(prisma.product.findMany).toHaveBeenCalledWith({
+            where: {
+                id: { not: 1 },
+                isActive: true,
+                flavors: { some: { flavorId: { in: [10] } } }
+            },
+            take: 4,
+            include: {
+                flavors: { include: { flavor: true } }
+            }
+        });
+    });
+
+    it('debería rellenar con otros productos si los encontrados por sabor no alcanzan el límite', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({
+            id: 1,
+            flavors: [{ flavorId: 10 }]
+        } as never);
+
+        // First query returns only 1 product
+        const mockFirstBatch = [{ id: 2 }];
+        // The fallback query returns 3 more
+        const mockSecondBatch = [{ id: 3 }, { id: 4 }, { id: 5 }];
+
+        vi.mocked(prisma.product.findMany)
+            .mockResolvedValueOnce(mockFirstBatch as never)
+            .mockResolvedValueOnce(mockSecondBatch as never);
+
+        const result = await getRelatedProducts(1, 4);
+
+        expect(result).toHaveLength(4);
+        expect(prisma.product.findMany).toHaveBeenCalledTimes(2);
+        
+        // Verify the second findMany call arguments
+        expect(prisma.product.findMany).toHaveBeenNthCalledWith(2, {
+            where: {
+                id: { notIn: [1, 2] },
+                isActive: true
+            },
+            take: 3,
+            orderBy: { id: 'desc' },
+            include: {
+                flavors: { include: { flavor: true } }
+            }
+        });
+    });
+
+    it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const dbError = new Error('Database Error');
+
+        vi.mocked(prisma.product.findUnique).mockRejectedValueOnce(dbError);
+
+        const result = await getRelatedProducts(1);
+
+        expect(consoleSpy).toHaveBeenCalledWith("Error obteniendo productos relacionados:", dbError);
         expect(result).toEqual([]);
 
         consoleSpy.mockRestore(); // Limpiamos el espía
