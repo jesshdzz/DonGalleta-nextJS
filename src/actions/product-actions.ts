@@ -167,7 +167,7 @@ export async function getFilteredProducts(filters: { flavors?: string[]; query?:
           some: { flavor: { name: { in: flavors } } },
         },
       } : {}),
-      // 2. Aplica el filtro de búsqueda por texto (si existe)
+      // 2. Aplica el filtro de búsqueda por o (si existe)
       ...(query ? {
         OR: [
           { name: { contains: query } },
@@ -228,12 +228,66 @@ export async function searchProducts(query: string, limit?: 5) {
       name: p.name,
       slug: p.slug, // Usaremos el slug para la URL
       price: p.price.toNumber(),
-      // Juntamos todos los sabores en un solo texto separado por comas
-      flavorText: p.flavors.map((f) => f.flavor.name).join(", "),
+      // Juntamos todos los sabores en un solo o separado por comas
+      flavor: p.flavors.map((f) => f.flavor.name).join(", "),
       image: p.image,
     }));
   } catch (error) {
     console.error("Error buscando productos:", error);
+    return [];
+  }
+}
+
+export async function getRelatedProducts(currentProductId: number, flavor?: string | null, limit: number = 4) {
+  try {
+    // Buscamos productos que coincidan con el sabor, excluyendo el actual
+    let related = await prisma.product.findMany({
+      where: {
+        id: { not: currentProductId },
+        isActive: true, // Asumiendo que solo quieres mostrar productos activos
+        ...(flavor ? {
+          flavors: {
+            some: {
+              flavor: {
+                name: { contains: flavor }
+              }
+            }
+          }
+        } : {}),
+      },
+      include: {
+        flavors: {
+          include: { flavor: true }
+        }
+      },
+      take: limit,
+    });
+
+    // Si no encontramos suficientes productos con ese sabor exacto,
+    // rellenamos los espacios con otros productos activos al azar o los más recientes
+    if (related.length < limit) {
+      const moreProducts = await prisma.product.findMany({
+        where: {
+          id: { notIn: [currentProductId, ...related.map((p) => p.id)] },
+          isActive: true,
+        },
+        include: {
+          flavors: {
+            include: { flavor: true }
+          }
+        },
+        take: limit - related.length,
+        orderBy: {
+          id: 'desc'
+        }
+      });
+      
+      related = [...related, ...moreProducts];
+    }
+
+    return related;
+  } catch (error) {
+    console.error("Error obteniendo productos relacionados:", error);
     return [];
   }
 }
