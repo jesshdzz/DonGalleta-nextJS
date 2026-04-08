@@ -25,12 +25,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-describe("Banner Actions", () => {
+describe("HU-70 Creacion de banners promocionales", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("createBanner", () => {
+  describe("HU-70:gi createBanner", () => {
     it("debería crear un banner si los datos pasan la validación de Zod", async () => {
       const mockBanner = {
         id: 1,
@@ -104,7 +104,7 @@ describe("Banner Actions", () => {
   });
 
   // ... (getBanners, toggleBannerStatus y deleteBanner se quedan exactamente igual) ...
-  describe("getBanners", () => {
+  describe("HU-70:gi getBanners", () => {
     it("debería traer todos los banners si no se le pasa parámetro", async () => {
       const mockBanners = [{ id: 1, title: "Promo" }];
       // @ts-expect-error
@@ -131,7 +131,7 @@ describe("Banner Actions", () => {
     });
   });
 
-  describe("toggleBannerStatus", () => {
+  describe("HU-70:gi toggleBannerStatus", () => {
     it("debería actualizar el estado y refrescar las rutas", async () => {
       // @ts-expect-error
       prisma.banner.update.mockResolvedValue({ id: 1, isActive: false });
@@ -147,7 +147,7 @@ describe("Banner Actions", () => {
     });
   });
 
-  describe("deleteBanner", () => {
+  describe("HU-70:gi deleteBanner", () => {
     it("debería borrar el banner permanentemente", async () => {
       // @ts-expect-error
       prisma.banner.delete.mockResolvedValue({ id: 1 });
