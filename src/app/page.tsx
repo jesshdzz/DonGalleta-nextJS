@@ -2,10 +2,15 @@ import { Hero } from "@/components/features/Hero";
 import { ProductCarousel } from "@/components/features/ProductCarousel";
 import { Promotions } from "@/components/features/Promotions";
 import Banner, { BannerItem } from "@/components/features/Banner";
+import { StoresMap } from "@/components/features/StoresMap";
 import { getBanners } from "@/actions/banner-actions";
+import { getStores } from "@/actions/store-actions";
 
 export default async function Home() {
-  const dbBanners = await getBanners(true);
+  const [dbBanners, allStores] = await Promise.all([
+    getBanners(true),
+    getStores(),
+  ]);
 
   const promoBanners: BannerItem[] = dbBanners.map((b) => ({
     id: b.id,
@@ -13,6 +18,8 @@ export default async function Home() {
     alt: b.title,
     targetUrl: b.targetUrl,
   }));
+
+  const activeStores = allStores.filter((s) => s.isActive);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,8 +29,9 @@ export default async function Home() {
           <Banner banners={promoBanners} />
         </div>
       )}
-      
+
       <ProductCarousel />
+      <StoresMap stores={activeStores} />
       <Promotions />
     </div>
   );
