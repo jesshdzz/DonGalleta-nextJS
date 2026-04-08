@@ -319,12 +319,12 @@ describe('searchProducts', () => {
     });
 });
 
-describe('getRelatedProducts', () => {
+describe('HU-50: Seccion de Productos relacionados: getRelatedProducts', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar productos relacionados por sabor sin llamar a la base secundaria si alcanza el límite', async () => {
+    it(' HU-50 debería retornar productos relacionados por sabor sin llamar a la base secundaria si alcanza el límite', async () => {
         const { getRelatedProducts } = await import('../actions/product-actions');
         
         // Mock current product with a flavor
@@ -359,7 +359,7 @@ describe('getRelatedProducts', () => {
         });
     });
 
-    it('debería rellenar con otros productos si los encontrados por sabor no alcanzan el límite', async () => {
+    it(' HU-50 debería rellenar con otros productos si los encontrados por sabor no alcanzan el límite', async () => {
         const { getRelatedProducts } = await import('../actions/product-actions');
         
         vi.mocked(prisma.product.findUnique).mockResolvedValue({
@@ -395,7 +395,7 @@ describe('getRelatedProducts', () => {
         });
     });
 
-    it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
+    it(' HU-50 debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
         const { getRelatedProducts } = await import('../actions/product-actions');
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         const dbError = new Error('Database Error');
