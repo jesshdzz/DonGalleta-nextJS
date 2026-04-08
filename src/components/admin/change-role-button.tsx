@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Role } from "@prisma/client";
-import { ArrowRightLeft, Trash2, UserRoundPen } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 

@@ -6,8 +6,8 @@ vi.mock("uploadthing/next", () => {
     return {
         createUploadthing: () => {
             return () => ({
-                middleware: (mwFn: any) => ({
-                    onUploadComplete: (ucFn: any) => ({
+                middleware: (mwFn: unknown) => ({
+                    onUploadComplete: (ucFn: unknown) => ({
                         // Expose the configured functions for testing
                         __test_middleware: mwFn,
                         __test_onUploadComplete: ucFn,

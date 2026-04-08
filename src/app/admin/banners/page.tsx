@@ -55,7 +55,15 @@ export default function AdminBannersPage() {
   };
 
   useEffect(() => {
-    loadBanners();
+    let mounted = true;
+    (async () => {
+      const data = await getBanners();
+      if (mounted) {
+        setBanners(data as Banner[]);
+        setIsLoadingBanners(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {
@@ -196,14 +204,14 @@ export default function AdminBannersPage() {
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table className="min-w-[600px]"> 
+              <Table className="min-w-150"> 
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[80px] sm:w-[100px]">Imagen</TableHead>
+                    <TableHead className="w-20 sm:w-25">Imagen</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Enlace</TableHead>
-                    <TableHead className="text-center w-[80px]">Activo</TableHead>
-                    <TableHead className="text-right w-[80px]">Acciones</TableHead>
+                    <TableHead className="text-center w-20">Activo</TableHead>
+                    <TableHead className="text-right w-20">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,7 +230,7 @@ export default function AdminBannersPage() {
                       <TableCell className="font-medium text-sm sm:text-base">{banner.title}</TableCell>
                       <TableCell>
                         {banner.targetUrl ? (
-                          <a href={banner.targetUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1 text-xs sm:text-sm truncate max-w-[150px] sm:max-w-[200px]">
+                          <a href={banner.targetUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1 text-xs sm:text-sm truncate max-w-37.5 sm:max-w-50">
                             {banner.targetUrl} <ExternalLink className="h-3 w-3 shrink-0" />
                           </a>
                         ) : (

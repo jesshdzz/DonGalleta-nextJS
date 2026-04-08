@@ -12,7 +12,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2026-02-25.clover", 
 });
 
-export async function createPaymentIntent(amount: number, cart: any[]) {
+type CartItem = { productId: number; quantity: number; price: number };
+
+export async function createPaymentIntent(amount: number, cart: CartItem[]) {
     try {
         const session = await auth();
         let userId = "";
@@ -26,7 +28,7 @@ export async function createPaymentIntent(amount: number, cart: any[]) {
             }
         }
 
-        const itemsSimplificados = cart.map((item: any) => ({
+        const itemsSimplificados = cart.map((item) => ({
             id: item.productId,
             cantidad: item.quantity,
             precio: item.price 
@@ -45,7 +47,7 @@ export async function createPaymentIntent(amount: number, cart: any[]) {
         });
 
         return { success: true, clientSecret: paymentIntent.client_secret };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error al crear el PaymentIntent:", error);
         return { success: false, error: "Ocurrió un error al procesar el pago" };
     }
