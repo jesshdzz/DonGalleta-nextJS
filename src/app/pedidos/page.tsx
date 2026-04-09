@@ -4,38 +4,40 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  Package, 
-  Clock, 
-  Cookie, 
-  CheckCircle2, 
-  ArrowLeft, 
-  Loader2, 
-  XCircle
+import {
+  Package,
+  Clock,
+  Cookie,
+  CheckCircle2,
+  ArrowLeft,
+  Loader2,
+  XCircle,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+// IMPORTANTE: Verifica que esta ruta coincida con tu archivo de acciones
 import { getUserOrders } from "@/actions/orders-actions";
+import { cancelOrder } from "@/actions/order-actions";
 
-// definimos los tipos de datos
 type OrderItem = {
   id: string;
   productId: number;
   quantity: number;
   price: number;
-  product?: { name: string }; 
+  product?: { name: string };
 };
 
 type Order = {
   id: string;
   total: number;
-  status: string; 
+  status: string;
   createdAt: string;
-  items: OrderItem[]; 
+  items: OrderItem[];
 };
 
-// funcion para mostrar una etiqueta con estados
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "PENDING":
@@ -67,20 +69,18 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-// pagina principal de pedidos
 export default function MisPedidosPage() {
   const { status: sessionStatus } = useSession();
   const router = useRouter();
-  
+
   const [pedidos, setPedidos] = useState<Order[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [cancelandoId, setCancelandoId] = useState<string | null>(null);
 
-  // obtener los pedidos del usuario
   const obtenerPedidos = async () => {
     try {
       const response = await getUserOrders();
       if (response.success && response.orders) {
-        // Ignoramos el tipado estricto entre Prisma Generated y OrderType custom temporalmente
         // @ts-expect-error Types mismatched from Prisma mapping vs UI custom type
         setPedidos(response.orders);
       } else {
@@ -93,7 +93,6 @@ export default function MisPedidosPage() {
     }
   };
 
-  // efecto para determinar el estado del logueo y cargar los pedidos
   useEffect(() => {
     if (sessionStatus === "unauthenticated") {
       router.push("/auth/login");
@@ -104,11 +103,40 @@ export default function MisPedidosPage() {
       obtenerPedidos();
       const intervalo = setInterval(() => {
         obtenerPedidos();
-      }, 10000); 
+      }, 10000);
 
       return () => clearInterval(intervalo);
     }
   }, [sessionStatus, router]);
+
+  // Lógica para cancelar pedido
+  const handleCancelarPedido = async (orderId: string) => {
+    if (!confirm("¿Estás seguro de que deseas cancelar este pedido? Se devolverá el stock.")) return;
+
+    setCancelandoId(orderId);
+    try {
+      const result = await cancelOrder(orderId);
+
+      if (result.success) {
+        toast.success("Pedido cancelado", {
+          description: "Tu pedido ha sido cancelado exitosamente.",
+          icon: <CheckCircle2 className="text-green-500" />
+        });
+        obtenerPedidos(); // Refrescamos la lista
+      } else {
+        toast.error("No se pudo cancelar", {
+          description: result.error,
+          icon: <AlertTriangle className="text-red-500" />
+        });
+      }
+    } catch (error) {
+      toast.error("Error del servidor", {
+        description: "Ocurrió un error inesperado al intentar cancelar."
+      });
+    } finally {
+      setCancelandoId(null);
+    }
+  };
 
   if (sessionStatus === "loading" || cargando) {
     return (
@@ -122,7 +150,7 @@ export default function MisPedidosPage() {
   return (
     <div className="container mx-auto py-8 md:py-12 px-4 min-h-[80vh] bg-background">
       <div className="max-w-4xl mx-auto space-y-6">
-        
+
         <div className="flex items-center gap-4 mb-8">
           <Link href="/">
             <Button variant="ghost" size="icon" className="hover:bg-primary/10">
@@ -137,7 +165,6 @@ export default function MisPedidosPage() {
           </div>
         </div>
 
-        {/* muestra un mensaje si no hay pedidos */}
         {pedidos.length === 0 ? (
           <Card className="text-center py-16 border-dashed border-2 shadow-sm bg-secondary/5">
             <CardContent className="space-y-4">
@@ -152,52 +179,86 @@ export default function MisPedidosPage() {
             </CardContent>
           </Card>
         ) : (
-          // muestra la lista de pedidos
           <div className="space-y-6">
-            {pedidos.map((pedido) => (
-              <Card key={pedido.id} className="shadow-md border-primary/10 overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-secondary/10 border-b border-primary/5 pb-4">
-                  <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <div>
-                      <CardTitle className="text-lg font-mono text-primary flex items-center gap-3">
-                        Pedido #{pedido.id.slice(0, 8).toUpperCase()}
-                        {getStatusBadge(pedido.status)}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {new Date(pedido.createdAt).toLocaleDateString('es-MX', { 
-                          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
-                        })}
-                      </p>
-                    </div>
-                    <div className="text-left md:text-right">
-                      <span className="text-sm text-muted-foreground block">Total pagado</span>
-                      <span className="text-2xl font-bold text-foreground">
-                        ${Number(pedido.total).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-6">
-                  <div className="bg-secondary/5 rounded-lg p-4 border border-border">
-                    <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">
-                      Resumen de artículos
-                    </h4>
-                    <div className="space-y-2">
-                      {pedido.items?.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center text-sm font-medium">
-                          <span>
-                            <span className="text-primary mr-2 font-bold">{item.quantity}x</span>
-                            {item.product?.name || `Producto #${item.productId}`}
+            {pedidos.map((pedido) => {
+              // Validaciones para mostrar el botón de cancelar
+              const esPendiente = pedido.status === "PENDING";
+              const msTranscurridos = Date.now() - new Date(pedido.createdAt).getTime();
+              const limiteUnaHora = 3600000;
+              const sePuedeCancelar = esPendiente && (msTranscurridos < limiteUnaHora);
+
+              return (
+                <Card key={pedido.id} className="shadow-md border-primary/10 overflow-hidden hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-secondary/10 border-b border-primary/5 pb-4">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                      <div>
+                        <CardTitle className="text-lg font-mono text-primary flex items-center gap-3">
+                          Pedido #{pedido.id.slice(0, 8).toUpperCase()}
+                          {getStatusBadge(pedido.status)}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {new Date(pedido.createdAt).toLocaleDateString('es-MX', {
+                            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-start md:items-end gap-2">
+                        <div className="text-left md:text-right">
+                          <span className="text-sm text-muted-foreground block">Total pagado</span>
+                          <span className="text-2xl font-bold text-foreground">
+                            ${Number(pedido.total).toFixed(2)}
                           </span>
-                          <span className="text-muted-foreground">${Number(item.price * item.quantity).toFixed(2)}</span>
                         </div>
-                      ))}
+
+                        {/* Botón de Cancelación */}
+                        {sePuedeCancelar && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="mt-2 w-full md:w-auto"
+                            onClick={() => handleCancelarPedido(pedido.id)}
+                            disabled={cancelandoId === pedido.id}
+                          >
+                            {cancelandoId === pedido.id ? (
+                              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...</>
+                            ) : (
+                              <><XCircle className="w-4 h-4 mr-2" /> Cancelar Pedido</>
+                            )}
+                          </Button>
+                        )}
+
+                        {/* Mensaje sutil si es pendiente pero ya pasó la hora */}
+                        {esPendiente && !sePuedeCancelar && (
+                          <span className="text-xs text-muted-foreground">
+                            El tiempo para cancelar expiró
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+
+                  <CardContent className="p-6">
+                    <div className="bg-secondary/5 rounded-lg p-4 border border-border">
+                      <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">
+                        Resumen de artículos
+                      </h4>
+                      <div className="space-y-2">
+                        {pedido.items?.map((item) => (
+                          <div key={item.id} className="flex justify-between items-center text-sm font-medium">
+                            <span>
+                              <span className="text-primary mr-2 font-bold">{item.quantity}x</span>
+                              {item.product?.name || `Producto #${item.productId}`}
+                            </span>
+                            <span className="text-muted-foreground">${Number(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

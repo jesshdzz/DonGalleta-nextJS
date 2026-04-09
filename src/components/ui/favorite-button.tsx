@@ -5,7 +5,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toggleFavorite } from "@/actions/favorite-actions";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 interface FavoriteButtonProps {
@@ -16,7 +16,7 @@ interface FavoriteButtonProps {
   showText?: boolean;
 }
 
-export default function FavoriteButton({
+function FavoriteButtonInner({
   productId,
   initialIsFavorite = false,
   size = "md",
@@ -38,13 +38,13 @@ export default function FavoriteButton({
     startTransition(async () => {
       try {
         const result = await toggleFavorite(productId);
-        
+
         if (result.error) {
           toast.error(result.error);
         } else {
           const newFavoriteState = !isFavorite;
           setIsFavorite(newFavoriteState);
-          
+
           if (newFavoriteState) {
             toast.success("¡Añadido a favoritos!", {
               icon: "❤️",
@@ -86,32 +86,39 @@ export default function FavoriteButton({
     <Button
       variant={variant}
       size="icon"
-      className={`${getSize()} transition-all duration-200 hover:scale-110 ${
-        isFavorite 
-          ? "text-destructive hover:text-destructive/80 bg-background/80 border-border" 
-          : "text-muted-foreground hover:text-destructive bg-background/80 border-border"
-      }`}
+      className={`${getSize()} transition-all duration-200 hover:scale-110 ${isFavorite
+        ? "text-destructive hover:text-destructive/80 bg-background/80 border-border"
+        : "text-muted-foreground hover:text-destructive bg-background/80 border-border"
+        }`}
       onClick={handleToggleFavorite}
       disabled={isPending}
       title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
     >
       {isFavorite ? (
-        <Heart 
-          size={getIconSize()} 
-          className="fill-current text-destructive" 
+        <Heart
+          size={getIconSize()}
+          className="fill-current text-destructive"
         />
       ) : (
-        <Heart 
-          size={getIconSize()} 
-          className="text-muted-foreground group-hover:text-destructive transition-colors" 
+        <Heart
+          size={getIconSize()}
+          className="text-muted-foreground group-hover:text-destructive transition-colors"
         />
       )}
-      
+
       {showText && (
         <span className="ml-2 text-sm">
           {isFavorite ? "Favorito" : "Añadir"}
         </span>
       )}
     </Button>
+  );
+}
+
+export default function FavoriteButton(props: FavoriteButtonProps) {
+  return (
+    <SessionProvider>
+      <FavoriteButtonInner {...props} />
+    </SessionProvider>
   );
 }

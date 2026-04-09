@@ -17,12 +17,12 @@ import { AdminNotificationProvider } from "@/components/admin/AdminNotificationP
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sans", // Variable CSS para Tailwind
+  variable: "--font-sans",
 });
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-serif", // Variable CSS para Tailwind
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -41,6 +41,8 @@ export default async function RootLayout({
     <html lang="es">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+
+        {/* Envolvemos absolutamente TODO dentro de Providers */}
         <Providers>
           <AdminNotificationProvider>
             <CartProvider>
