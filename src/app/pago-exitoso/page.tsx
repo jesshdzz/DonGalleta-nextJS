@@ -10,7 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import logoImg from "@/assets/images/logo.png";
-import { verifyPaymentIntent } from "@/actions/orders-actions";
+import { verifyPaymentIntent } from "@/actions/payment-actions";
 import { generarTicketPDF } from "@/utils/pdf-generator";
 
 // componente que maneja el estado de pago

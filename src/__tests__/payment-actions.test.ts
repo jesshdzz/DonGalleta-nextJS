@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createPaymentIntent, processSuccessfulPayment } from '../actions/payment-actions';
+import { createPaymentIntent, processSuccessfulPayment, verifyPaymentIntent } from '../actions/payment-actions';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { pusher } from '@/lib/pusher';
@@ -11,7 +11,10 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       create: vi.fn()
     },
-    product: { update: vi.fn() },
+    product: { 
+      update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue({ stock: 10, name: 'Product' })
+    },
     $transaction: vi.fn((callback) => callback(prisma)),
   }
 }));
@@ -26,15 +29,21 @@ vi.mock('@/lib/pusher', () => ({
   }
 }));
 
-const { mockPaymentIntentsCreate } = vi.hoisted(() => ({
+vi.mock('@/lib/stock-notifications', () => ({
+    processMultipleStockNotifications: vi.fn().mockResolvedValue(true)
+}));
+
+const { mockPaymentIntentsCreate, mockPaymentIntentsRetrieve } = vi.hoisted(() => ({
   mockPaymentIntentsCreate: vi.fn(),
+  mockPaymentIntentsRetrieve: vi.fn().mockResolvedValue({ status: 'requires_payment' }),
 }));
 vi.mock('stripe', () => {
   return {
     default: function() {
       return {
         paymentIntents: {
-          create: mockPaymentIntentsCreate
+          create: mockPaymentIntentsCreate,
+          retrieve: mockPaymentIntentsRetrieve
         }
       };
     }
@@ -119,4 +128,33 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             expect(prisma.order.create).not.toHaveBeenCalled();
         });
     });
+
+    describe('verifyPaymentIntent', () => {
+        it('debe regresar la orden parseada si existe el intention ID directamente en la BD', async () => {
+            const mockOrder = {
+                id: 'ord-123',
+                total: { toNumber: () => 200.50 },
+                items: [
+                    { price: { toNumber: () => 100 }, product: { price: { toNumber: () => 100 } } }
+                ]
+            };
+            vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
+
+            const result = await verifyPaymentIntent('pi_yes');
+            
+            expect(result.success).toBe(true);
+            expect(result.order?.total).toBe(200.50);
+            expect(result.order?.items[0].price).toBe(100);
+        });
+
+        it('debe buscar en Stripe de refilón si no existe, y regresar error si stripe dice que el pago falló', async () => {
+            vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
+
+            const result = await verifyPaymentIntent('pi_no');
+            
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('No encontrada y el pago no ha sido liquidado');
+        });
+    });
 });
+

@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { checkStock, checkout as checkoutAction } from "@/actions/product-actions";
+import { checkStock, checkout as checkoutAction } from "@/actions/cart-actions";
 import { toast } from "sonner";
 
 // Definición estricta de Producto (lo mínimo que necesita el carrito)

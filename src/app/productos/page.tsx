@@ -1,5 +1,6 @@
 import ProductFilter from '@/components/ui/filters/ProductsFilter';
-import { getFilteredProducts, getFlavors } from '@/actions/product-actions';
+import { getFilteredProducts } from '@/actions/product-actions';
+import { getFlavors } from '@/actions/flavor-actions';
 import { getUserFavoriteIds } from '@/actions/favorite-actions';
 import ProductoItem from '@/components/carro/ProductoItem';
 import { Cookie } from "lucide-react";
