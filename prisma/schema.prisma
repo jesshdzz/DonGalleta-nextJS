@@ -96,6 +96,8 @@ model Order {
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
   payment   Payment?
+  couponId  String?
+  coupon    Coupon?     @relation(fields: [couponId], references: [id])
 
   @@index([userId], map: "Order_userId_fkey")
 }
@@ -201,6 +203,19 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  discountType    String   // "PERCENTAGE" o "FIXED"
+  discountValue   Decimal  @db.Decimal(10, 2)
+  expirationDate  DateTime
+  isActive        Boolean  @default(true)
+  usageLimit      Int?     
+  usedCount       Int      @default(0)
+  orders          Order[]
+  createdAt       DateTime @default(now())
 }
 
 enum Role {
