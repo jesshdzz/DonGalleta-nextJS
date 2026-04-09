@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Heart, HeartHandshake } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toggleFavorite } from "@/actions/favorite-actions";
 import { toast } from "sonner";

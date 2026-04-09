@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Home, FileText, MessageCircle, Loader2, Package } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Loader2, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
@@ -23,13 +22,14 @@ function EstadoDelPago() {
   const { clearCart } = useCart();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   
-  const [ordenDb, setOrdenDb] = useState<any>(null);
+  interface OrderData { id: string; createdAt: string | Date; total: number | string; user?: { name: string | null }; items: { id: string | number; quantity: number; price: number | string; product?: { name: string } | null }[]; }
+  const [ordenDb, setOrdenDb] = useState<OrderData | null>(null);
   const yaProcesado = useRef(false);
 
   //efecto que verifica el estado del pago y busca la orden en la base de datos
   useEffect(() => {
     if (yaProcesado.current) return;
-    if (!paymentIntent) { setStatus("error"); return; }
+    if (!paymentIntent) { queueMicrotask(() => setStatus("error")); return; }
 
     if (redirectStatus === "succeeded") {
       yaProcesado.current = true;
@@ -45,14 +45,14 @@ function EstadoDelPago() {
           } else {
             setStatus("error"); 
           }
-        } catch (error) {
+        } catch {
           setStatus("error");
         }
       };
 
       buscarOrden();
     } else {
-      setStatus("error");
+      queueMicrotask(() => setStatus("error"));
     }
   }, [paymentIntent, redirectStatus, clearCart]);
 
@@ -144,7 +144,7 @@ function EstadoDelPago() {
             </div>
             <div className="flex justify-between">
               <span className="font-bold">FECHA:</span>
-              <span>{new Date(ordenDb?.createdAt || Date.now()).toLocaleDateString('es-MX')}</span>
+              <span>{ordenDb ? new Date(ordenDb.createdAt).toLocaleDateString('es-MX') : ''}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">CLIENTE:</span>
@@ -164,13 +164,13 @@ function EstadoDelPago() {
             </div>
             
             <div className="space-y-2 text-[11px] text-[#374151]">
-              {ordenDb?.items?.map((item: any) => (
+              {ordenDb?.items?.map((item: { id: number | string; quantity: number; product?: { name: string } | null; price: number | string }) => (
                 <div key={item.id} className="flex justify-between items-start">
                   <div className="w-1/2 pr-2 leading-tight">
                     <span className="font-bold">{item.quantity}x</span> {item.product?.name || 'Galleta'}
                   </div>
                   <span className="w-1/4 text-right">${Number(item.price).toFixed(2)}</span>
-                  <span className="w-1/4 text-right font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="w-1/4 text-right font-bold">${(Number(item.price) * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>

@@ -58,8 +58,8 @@ async function processStockNotification(data: StockComparisonData) {
   });
 
   const results = {
-    lowStockAlert: null as any,
-    outOfStockAlert: null as any,
+    lowStockAlert: null as unknown,
+    outOfStockAlert: null as unknown,
   };
 
   // Enviar alerta de stock bajo si corresponde
