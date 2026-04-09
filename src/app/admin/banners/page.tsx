@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { UploadDropzone } from "@uploadthing/react";
-import { OurFileRouter } from "@/app/api/uploadthing/core";
 import { createBanner, getBanners, deleteBanner, toggleBannerStatus } from "@/actions/banner-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import "@uploadthing/react/styles.css";
 import { z } from "zod";
+import { ImageUpload } from "@/components/admin/image-upload";
 
 // Copiamos el esquema de validación para usarlo en el front (sin el imageUrl porque ese lo da UploadThing)
 const clientBannerSchema = z.object({
@@ -139,7 +137,7 @@ export default function AdminBannersPage() {
             </div>
           </div>
 
-          <div className="border-2 border-dashed rounded-lg p-3 sm:p-4 bg-muted/10 relative">
+          <div className="relative bg-muted/5 rounded-lg">
             {!isFormValid && (
               <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[1px] flex items-center justify-center rounded-lg p-4 text-center transition-all">
                 <span className="bg-background px-3 py-2 sm:px-4 sm:py-2 rounded-md shadow-sm text-xs sm:text-sm font-medium text-destructive border border-destructive/20">
@@ -159,26 +157,22 @@ export default function AdminBannersPage() {
             {/* Mantenemos el componente montado pero oculto visualmente si isSaving es true,
                 para que no se interrumpa el onClientUploadComplete */}
             <div className={isSaving ? "hidden" : "block"}>
-              <UploadDropzone<OurFileRouter, "bannerImage">
+              <ImageUpload
                 endpoint="bannerImage"
+                value=""
                 onUploadBegin={() => setIsSaving(true)}
-                onClientUploadComplete={async (res) => {
-                  if (res && res[0]) {
-                    await createBanner({
-                      title: title,
-                      imageUrl: res[0].url,
-                      targetUrl: targetUrl
-                    });
-                    setTitle("");
-                    setTargetUrl("");
-                    setIsSaving(false);
-                    loadBanners();
-                  }
-                }}
-                onUploadError={(error: Error) => {
+                onChange={async (url) => {
+                  await createBanner({
+                    title: title,
+                    imageUrl: url,
+                    targetUrl: targetUrl
+                  });
+                  setTitle("");
+                  setTargetUrl("");
                   setIsSaving(false);
-                  alert(`Error: ${error.message}`);
+                  loadBanners();
                 }}
+                onRemove={() => {}}
               />
             </div>
           </div>
