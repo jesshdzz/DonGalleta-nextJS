@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { checkStock, checkout as checkoutAction } from "@/actions/cart-actions";
-import { getCart, syncCart, clearCart } from "@/actions/cart-actions";
+import { getCart, syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
@@ -63,6 +63,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.version === CART_STORAGE_VERSION && Array.isArray(parsed?.data)) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Hidratación necesaria desde localStorage
           setCart(parsed.data);
         } else {
           localStorage.removeItem('cart_session');
@@ -75,8 +76,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('cart');
         }
       }
-    } catch (e) {
-      console.error('Error loading cart:', e);
+    } catch {
+      console.error('Error loading cart');
       localStorage.removeItem('cart_session');
     }
     setIsLoaded(true);
@@ -150,7 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }];
       });
       toast.success(`Agregaste ${product.name}.`);
-    } catch (e) {
+    } catch {
       toast.error("Error al verificar stock.");
     }
   };
@@ -169,7 +170,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return;
       }
       setCart(prev => prev.map(i => i.productId === productId ? { ...i, quantity: newQuantity, availableQuantity: stock } : i));
-    } catch (e) {
+    } catch {
       toast.error("Error al actualizar.");
     }
   };
@@ -179,7 +180,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart([]);
     localStorage.removeItem('cart_session');
     setAppliedCoupon(null);
-    if (status === "authenticated") clearCart();
+    if (status === "authenticated") clearCartApi();
     if (!silent) toast.info("Carrito vaciado.");
   };
 
