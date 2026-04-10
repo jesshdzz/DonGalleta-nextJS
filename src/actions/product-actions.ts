@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validators/product-schema";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
+
 
 // --- OBTENER PRODUCTOS ---
 export async function getProducts() {

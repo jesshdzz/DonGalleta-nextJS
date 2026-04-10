@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
 import { MapPin, Clock, Phone } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";

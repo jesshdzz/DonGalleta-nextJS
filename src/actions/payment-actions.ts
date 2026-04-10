@@ -213,7 +213,7 @@ export async function verifyPaymentIntent(intentId: string) {
             order: {
                 ...order,
                 total: order.total.toNumber(),
-                items: order.items.map((item: any) => ({
+                items: order.items.map((item) => ({
                     ...item,
                     price: item.price.toNumber(),
                     product: item.product ? {
