@@ -67,11 +67,14 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
         const productosValidados = CarritoMetadataSchema.parse(parsedData);
         
         // 1. Obtener información de productos ANTES de actualizar stock
-        const productInfoPromises = productosValidados.map(async (item) => {
-            const product = await prisma.product.findUnique({
-                where: { id: item.id },
-                select: { stock: true, name: true }
-            });
+        const ids = productosValidados.map(item => item.id);
+        const fetchedProducts = await prisma.product.findMany({
+            where: { id: { in: ids } },
+            select: { id: true, stock: true, name: true }
+        });
+
+        const productsInfo = productosValidados.map((item) => {
+            const product = fetchedProducts.find(p => p.id === item.id);
             
             if (!product) {
                 throw new Error(`Producto ${item.id} no encontrado`);
@@ -87,8 +90,6 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 newStock: Math.max(0, product.stock - item.cantidad)
             };
         });
-        
-        const productsInfo = await Promise.all(productInfoPromises);
         
         // 2. Procesar transacción de base de datos
         await prisma.$transaction(async (tx) => {
@@ -124,12 +125,14 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 }
             });
 
-            for (const item of productosValidados) {
-                await tx.product.update({
-                    where: { id: item.id },
-                    data: { stock: { decrement: item.cantidad } }
-                });
-            }
+            await Promise.all(
+                productosValidados.map(item => 
+                    tx.product.update({
+                        where: { id: item.id },
+                        data: { stock: { decrement: item.cantidad } }
+                    })
+                )
+            );
         });
 
         console.log('✅ Stock actualizado exitosamente');

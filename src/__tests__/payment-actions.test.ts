@@ -13,7 +13,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     product: { 
       update: vi.fn(),
-      findUnique: vi.fn().mockResolvedValue({ stock: 10, name: 'Product' })
+      findMany: vi.fn().mockResolvedValue([{ id: 1, stock: 10, name: 'Product' }])
     },
     $transaction: vi.fn((callback) => callback(prisma)),
   }
