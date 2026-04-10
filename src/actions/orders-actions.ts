@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
@@ -65,7 +66,6 @@ export async function updateOrderStatus(id: string, status: string) {
 
 export async function getUserOrders() {
     try {
-        const { auth } = await import('@/auth');
         const session = await auth();
 
         if (!session?.user?.id) {
@@ -82,7 +82,6 @@ export async function getUserOrders() {
             }
         });
 
-        // Convert Prisma Decimals to Numbers to avoid serialization errors in Client Components
         const parsedOrders = orders.map(order => ({
             ...order,
             total: order.total.toNumber(),
@@ -100,5 +99,55 @@ export async function getUserOrders() {
     } catch (error) {
         console.error("Error obteniendo pedidos del usuario:", error);
         return { success: false, error: "Error al recuperar los pedidos" };
+    }
+}
+
+export async function cancelOrder(orderId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user) return { success: false, error: "Debes iniciar sesión" };
+
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { items: true }
+        });
+
+        if (!order) return { success: false, error: "Pedido no encontrado" };
+
+        // Regla HU: Solo pedidos pendientes
+        if (order.status !== "PENDING") {
+            return { success: false, error: "Solo se pueden cancelar pedidos en estado pendiente" };
+        }
+
+        // timepo maximo de 1 hora 
+        const unaHoraEnMs = 3600000;
+        const tiempoTranscurrido = Date.now() - new Date(order.createdAt).getTime();
+
+        if (tiempoTranscurrido > unaHoraEnMs) {
+            return { success: false, error: "El tiempo límite para cancelar (1 hora) ha expirado" };
+        }
+
+        // flujo de cancelación 
+        await prisma.$transaction(async (tx) => {
+            await tx.order.update({
+                where: { id: orderId },
+                data: { status: "CANCELLED" }
+            });
+
+            await Promise.all(
+                order.items.map(item => 
+                    tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { increment: item.quantity } }
+                    })
+                )
+            );
+        });
+
+        revalidatePath('/orders');
+        return { success: true, message: "Pedido cancelado exitosamente" };
+    } catch (error) {
+        console.error("Error al cancelar pedido:", error);
+        return { success: false, error: "Error interno del servidor" };
     }
 }
