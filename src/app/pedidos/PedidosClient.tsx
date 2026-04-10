@@ -17,6 +17,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getUserOrders, cancelOrder } from "@/actions/orders-actions";
 
@@ -103,8 +114,6 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
 
   // Lógica para cancelar pedido
   const handleCancelarPedido = async (orderId: string) => {
-    if (!confirm("¿Estás seguro de que deseas cancelar este pedido? Se devolverá el stock.")) return;
-
     setCancelandoId(orderId);
     try {
       const result = await cancelOrder(orderId);
@@ -204,19 +213,40 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
 
                       {/* Botón de Cancelación */}
                       {sePuedeCancelar && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="mt-2 w-full md:w-auto"
-                          onClick={() => handleCancelarPedido(pedido.id)}
-                          disabled={cancelandoId === pedido.id}
-                        >
-                          {cancelandoId === pedido.id ? (
-                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...</>
-                          ) : (
-                            <><XCircle className="w-4 h-4 mr-2" /> Cancelar Pedido</>
-                          )}
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="mt-2 w-full md:w-auto"
+                              disabled={cancelandoId === pedido.id}
+                            >
+                              {cancelandoId === pedido.id ? (
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...</>
+                              ) : (
+                                <><XCircle className="w-4 h-4 mr-2" /> Cancelar Pedido</>
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Cancelar pedido #{pedido.id.slice(0, 8).toUpperCase()}?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Estás a punto de cancelar tu pedido. Esta acción devolverá el stock de las galletas y no se puede deshacer. ¿Deseas continuar?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={cancelandoId === pedido.id}>Cerrar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleCancelarPedido(pedido.id)}
+                                disabled={cancelandoId === pedido.id}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {cancelandoId === pedido.id ? "Cancelando..." : "Sí, cancelar pedido"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
 
                       {/* Mensaje sutil si es pendiente pero ya pasó la hora */}
