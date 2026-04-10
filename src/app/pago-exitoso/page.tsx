@@ -13,7 +13,6 @@ import logoImg from "@/assets/images/logo.png";
 import { verifyPaymentIntent } from "@/actions/payment-actions";
 import { generarTicketPDF } from "@/utils/pdf-generator";
 
-// componente que maneja el estado de pago
 function EstadoDelPago() {
   const searchParams = useSearchParams();
   const paymentIntent = searchParams.get("payment_intent");
@@ -21,42 +20,41 @@ function EstadoDelPago() {
 
   const { clearCart } = useCart();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  
+
   interface OrderData { id: string; createdAt: string | Date; total: number | string; user?: { name: string | null }; items: { id: string | number; quantity: number; price: number | string; product?: { name: string } | null }[]; }
   const [ordenDb, setOrdenDb] = useState<OrderData | null>(null);
   const yaProcesado = useRef(false);
 
-  //efecto que verifica el estado del pago y busca la orden en la base de datos
   useEffect(() => {
     if (yaProcesado.current) return;
     if (!paymentIntent) { queueMicrotask(() => setStatus("error")); return; }
 
     if (redirectStatus === "succeeded") {
       yaProcesado.current = true;
-      
+
+      // ¡AQUÍ ESTÁ LA MAGIA DE LA LIMPIEZA!
+      // Ejecutamos esto INMEDIATAMENTE al tener éxito para que el Navbar baje a 0
+      clearCart(true);
+
       const buscarOrden = async () => {
         try {
           const res = await verifyPaymentIntent(paymentIntent);
-
           if (res.success && res.order) {
             setOrdenDb(res.order);
             setStatus("success");
-            clearCart();
           } else {
-            setStatus("error"); 
+            setStatus("error");
           }
         } catch {
           setStatus("error");
         }
       };
-
       buscarOrden();
     } else {
       queueMicrotask(() => setStatus("error"));
     }
   }, [paymentIntent, redirectStatus, clearCart]);
 
-  // funcion para descargar el recibo en PDF usando el utilitario abstracto
   const descargarPDF = () => {
     generarTicketPDF("ticket-compra", ordenDb?.id?.slice(0, 8) || 'Comprobante');
   };
@@ -71,7 +69,7 @@ function EstadoDelPago() {
       <div className="flex flex-col items-center justify-center space-y-4 py-12">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
         <p className="text-muted-foreground text-lg text-center">
-          Procesando pago y generando orden<br/>
+          Procesando pago y generando orden<br />
           <span className="text-sm">Esto puede tomar unos segundos...</span>
         </p>
       </div>
@@ -102,7 +100,7 @@ function EstadoDelPago() {
           </div>
           <div className="space-y-2">
             <h2 className="text-4xl font-serif font-bold text-primary">¡Pago Aprobado!</h2>
-            <p className="text-muted-foreground text-lg">Tu orden ha sido registrada. Tu número de pedido es <b>#{ordenDb?.id?.slice(0,8).toUpperCase()}</b>.</p>
+            <p className="text-muted-foreground text-lg">Tu orden ha sido registrada. Tu número de pedido es <b>#{ordenDb?.id?.slice(0, 8).toUpperCase()}</b>.</p>
           </div>
         </div>
 
@@ -155,14 +153,14 @@ function EstadoDelPago() {
               <span>Stripe</span>
             </div>
           </div>
-          
+
           <div className="mb-4">
             <div className="flex justify-between text-[11px] font-bold border-b border-[#d1d5db] pb-1 mb-2">
               <span className="w-1/2 text-left">CANT / ART.</span>
               <span className="w-1/4 text-right">P.U.</span>
               <span className="w-1/4 text-right">TOTAL</span>
             </div>
-            
+
             <div className="space-y-2 text-[11px] text-[#374151]">
               {ordenDb?.items?.map((item: { id: number | string; quantity: number; product?: { name: string } | null; price: number | string }) => (
                 <div key={item.id} className="flex justify-between items-start">
