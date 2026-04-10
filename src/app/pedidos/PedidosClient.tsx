@@ -83,7 +83,7 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
   const router = useRouter();
 
   const [pedidos, setPedidos] = useState<Order[]>(initialOrders);
-  const [cargando, setCargando] = useState(false); // We initialize with data, so no loading initially
+  const [cargando] = useState(false); // We initialize with data, so no loading initially
   const [cancelandoId, setCancelandoId] = useState<string | null>(null);
 
   const obtenerPedidos = async () => {
@@ -130,7 +130,7 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
           icon: <AlertTriangle className="text-red-500" />
         });
       }
-    } catch (error) {
+    } catch {
       toast.error("Error del servidor", {
         description: "Ocurrió un error inesperado al intentar cancelar."
       });
