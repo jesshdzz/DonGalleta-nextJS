@@ -55,7 +55,8 @@ type SearchResult = {
   id: number;
   name: string;
   price: number;
-  flavorText: string;
+  slug: string;
+  flavor: string;
   image?: string | null;
 };
 
@@ -98,7 +99,7 @@ function SearchDropdownComponent({
                 <div className="flex flex-col">
                   <span className="text-sm font-bold">{product.name}</span>
                   <span className="text-xs text-muted-foreground italic">
-                    {product.flavorText || "Clásica"}
+                    {product.flavor || "Clásica"}
                   </span>
                 </div>
               </Link>
@@ -115,13 +116,18 @@ function SearchDropdownComponent({
 }
 
 export function Navbar({ user }: { user?: UserSession }) {
-  const { totalItems } = useCart();
+  const { totalItems, logoutClearCart } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleLogout = async () => {
+    logoutClearCart();
+    await signOut({ callbackUrl: "/" });
+  };
 
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim().length > 0) {
@@ -288,7 +294,7 @@ export function Navbar({ user }: { user?: UserSession }) {
                 <div className="mt-4 border-t border-[#A6A3A2]/20 pt-4">
                   <SheetClose asChild>
                     <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={handleLogout}
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
                     >
                       <LogOut className="size-5" />
@@ -409,7 +415,7 @@ export function Navbar({ user }: { user?: UserSession }) {
 
                   {/* Botón de Cerrar Sesión */}
                   <DropdownMenuItem
-                    onClick={() => signOut({ callbackUrl: "/" })}
+                    onClick={handleLogout}
                     className="text-red-500 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
