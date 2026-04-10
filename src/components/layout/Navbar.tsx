@@ -55,7 +55,8 @@ type SearchResult = {
   id: number;
   name: string;
   price: number;
-  flavorText: string;
+  slug: string;
+  flavor: string;
   image?: string | null;
 };
 
@@ -98,7 +99,7 @@ function SearchDropdownComponent({
                 <div className="flex flex-col">
                   <span className="text-sm font-bold">{product.name}</span>
                   <span className="text-xs text-muted-foreground italic">
-                    {product.flavorText || "Clásica"}
+                    {product.flavor || "Clásica"}
                   </span>
                 </div>
               </Link>

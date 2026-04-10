@@ -44,6 +44,8 @@ interface CartContextType {
   checkout: () => Promise<{ success: boolean; message?: string; isAuthError?: boolean }>;
 }
 
+const CART_STORAGE_VERSION = 1;
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -57,10 +59,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) setCart(JSON.parse(savedCart));
+      const saved = localStorage.getItem('cart_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.version === CART_STORAGE_VERSION && Array.isArray(parsed?.data)) {
+          setCart(parsed.data);
+        } else {
+          localStorage.removeItem('cart_session');
+          localStorage.removeItem('cart');
+        }
+      } else {
+        const legacyCart = localStorage.getItem('cart');
+        if (legacyCart) {
+          setCart(JSON.parse(legacyCart));
+          localStorage.removeItem('cart');
+        }
+      }
     } catch (e) {
       console.error('Error loading cart:', e);
+      localStorage.removeItem('cart_session');
     }
     setIsLoaded(true);
   }, []);
@@ -81,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('cart_session', JSON.stringify({ version: CART_STORAGE_VERSION, data: cart }));
 
     if (status === "authenticated") {
       const timer = setTimeout(() => {
@@ -160,7 +177,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = (silent: boolean = false) => {
     cartClearedRef.current = true; // Activamos el seguro
     setCart([]);
-    localStorage.removeItem('cart');
+    localStorage.removeItem('cart_session');
     setAppliedCoupon(null);
     if (status === "authenticated") clearCart();
     if (!silent) toast.info("Carrito vaciado.");
@@ -169,7 +186,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const logoutClearCart = () => {
     cartClearedRef.current = true;
     setCart([]);
-    localStorage.removeItem('cart');
+    localStorage.removeItem('cart_session');
     setAppliedCoupon(null);
   };
 
