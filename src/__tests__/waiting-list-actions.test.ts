@@ -40,7 +40,7 @@ vi.mock('@/lib/email', () => ({
   sendRestockAlert: vi.fn(),
 }));
 
-describe('subscribeToRestock', () => {
+describe('HU-56: subscribeToRestock', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -89,7 +89,7 @@ describe('subscribeToRestock', () => {
   });
 });
 
-describe('unsubscribeFromRestock', () => {
+describe('HU-56: unsubscribeFromRestock', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -122,7 +122,7 @@ describe('unsubscribeFromRestock', () => {
   });
 });
 
-describe('checkSubscription', () => {
+describe('HU-56: checkSubscription', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -154,7 +154,7 @@ describe('checkSubscription', () => {
   });
 });
 
-describe('getWaitingListByProduct', () => {
+describe('HU-56: getWaitingListByProduct', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -182,7 +182,7 @@ describe('getWaitingListByProduct', () => {
   });
 });
 
-describe('notifyWaitingList', () => {
+describe('HU-56: notifyWaitingList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
