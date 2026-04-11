@@ -32,7 +32,7 @@ describe('Sistema de Notificaciones de Stock - HU-22', () => {
         { old: 8, new: 5, description: 'Justo en umbral: 8 → 5' },
       ];
 
-      testCases.forEach(({ old, new: newStock, description }) => {
+      testCases.forEach(({ old, new: newStock }) => {
         const result = analyzeStockThreshold(old, newStock);
         expect(result.shouldSendLowStockAlert).toBe(true);
         expect(result.crossedLowStockThreshold).toBe(true);
@@ -49,7 +49,7 @@ describe('Sistema de Notificaciones de Stock - HU-22', () => {
         { old: 5, new: 0, description: 'Desde umbral a agotado: 5 → 0' },
       ];
 
-      testCases.forEach(({ old, new: newStock, description }) => {
+      testCases.forEach(({ old, new: newStock }) => {
         const result = analyzeStockThreshold(old, newStock);
         expect(result.shouldSendOutOfStockAlert).toBe(true);
         expect(result.crossedOutOfStockThreshold).toBe(true);
@@ -68,7 +68,7 @@ describe('Sistema de Notificaciones de Stock - HU-22', () => {
         { old: 4, new: 3, description: 'Ambos bajo umbral: 4 → 3' },
       ];
 
-      testCases.forEach(({ old, new: newStock, description }) => {
+      testCases.forEach(({ old, new: newStock }) => {
         const result = analyzeStockThreshold(old, newStock);
         expect(result.shouldSendLowStockAlert).toBe(false);
         expect(result.shouldSendOutOfStockAlert).toBe(false);
@@ -83,7 +83,7 @@ describe('Sistema de Notificaciones de Stock - HU-22', () => {
         { old: 7, new: 9, description: 'Incremento: 7 → 9' },
       ];
 
-      testCases.forEach(({ old, new: newStock, description }) => {
+      testCases.forEach(({ old, new: newStock }) => {
         const result = analyzeStockThreshold(old, newStock);
         expect(result.shouldSendLowStockAlert).toBe(false);
         expect(result.shouldSendOutOfStockAlert).toBe(false);

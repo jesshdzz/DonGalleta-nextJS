@@ -18,7 +18,7 @@ interface LowStockEmailProps {
   currentStock: number;
 }
 
-export const LowStockEmail = ({
+const LowStockEmail = ({
   productId,
   productName = "Producto DonGalleta",
   currentStock = 0,

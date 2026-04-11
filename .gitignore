@@ -47,3 +47,5 @@ next-env.d.ts
 
 /pruebas_internas
 /docs
+.agents
+skills-lock.json

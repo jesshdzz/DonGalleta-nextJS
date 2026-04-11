@@ -25,12 +25,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-describe("Banner Actions", () => {
+describe("HU-70 Creacion de banners promocionales", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("createBanner", () => {
+  describe("HU-70:gi createBanner", () => {
     it("debería crear un banner si los datos pasan la validación de Zod", async () => {
       const mockBanner = {
         id: 1,
@@ -39,7 +39,7 @@ describe("Banner Actions", () => {
         targetUrl: "",
         isActive: true,
       };
-      // @ts-expect-error
+      // @ts-expect-error - mocked database response
       prisma.banner.create.mockResolvedValue(mockBanner);
 
       const result = await createBanner({
@@ -88,7 +88,7 @@ describe("Banner Actions", () => {
     // -------------------------------
 
     it("debería manejar errores si Prisma falla", async () => {
-      // @ts-expect-error
+      // @ts-expect-error - mocked db error
       prisma.banner.create.mockRejectedValue(new Error("Error de BD"));
 
       const result = await createBanner({
@@ -104,10 +104,10 @@ describe("Banner Actions", () => {
   });
 
   // ... (getBanners, toggleBannerStatus y deleteBanner se quedan exactamente igual) ...
-  describe("getBanners", () => {
+  describe("HU-70:gi getBanners", () => {
     it("debería traer todos los banners si no se le pasa parámetro", async () => {
       const mockBanners = [{ id: 1, title: "Promo" }];
-      // @ts-expect-error
+      // @ts-expect-error - mocked database array response
       prisma.banner.findMany.mockResolvedValue(mockBanners);
 
       const result = await getBanners();
@@ -119,7 +119,7 @@ describe("Banner Actions", () => {
     });
 
     it("debería traer solo los activos si onlyActive es true", async () => {
-      // @ts-expect-error
+      // @ts-expect-error - mocked database empty response
       prisma.banner.findMany.mockResolvedValue([]);
 
       await getBanners(true);
@@ -131,9 +131,9 @@ describe("Banner Actions", () => {
     });
   });
 
-  describe("toggleBannerStatus", () => {
+  describe("HU-70:gi toggleBannerStatus", () => {
     it("debería actualizar el estado y refrescar las rutas", async () => {
-      // @ts-expect-error
+      // @ts-expect-error - mocked database update
       prisma.banner.update.mockResolvedValue({ id: 1, isActive: false });
 
       const result = await toggleBannerStatus(1, false);
@@ -147,9 +147,9 @@ describe("Banner Actions", () => {
     });
   });
 
-  describe("deleteBanner", () => {
+  describe("HU-70:gi deleteBanner", () => {
     it("debería borrar el banner permanentemente", async () => {
-      // @ts-expect-error
+      // @ts-expect-error - mocked database delete
       prisma.banner.delete.mockResolvedValue({ id: 1 });
 
       const result = await deleteBanner(1);

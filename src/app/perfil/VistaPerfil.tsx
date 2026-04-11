@@ -15,6 +15,7 @@ import { LogOut, User as UserIcon, Mail, Shield, Key } from "lucide-react";
 import { EditEmailModal } from "@/components/perfil/edit-email-modal";
 import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
 import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
+import { useCart } from "@/context/CartContext";
 
 type UserSession = {
   id?: string;
@@ -24,7 +25,13 @@ type UserSession = {
 };
 
 export default function VistaPerfil({ user }: { user: UserSession }) {
+  const { logoutClearCart } = useCart();
   const primerNombre = user.name?.split(" ")[0] || "Galletoso";
+
+  const handleLogout = async () => {
+    logoutClearCart();
+    await signOut({ callbackUrl: "/" });
+  };
 
   return (
     <div className="container max-w-3xl mx-auto py-12 px-4 min-h-screen">
@@ -143,7 +150,7 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
             <Button
               variant="secondary"
               className="w-full sm:w-auto bg-muted hover:bg-muted/80"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
