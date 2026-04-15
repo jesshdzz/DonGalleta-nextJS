@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import LowStockEmail from '../emails/LowStockEmail';
 import OutOfStockEmail from '../emails/OutOfStockEmail';
 import RestockEmail from '../emails/RestockEmail';
+import ReceiptEmail from '../emails/ReceiptEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -18,6 +19,19 @@ export interface RestockAlertData {
   productId: number;
   currentStock: number;
   price: string;
+}
+
+export interface ReceiptData {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  items: Array<{
+    quantity: number;
+    name: string;
+    price: number;
+  }>;
+  total: number;
+  date: string;
 }
 
 /**
@@ -115,6 +129,41 @@ export async function sendRestockAlert(data: RestockAlertData) {
     console.error('Error enviando email de reabastecimiento:', {
       userEmail: data.userEmail,
       productName: data.productName,
+      error: error instanceof Error ? error.message : error
+    });
+    
+    return { success: false, error };
+  }
+}
+
+/*
+ * Envía comprobante de compra por email
+ */
+export async function sendReceiptEmail(data: ReceiptData) {
+  try {
+    const result = await resend.emails.send({
+      from: 'DonGalleta <onboarding@resend.dev>',
+      to: [data.customerEmail],
+      subject: `Comprobante Don Galleta #${data.orderNumber}`,
+      react: ReceiptEmail({
+        orderNumber: data.orderNumber,
+        customerName: data.customerName,
+        items: data.items,
+        total: data.total,
+        date: data.date,
+      }),
+    });
+
+    console.log('✅ Comprobante enviado por email:', {
+      orderNumber: data.orderNumber,
+      customerEmail: data.customerEmail,
+      emailId: result.data?.id
+    });
+
+    return { success: true, emailId: result.data?.id };
+  } catch (error) {
+    console.error('❌ Error enviando comprobante:', {
+      orderNumber: data.orderNumber,
       error: error instanceof Error ? error.message : error
     });
     
