@@ -2,6 +2,7 @@ import { getProducts } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
+import WaitingListButton from "@/components/waiting-list-button";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
+import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -35,11 +38,13 @@ export default async function ProductDetailPage({ params }: Props) {
   // 3. Consultar si este producto está en favoritos del usuario
   const { isFavorite: isProductFavorite } = await isFavorite(productId);
 
-  // 4. Lógica de imagen (Placeholder si está vacía)
-  const imageUrl =
-    product.image && product.image.trim() !== ""
-      ? product.image
-      : "https://placehold.co/600x600/png?text=Sin+Imagen";
+  // 4. Obtener sesión para el botón de waiting list
+  const session = await auth();
+
+  // 5. Lógica de imagen (Placeholder si está vacía)
+  const imageUrl = product.image && product.image.trim() !== "" 
+    ? product.image 
+    : "https://placehold.co/600x600/png?text=Sin+Imagen";
 
   return (
     <div className="container mx-auto py-12 px-4 min-h-screen">
@@ -133,14 +138,17 @@ export default async function ProductDetailPage({ params }: Props) {
                 </p>
               </div>
             ) : (
-              <Button
-                disabled
-                size="lg"
-                className="w-full text-lg opacity-80"
-                variant="secondary"
-              >
-                No disponible por el momento
-              </Button>
+              <div className="space-y-4">
+                <Button disabled size="lg" className="w-full text-lg opacity-80" variant="secondary">
+                  No disponible por el momento
+                </Button>
+                {session?.user && (
+                  <WaitingListButton 
+                    productId={product.id}
+                    initialStock={product.stock}
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>
