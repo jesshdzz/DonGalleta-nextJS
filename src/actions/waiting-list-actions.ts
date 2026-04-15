@@ -185,37 +185,47 @@ export async function notifyWaitingList(productId: number) {
 
     console.log(`[WaitingList] Enviando ${subscribers.length} notificaciones para producto ${productId}`);
 
-    // Enviar emails a cada suscriptor
-    const emailPromises = subscribers.map(async (subscriber) => {
-      try {
-        if (!subscriber.user.email) {
-          console.log(`[WaitingList] Usuario ${subscriber.userId} sin email`);
-          return;
+    // Enviar emails y eliminar suscripciones solo si el email fue exitoso
+    const emailResults = await Promise.allSettled(
+      subscribers.map(async (subscriber) => {
+        try {
+          if (!subscriber.user.email) {
+            console.log(`[WaitingList] Usuario ${subscriber.userId} sin email - no se elimina suscripción`);
+            return { success: false, subscriberId: subscriber.id };
+          }
+
+          await sendRestockAlert({
+            userEmail: subscriber.user.email,
+            userName: subscriber.user.name || "Cliente",
+            productName: product.name,
+            productId: product.id,
+            currentStock: product.stock,
+            price: product.price.toString()
+          });
+
+          console.log(`[WaitingList] Email enviado exitosamente a ${subscriber.user.email}`);
+          
+          // Eliminar suscripción solo si el email se envió correctamente
+          await prisma.waitingList.delete({
+            where: { id: subscriber.id }
+          });
+          
+          console.log(`[WaitingList] Suscripción eliminada para usuario ${subscriber.userId}`);
+          
+          return { success: true, subscriberId: subscriber.id };
+        } catch (emailError) {
+          console.error(`[WaitingList] Error enviando email a ${subscriber.user.email}:`, emailError);
+          console.log(`[WaitingList] Suscripción mantenida para usuario ${subscriber.userId} debido a fallo en email`);
+          return { success: false, subscriberId: subscriber.id };
         }
+      })
+    );
 
-        await sendRestockAlert({
-          userEmail: subscriber.user.email,
-          userName: subscriber.user.name || "Cliente",
-          productName: product.name,
-          productId: product.id,
-          currentStock: product.stock,
-          price: product.price.toString()
-        });
-
-        console.log(`[WaitingList] Email enviado a ${subscriber.user.email}`);
-      } catch (emailError) {
-        console.error(`[WaitingList] Error enviando email a ${subscriber.user.email}:`, emailError);
-      }
-    });
-
-    await Promise.allSettled(emailPromises);
-
-    // Eliminar todas las suscripciones después de notificar (one-shot)
-    await prisma.waitingList.deleteMany({
-      where: { productId }
-    });
-
-    console.log(`[WaitingList] Suscripciones eliminadas para producto ${productId}`);
+    // Resumen de resultados
+    const successful = emailResults.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    const failed = emailResults.length - successful;
+    
+    console.log(`[WaitingList] Resumen producto ${productId}: ${successful} notificaciones exitosas, ${failed} fallos`);
   } catch (error) {
     console.error(`[WaitingList] Error procesando notificaciones para producto ${productId}:`, error);
   }
