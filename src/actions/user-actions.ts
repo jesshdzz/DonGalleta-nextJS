@@ -58,15 +58,19 @@ export async function updatePassword(
     return { success: true };
 }
 
-export async function deleteAccount(userId: string, currentPassword: string) {
+export async function deleteAccount(userId: string, currentPassword?: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user?.password)
-        return { success: false, message: "No se puede eliminar esta cuenta desde aquí." };
+    if (!user) return { success: false, message: "Usuario no encontrado." };
+    // Usuario con contraseña
+    if (user.password) {
+        if (!currentPassword)
+            return { success: false, message: "Debes ingresar tu contraseña para continuar." };
 
-    const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match)
-        return { success: false, message: "Contraseña incorrecta. No se eliminó la cuenta." };
-
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match)
+            return { success: false, message: "Contraseña incorrecta. No se eliminó la cuenta." };
+    }
+    // Usuario Google
     await prisma.user.delete({ where: { id: userId } });
     return { success: true };
 }
