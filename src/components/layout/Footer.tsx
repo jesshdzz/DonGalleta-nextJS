@@ -34,8 +34,10 @@ function FooterComponent() {
                   Email: hola@dongalleta.com
                 </a>
               </li>
-              <li className="text-sm text-[#A6A3A2] underline">
-                Tel: +52 123 456 7890
+              <li>
+                <a href="tel:+529515502806" className={LINK_STYLES}>
+                  Tel: +52 951 550 2806
+                </a>
               </li>
               <li>
                 <Link href="/contacto" className={LINK_STYLES} prefetch={false}>
