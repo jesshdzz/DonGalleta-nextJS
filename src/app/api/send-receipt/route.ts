@@ -1,28 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { sendReceiptEmail, type ReceiptData } from '@/lib/email';
+
+// Schema de validación con Zod
+const receiptSchema = z.object({
+  orderNumber: z.string().min(1, 'Número de orden requerido'),
+  customerName: z.string().optional(),
+  customerEmail: z.string().email('Formato de email inválido'),
+  items: z.array(
+    z.object({
+      quantity: z.number().positive('Cantidad debe ser positiva'),
+      name: z.string().min(1, 'Nombre de producto requerido'),
+      price: z.number().nonnegative('Precio no puede ser negativo'),
+    })
+  ).min(1, 'Debe incluir al menos un producto'),
+  total: z.number().positive('Total debe ser mayor a 0'),
+  date: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validar datos requeridos
-    const { orderNumber, customerName, customerEmail, items, total, date } = body;
+    // Validar datos con Zod
+    const validationResult = receiptSchema.safeParse(body);
     
-    if (!orderNumber || !customerEmail || !items || !total) {
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map((err: z.ZodIssue) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      }));
+      
       return NextResponse.json(
-        { error: 'Datos faltantes: orderNumber, customerEmail, items y total son requeridos' },
+        { 
+          error: 'Datos inválidos', 
+          details: errors 
+        },
         { status: 400 }
       );
     }
 
-    // Validar email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(customerEmail)) {
-      return NextResponse.json(
-        { error: 'Formato de email inválido' },
-        { status: 400 }
-      );
-    }
+    const { orderNumber, customerName, customerEmail, items, total, date } = validationResult.data;
 
     // Verificar RESEND_API_KEY
     if (!process.env.RESEND_API_KEY) {
@@ -37,7 +55,7 @@ export async function POST(request: NextRequest) {
       customerName: customerName || 'Cliente',
       customerEmail,
       items,
-      total: Number(total),
+      total,
       date: date || new Date().toLocaleDateString('es-MX'),
     };
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle2, FileText, MessageCircle, Loader2, Package, Mail } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
@@ -131,6 +132,11 @@ Mas productos en dongalleta.com`;
       return;
     }
 
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
     setIsSending(true);
     try {
       toast.info("Enviando comprobante por email...");
@@ -236,12 +242,14 @@ Mas productos en dongalleta.com`;
       </div>
 
       {/* Modal para capturar email */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">Enviar comprobante por email</h3>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar comprobante por email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Correo electrónico
               </label>
               <input
@@ -250,40 +258,43 @@ Mas productos en dongalleta.com`;
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ejemplo@correo.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isSending}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && email.trim() && !isSending) {
+                    enviarComprobantePorEmail();
+                  }
+                }}
               />
             </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowEmailModal(false);
-                  setEmail("");
-                }}
-                className="flex-1"
-                disabled={isSending}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={enviarComprobantePorEmail}
-                className="flex-1"
-                disabled={isSending || !email.trim()}
-              >
-                {isSending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Enviando...
-                  </>
-                ) : (
-                  "Enviar"
-                )}
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEmailModal(false);
+                setEmail("");
+              }}
+              disabled={isSending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={enviarComprobantePorEmail}
+              disabled={isSending || !email.trim()}
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Enviar"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="order-2 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl p-4 md:p-8 border border-primary/10 h-full">
         <div id="ticket-compra" className="w-full max-w-[320px] bg-[#ffffff] px-6 py-8 shadow-xl relative font-mono text-[#1f2937]" style={{ color: '#000000', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb' }}>
