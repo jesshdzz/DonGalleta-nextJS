@@ -5,7 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, FileText, MessageCircle, Loader2, Package } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { CheckCircle2, FileText, MessageCircle, Loader2, Package, Mail } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
@@ -24,6 +26,11 @@ function EstadoDelPago() {
   interface OrderData { id: string; createdAt: string | Date; total: number | string; user?: { name: string | null }; items: { id: string | number; quantity: number; price: number | string; product?: { name: string } | null }[]; }
   const [ordenDb, setOrdenDb] = useState<OrderData | null>(null);
   const yaProcesado = useRef(false);
+  
+  // Estados para el modal de email
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (yaProcesado.current) return;
@@ -59,7 +66,116 @@ function EstadoDelPago() {
     generarTicketPDF("ticket-compra", ordenDb?.id?.slice(0, 8) || 'Comprobante');
   };
 
-  const enviarWhatsApp = () => toast.info("Función de WhatsApp en desarrollo");
+  const compartirWhatsApp = () => {
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
+    const subtotalCalc = Number(ordenDb.total) / 1.16;
+    const ivaCalc = Number(ordenDb.total) - subtotalCalc;
+
+    const mensaje = `DON GALLETA S.A. DE C.V.
+RFC: DGA260305XXX
+Acatlima, Huajuapan de Leon
+Oaxaca, Mexico. C.P. 69004
+Tel: (951) 555-0123
+
+========================================
+COMPROBANTE DE COMPRA
+========================================
+
+ORDEN BD: #${ordenDb?.id?.slice(0, 8).toUpperCase()}
+FECHA: ${new Date(ordenDb?.createdAt || Date.now()).toLocaleDateString('es-MX')}
+CLIENTE: ${ordenDb?.user?.name || "Invitado"}
+METODO: Stripe
+
+----------------------------------------
+CANT / ART.          P.U.        TOTAL
+----------------------------------------
+${ordenDb?.items?.map((item: any) => 
+  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(item.price * item.quantity).toFixed(2).padStart(6)}`
+).join('\n')}
+
+----------------------------------------
+SUBTOTAL:                    $${subtotalCalc.toFixed(2)}
+IVA (16%):                   $${ivaCalc.toFixed(2)}
+----------------------------------------
+TOTAL MXN:                   $${Number(ordenDb?.total || 0).toFixed(2)}
+========================================
+
+GRACIAS POR TU COMPRA!
+
+Dudas o aclaraciones: hola@dongalleta.com
+Este documento no es un comprobante fiscal.
+
+Mas productos en dongalleta.com`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success("WhatsApp abierto con tu comprobante");
+  };
+
+  const compartirEmail = async () => {
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
+    // Abrir modal para capturar email
+    setShowEmailModal(true);
+  };
+
+  const enviarComprobantePorEmail = async () => {
+    if (!email.trim()) {
+      toast.error("Por favor ingresa un email válido");
+      return;
+    }
+
+    if (!ordenDb) {
+      toast.error("Datos del pedido no disponibles");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      toast.info("Enviando comprobante por email...");
+      
+      const response = await fetch('/api/send-receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderNumber: ordenDb.id.slice(0, 8).toUpperCase(),
+          customerName: ordenDb.user?.name || 'Cliente',
+          customerEmail: email,
+          items: ordenDb.items?.map((item: any) => ({
+            quantity: item.quantity,
+            name: item.product?.name || 'Producto',
+            price: Number(item.price)
+          })) || [],
+          total: Number(ordenDb.total || 0),
+          date: new Date(ordenDb.createdAt || Date.now()).toLocaleDateString('es-MX'),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Comprobante enviado a ${email} exitosamente!`);
+        setShowEmailModal(false);
+        setEmail("");
+      } else {
+        throw new Error(result.error || 'Error desconocido');
+      }
+    } catch (error) {
+      console.error('Error enviando email:', error);
+      toast.error("Error al enviar el comprobante por email");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const subtotalCalc = ordenDb ? Number(ordenDb.total) / 1.16 : 0;
   const ivaCalc = ordenDb ? Number(ordenDb.total) - subtotalCalc : 0;
@@ -104,16 +220,19 @@ function EstadoDelPago() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
           <Button variant="outline" className="gap-2 h-12 border-primary/20 hover:bg-primary/5 shadow-sm" onClick={descargarPDF}>
-            <FileText className="w-5 h-5" /> Descargar Recibo
+            <FileText className="w-5 h-5" /> Descargar
           </Button>
-          <Button variant="outline" className="gap-2 h-12 border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600 shadow-sm" onClick={enviarWhatsApp}>
-            <MessageCircle className="w-5 h-5" /> Enviar WhatsApp
+          <Button variant="outline" className="gap-2 h-12 border-blue-200 hover:bg-blue-50 hover:text-blue-700 text-blue-600 shadow-sm" onClick={compartirEmail}>
+            <Mail className="w-5 h-5" /> Enviar Email
+          </Button>
+          <Button variant="outline" className="gap-2 h-12 border-green-200 hover:bg-green-50 hover:text-green-700 text-green-600 shadow-sm" onClick={compartirWhatsApp}>
+            <MessageCircle className="w-5 h-5" /> WhatsApp
           </Button>
         </div>
 
-        <div className="pt-2 w-full max-w-md">
+        <div className="pt-2 w-full max-w-lg">
           <Link href="/">
             <Button size="lg" className="font-bold gap-2 w-full bg-primary hover:bg-primary/90">
               <Package className="w-5 h-5" /> Volver al inicio
@@ -121,6 +240,61 @@ function EstadoDelPago() {
           </Link>
         </div>
       </div>
+
+      {/* Modal para capturar email */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar comprobante por email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@correo.com"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isSending}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && email.trim() && !isSending) {
+                    enviarComprobantePorEmail();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEmailModal(false);
+                setEmail("");
+              }}
+              disabled={isSending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={enviarComprobantePorEmail}
+              disabled={isSending || !email.trim()}
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Enviar"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="order-2 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl p-4 md:p-8 border border-primary/10 h-full">
         <div id="ticket-compra" className="w-full max-w-[320px] bg-[#ffffff] px-6 py-8 shadow-xl relative font-mono text-[#1f2937]" style={{ color: '#000000', borderLeft: '1px solid #e5e7eb', borderRight: '1px solid #e5e7eb' }}>
