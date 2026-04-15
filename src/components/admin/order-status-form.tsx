@@ -14,7 +14,7 @@ export const OrderStatusForm = ({ id, status }: OrderStatusFormProps) => {
         try {
             await updateOrderStatus(id, status);
             toast.success("Estado del pedido actualizado");
-        } catch (error) {
+        } catch {
             toast.error("Error al actualizar el estado del pedido");
         }
     }

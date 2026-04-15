@@ -16,6 +16,9 @@ import {
   Loader2,
   LogOut,
   Shield,
+  Package,
+  MapPin,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,13 +30,23 @@ import {
   SheetClose,
   SheetTitle,
 } from "@/components/ui/sheet";
+// Nuevas importaciones para el menú desplegable
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
 import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
 import { signOut } from "next-auth/react";
 
-export type UserSession =
+type UserSession =
   | { id?: string; name?: string | null; email?: string | null; role?: string }
   | undefined
   | null;
@@ -42,7 +55,8 @@ type SearchResult = {
   id: number;
   name: string;
   price: number;
-  flavorText: string;
+  slug: string;
+  flavor: string;
   image?: string | null;
 };
 
@@ -85,7 +99,7 @@ function SearchDropdownComponent({
                 <div className="flex flex-col">
                   <span className="text-sm font-bold">{product.name}</span>
                   <span className="text-xs text-muted-foreground italic">
-                    {product.flavorText || "Clásica"}
+                    {product.flavor || "Clásica"}
                   </span>
                 </div>
               </Link>
@@ -102,13 +116,18 @@ function SearchDropdownComponent({
 }
 
 export function Navbar({ user }: { user?: UserSession }) {
-  const { totalItems } = useCart();
+  const { totalItems, logoutClearCart } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleLogout = async () => {
+    logoutClearCart();
+    await signOut({ callbackUrl: "/" });
+  };
 
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim().length > 0) {
@@ -181,11 +200,10 @@ export function Navbar({ user }: { user?: UserSession }) {
 
           <SheetContent
             side="left"
-            className="flex flex-col w-[300px] sm:w-[350px] p-0 border-r border-[#A6A3A2]"
+            className="flex flex-col w-75 sm:w-87.5 p-0 border-r border-[#A6A3A2]"
           >
             <SheetTitle className="sr-only">Menú</SheetTitle>
 
-            {/* 1. CABECERA: Fondo sutil para destacar el logo */}
             <div className="p-6 border-b border-[#A6A3A2]/30 bg-[#F7DCBE]/10 flex justify-center">
               <SheetClose asChild>
                 <Link href="/">
@@ -200,7 +218,6 @@ export function Navbar({ user }: { user?: UserSession }) {
               </SheetClose>
             </div>
 
-            {/* 2. CUERPO: Enlaces estilo "Píldora/Botón" */}
             <nav className="flex-1 flex flex-col gap-2 p-4 mt-2 overflow-y-auto">
               <SheetClose asChild>
                 <Link
@@ -212,7 +229,6 @@ export function Navbar({ user }: { user?: UserSession }) {
                 </Link>
               </SheetClose>
 
-              {/* ENLACES DE USUARIO (Arriba) */}
               {user && (
                 <>
                   <SheetClose asChild>
@@ -274,12 +290,11 @@ export function Navbar({ user }: { user?: UserSession }) {
                 </button>
               </SheetClose>
 
-              {/* --- CERRAR SESIÓN (Hasta abajo y separado) --- */}
               {user && (
                 <div className="mt-4 border-t border-[#A6A3A2]/20 pt-4">
                   <SheetClose asChild>
                     <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={handleLogout}
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-red-500 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left"
                     >
                       <LogOut className="size-5" />
@@ -290,7 +305,6 @@ export function Navbar({ user }: { user?: UserSession }) {
               )}
             </nav>
 
-            {/* 3. PIE: Un toque decorativo de marca al fondo */}
             <div className="p-6 border-t border-[#A6A3A2]/30 bg-[#F7DCBE]/20 mt-auto">
               <p className="text-center text-sm font-bold text-[#58321D]">
                 ¡Horneadas con amor! 🍪
@@ -341,35 +355,73 @@ export function Navbar({ user }: { user?: UserSession }) {
             </Button>
           </Link>
 
+          {/* DESKTOP AUTH (AQUÍ ESTÁ LA MAGIA DEL DROPDOWN) */}
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <>
-                {/* NUEVO BOTÓN SOLO PARA ADMINS */}
-                {user.role === "ADMIN" && (
-                  <Link href="/admin/productos">
-                    <Button
-                      size="sm"
-                      className="bg-[#58321D] text-white hover:bg-[#58321D]/90"
-                    >
-                      <Shield className="mr-2 h-4 w-4" /> Admin
-                    </Button>
-                  </Link>
-                )}
-
-                <Link href="/perfil">
-                  {" "}
-                  <Button variant="ghost" size="sm">
-                    <User className="mr-2 h-4 w-4" /> Mi Cuenta
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2 focus-visible:ring-0">
+                    <User className="h-5 w-5" />
+                    {/* Mostramos el nombre del usuario o "Mi Cuenta" si no tiene nombre */}
+                    <span className="font-medium">{user.name?.split(" ")[0] || "Mi Cuenta"}</span>
                   </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Salir
-                </Button>
-              </>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-56 mt-1">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  {/* Opciones de Cliente */}
+                  <DropdownMenuItem asChild>
+                    <Link href="/perfil" className="w-full cursor-pointer">
+                      <User className="mr-2 h-4 w-4" /> Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/pedidos" className="w-full cursor-pointer">
+                      <Package className="mr-2 h-4 w-4" /> Mis Pedidos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favoritos" className="w-full cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" /> Mis Favoritos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/" className="w-full cursor-pointer"> {/* TODO: Agregar link a direcciones */}
+                      <MapPin className="mr-2 h-4 w-4" /> Mis Direcciones
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {/* Panel de Admin (Condicionado) */}
+                  {user.role === "ADMIN" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-[#58321D]">Administración</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="w-full cursor-pointer font-medium">
+                          <Shield className="mr-2 h-4 w-4 text-[#58321D]" /> Panel Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator />
+
+                  {/* Botón de Cerrar Sesión */}
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-500 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Link href="/auth/login">

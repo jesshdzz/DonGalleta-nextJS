@@ -12,7 +12,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2026-02-25.clover", 
 });
 
-export async function createPaymentIntent(amount: number, cart: any[]) {
+type CartItem = { productId: number; quantity: number; price: number };
+
+export async function createPaymentIntent(amount: number, cart: CartItem[]) {
     try {
         const session = await auth();
         let userId = "";
@@ -26,7 +28,7 @@ export async function createPaymentIntent(amount: number, cart: any[]) {
             }
         }
 
-        const itemsSimplificados = cart.map((item: any) => ({
+        const itemsSimplificados = cart.map((item) => ({
             id: item.productId,
             cantidad: item.quantity,
             precio: item.price 
@@ -45,7 +47,7 @@ export async function createPaymentIntent(amount: number, cart: any[]) {
         });
 
         return { success: true, clientSecret: paymentIntent.client_secret };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error al crear el PaymentIntent:", error);
         return { success: false, error: "Ocurrió un error al procesar el pago" };
     }
@@ -65,11 +67,14 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
         const productosValidados = CarritoMetadataSchema.parse(parsedData);
         
         // 1. Obtener información de productos ANTES de actualizar stock
-        const productInfoPromises = productosValidados.map(async (item) => {
-            const product = await prisma.product.findUnique({
-                where: { id: item.id },
-                select: { stock: true, name: true }
-            });
+        const ids = productosValidados.map(item => item.id);
+        const fetchedProducts = await prisma.product.findMany({
+            where: { id: { in: ids } },
+            select: { id: true, stock: true, name: true }
+        });
+
+        const productsInfo = productosValidados.map((item) => {
+            const product = fetchedProducts.find(p => p.id === item.id);
             
             if (!product) {
                 throw new Error(`Producto ${item.id} no encontrado`);
@@ -85,8 +90,6 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 newStock: Math.max(0, product.stock - item.cantidad)
             };
         });
-        
-        const productsInfo = await Promise.all(productInfoPromises);
         
         // 2. Procesar transacción de base de datos
         await prisma.$transaction(async (tx) => {
@@ -122,12 +125,14 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 }
             });
 
-            for (const item of productosValidados) {
-                await tx.product.update({
-                    where: { id: item.id },
-                    data: { stock: { decrement: item.cantidad } }
-                });
-            }
+            await Promise.all(
+                productosValidados.map(item => 
+                    tx.product.update({
+                        where: { id: item.id },
+                        data: { stock: { decrement: item.cantidad } }
+                    })
+                )
+            );
         });
 
         console.log('✅ Stock actualizado exitosamente');
@@ -165,5 +170,61 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
             console.error("Error crítico en BD:", error);
         }
         return { success: false, error: "Internal Error" };
+    }
+}
+
+export async function verifyPaymentIntent(intentId: string) {
+    try {
+        const fetchOrderFromDb = async () => prisma.order.findFirst({
+            where: { payment: { transactionId: intentId } },
+            include: {
+                items: { include: { product: true } }, 
+                user: true 
+            }
+        });
+
+        // 1. Intentamos buscar la orden directamente
+        let order = await fetchOrderFromDb();
+
+        // 2. Si no existe en la BD, tal vez el Webhook no llegó a tiempo o no hay Webhook activo (Desarrollo local).
+        // Pasamos a buscar a Stripe de forma manual para sincronizar:
+        if (!order) {
+            console.log(`⚠️ Orden no detectada para intent ${intentId}. Verificando con Stripe directamente...`);
+
+            // Consultamos la API de stripe a ver si el pago es real
+            const stripeIntent = await stripe.paymentIntents.retrieve(intentId);
+
+            if (stripeIntent.status === "succeeded") {
+                console.log(`✅ Stripe confirma que el pago se hizo. Procesando sincrónicamente...`);
+                // Mandamos a crear la orden y descontar inventario nosotros mismos forzando el action del webhook.
+                // Como processSuccessfulPayment usa prisma.$transaction y detecta si ya existe o no, es completamente seguro contra condiciones de carrera.
+                await processSuccessfulPayment(stripeIntent.id, stripeIntent.amount, stripeIntent.metadata || {});
+                
+                // Con la orden ya creada forzosamente, la volvemos a extraer de la base de datos
+                order = await fetchOrderFromDb();
+            }
+        }
+
+        // 3. Verificamos por última vez
+        if (!order) return { success: false, error: "No encontrada y el pago no ha sido liquidado" };
+
+        return { 
+            success: true, 
+            order: {
+                ...order,
+                total: order.total.toNumber(),
+                items: order.items.map((item) => ({
+                    ...item,
+                    price: item.price.toNumber(),
+                    product: item.product ? {
+                        ...item.product,
+                        price: item.product.price.toNumber(),
+                    } : null
+                }))
+            } 
+        };
+    } catch (error) {
+        console.error("Error validando intent:", error);
+        return { success: false, error: "Error interno" };
     }
 }

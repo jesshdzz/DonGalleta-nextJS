@@ -46,3 +46,5 @@ next-env.d.ts
 /generated/prisma
 
 /pruebas_internas
+.agents
+skills-lock.json

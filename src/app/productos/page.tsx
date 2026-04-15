@@ -1,10 +1,12 @@
 import ProductFilter from '@/components/ui/filters/ProductsFilter';
-import { getFilteredProducts, getFlavors } from '@/actions/product-actions';
+import { getFilteredProducts } from '@/actions/product-actions';
+import { getFlavors } from '@/actions/flavor-actions';
 import { getUserFavoriteIds } from '@/actions/favorite-actions';
 import ProductoItem from '@/components/carro/ProductoItem';
 import { Cookie } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Suspense } from 'react';
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -49,7 +51,9 @@ export default async function ProductosPage({ searchParams }: Props) {
 
         {/* FILTROS LATERALES */}
         <div className="w-full md:w-64 shrink-0">
-          <ProductFilter availableFlavors={availableFlavors} />
+          <Suspense fallback={<div>Cargando filtros...</div>}>
+            <ProductFilter availableFlavors={availableFlavors} />
+          </Suspense>
         </div>
 
         {/* CUADRÍCULA O EMPTY STATE */}
@@ -57,9 +61,9 @@ export default async function ProductosPage({ searchParams }: Props) {
           {products.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {products.map((product) => (
-                <ProductoItem 
-                  key={product.id} 
-                  product={product} 
+                <ProductoItem
+                  key={product.id}
+                  product={product}
                   initialIsFavorite={favoriteIds.includes(product.id)}
                 />
               ))}

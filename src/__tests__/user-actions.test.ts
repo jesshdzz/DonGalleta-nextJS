@@ -7,6 +7,7 @@ import {
     updatePassword,
     deleteAccount,
     getAllUsers,
+    changeRole,
 } from '../actions/user-actions';
 
 vi.mock('@/lib/prisma', () => ({
@@ -239,6 +240,36 @@ describe('HU-21: Ver todos los usuarios', () => {
         const result = await getAllUsers();
 
         expect(result).toEqual([]);
+    });
+});
+
+describe('HU-66: Cambiar rol de usuario', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('HU-66: debería retornar error si el usuario no existe', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
+
+        const result = await changeRole('invalid-user', 'ADMIN');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBe('Usuario no encontrado.');
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('HU-66: debería cambiar el rol exitosamente y revalidar la ruta', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(MOCK_USER as any);
+        vi.mocked(prisma.user.update).mockResolvedValueOnce({} as any);
+
+        const result = await changeRole('user-1', 'ADMIN');
+
+        expect(result.success).toBe(true);
+        expect(prisma.user.update).toHaveBeenCalledWith({
+            where: { id: 'user-1' },
+            data: { role: 'ADMIN' },
+        });
+        expect(revalidatePath).toHaveBeenCalledWith('/admin/usuarios');
     });
 });
 

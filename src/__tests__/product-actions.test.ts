@@ -153,65 +153,9 @@ describe('getProducts', () => {
     });
 });
 
-describe('checkStock', () => {
-    it('debería retornar el stock correcto', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as never);
-        const { checkStock } = await import('../actions/product-actions');
-        const stock = await checkStock(1);
-        expect(stock).toBe(15);
-    });
 
-    it('debería retornar 0 si el producto no se encuentra', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue(null);
-        const { checkStock } = await import('../actions/product-actions');
-        const stock = await checkStock(999);
-        expect(stock).toBe(0);
-    });
-});
 
-describe('checkout', () => {
-    it('debería retornar isAuthError si no hay sesión', async () => {
-        const { auth } = await import('@/auth');
-        vi.mocked(auth).mockResolvedValueOnce(null as never);
-        const { checkout } = await import('../actions/product-actions');
-        const result = await checkout([{ productId: 1, quantity: 1 }]);
-        expect(result.success).toBe(false);
-        expect(result).toHaveProperty('isAuthError', true);
-    });
 
-    it('debería fallar si el stock es insuficiente', async () => {
-        // Mock checkStock behavior (findUnique)
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 1 } as never);
-
-        const { checkout } = await import('../actions/product-actions');
-        const result = await checkout([{ productId: 1, quantity: 5 }]);
-
-        expect(result.success).toBe(false);
-        expect(result.message).toContain('Stock insuficiente');
-    });
-
-    it('debería tener éxito y actualizar el stock', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
-        vi.mocked(prisma.$transaction).mockResolvedValue([] as never);
-
-        const { checkout } = await import('../actions/product-actions');
-        const result = await checkout([{ productId: 1, quantity: 5 }]);
-
-        expect(result.success).toBe(true);
-        expect(prisma.$transaction).toHaveBeenCalled();
-    });
-
-    it('debería manejar errores durante el checkout', async () => {
-        vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 100 } as never);
-        vi.mocked(prisma.$transaction).mockRejectedValue(new Error('Tx Failed'));
-
-        const { checkout } = await import('../actions/product-actions');
-        const result = await checkout([{ productId: 1, quantity: 5 }]);
-
-        expect(result.success).toBe(false);
-        expect(result.message).toContain('Error al procesar la compra');
-    });
-});
 
 describe('deleteProduct', () => {
     it('debería eliminar el producto exitosamente', async () => {
@@ -231,15 +175,7 @@ describe('deleteProduct', () => {
     });
 });
 
-describe('getFlavors', () => {
-    it('debería retornar sabores', async () => {
-        const mockFlavors = [{ id: 1, name: 'Vainilla' }];
-        vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as never);
-        const { getFlavors } = await import('../actions/product-actions');
-        const result = await getFlavors();
-        expect(result).toEqual(mockFlavors);
-    });
-});
+
 
 describe('searchProducts', () => {
 
@@ -298,7 +234,7 @@ describe('searchProducts', () => {
                 name: 'Galleta de Chocolate',
                 slug: 'galleta-de-chocolate',
                 price: 15.50,
-                flavorText: 'Chocolate, Vainilla',
+                flavor: 'Chocolate, Vainilla',
                 image: 'chocolate.jpg',
             },
         ]);
@@ -313,6 +249,98 @@ describe('searchProducts', () => {
         const result = await searchProducts('galleta');
 
         expect(consoleSpy).toHaveBeenCalledWith("Error buscando productos:", dbError);
+        expect(result).toEqual([]);
+
+        consoleSpy.mockRestore(); // Limpiamos el espía
+    });
+});
+
+describe('HU-50: Seccion de Productos relacionados: getRelatedProducts', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it(' HU-50 debería retornar productos relacionados por sabor sin llamar a la base secundaria si alcanza el límite', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        
+        // Mock current product with a flavor
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({
+            id: 1,
+            flavors: [{ flavorId: 10 }]
+        } as never);
+
+        // Mock exact number of products to reach the limit
+        const mockRelatedProducts = Array.from({ length: 4 }).map((_, i) => ({ id: i + 2 }));
+        vi.mocked(prisma.product.findMany).mockResolvedValueOnce(mockRelatedProducts as never);
+
+        const result = await getRelatedProducts(1, 4);
+
+        expect(result).toHaveLength(4);
+        expect(prisma.product.findUnique).toHaveBeenCalledWith({
+            where: { id: 1 },
+            include: { flavors: true }
+        });
+        
+        expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+        expect(prisma.product.findMany).toHaveBeenCalledWith({
+            where: {
+                id: { not: 1 },
+                isActive: true,
+                flavors: { some: { flavorId: { in: [10] } } }
+            },
+            take: 4,
+            include: {
+                flavors: { include: { flavor: true } }
+            }
+        });
+    });
+
+    it(' HU-50 debería rellenar con otros productos si los encontrados por sabor no alcanzan el límite', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        
+        vi.mocked(prisma.product.findUnique).mockResolvedValue({
+            id: 1,
+            flavors: [{ flavorId: 10 }]
+        } as never);
+
+        // First query returns only 1 product
+        const mockFirstBatch = [{ id: 2 }];
+        // The fallback query returns 3 more
+        const mockSecondBatch = [{ id: 3 }, { id: 4 }, { id: 5 }];
+
+        vi.mocked(prisma.product.findMany)
+            .mockResolvedValueOnce(mockFirstBatch as never)
+            .mockResolvedValueOnce(mockSecondBatch as never);
+
+        const result = await getRelatedProducts(1, 4);
+
+        expect(result).toHaveLength(4);
+        expect(prisma.product.findMany).toHaveBeenCalledTimes(2);
+        
+        // Verify the second findMany call arguments
+        expect(prisma.product.findMany).toHaveBeenNthCalledWith(2, {
+            where: {
+                id: { notIn: [1, 2] },
+                isActive: true
+            },
+            take: 3,
+            orderBy: { id: 'desc' },
+            include: {
+                flavors: { include: { flavor: true } }
+            }
+        });
+    });
+
+    it(' HU-50 debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
+        const { getRelatedProducts } = await import('../actions/product-actions');
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const dbError = new Error('Database Error');
+
+        vi.mocked(prisma.product.findUnique).mockRejectedValueOnce(dbError);
+
+        const result = await getRelatedProducts(1);
+
+        expect(consoleSpy).toHaveBeenCalledWith("Error obteniendo productos relacionados:", dbError);
         expect(result).toEqual([]);
 
         consoleSpy.mockRestore(); // Limpiamos el espía
