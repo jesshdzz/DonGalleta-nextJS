@@ -16,6 +16,7 @@ import { EditEmailModal } from "@/components/perfil/edit-email-modal";
 import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
 import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
 import { useCart } from "@/context/CartContext";
+import { ProfilePhoto } from "@/components/perfil/ProfilePhoto";
 
 type UserSession = {
   id?: string;
@@ -38,7 +39,7 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
       {/* Cabecera del Perfil */}
       <div className="flex items-center gap-4 mb-8">
         <div className="bg-[#F7DCBE] p-4 rounded-full border border-[#58321D]/20">
-          <UserIcon className="h-10 w-10 text-[#58321D]" />
+          <ProfilePhoto/>
         </div>
         <div>
           <h1 className="text-3xl font-serif font-bold text-[#58321D]">
