@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { adminPages } from "@/lib/admin-pages";
 import type { DashboardStats, MonthlyDataPoint } from "@/actions/dashboard-actions";
+import { ExportDataButton } from "@/components/admin/export-data-button";
 
 type MetricType = "ingresos" | "pedidos" | "visitas";
 
@@ -67,8 +68,13 @@ export function AdminDashboardClient({ stats }: { stats: DashboardStats }) {
         return item.label;
     };
 
+
+
     return (
         <>
+            <div className="flex items-center justify-end">
+                <ExportDataButton stats={stats} />
+            </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card
                     className={`cursor-pointer transition-all hover:bg-muted/50 ${activeMetric === "ingresos" ? "ring-2 ring-primary bg-muted/20" : ""}`}
