@@ -12,7 +12,6 @@ export const ourFileRouter = {
             const session = await auth();
 
             // Verificamos si existe la sesión y si el rol del usuario es "ADMIN"
-            // @ts-expect-error Types for NextAuth user role are extended in auth.config
             if (!session?.user || session.user.role !== "ADMIN") {
                 throw new UploadThingError("No autorizado: Se requieren permisos de administrador para subir imágenes.");
             }
@@ -32,7 +31,6 @@ export const ourFileRouter = {
     bannerImage: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
         .middleware(async () => {
             const session = await auth();
-            // @ts-expect-error Types for NextAuth user role are extended in auth.config
             if (!session?.user || session.user.role !== "ADMIN") {
                 throw new UploadThingError("No autorizado.");
             }
@@ -40,6 +38,19 @@ export const ourFileRouter = {
         })
         .onUploadComplete(async ({ metadata, file }) => {
             console.log("Banner subido por admin:", metadata.userId);
+            return { url: file.url };
+        }),
+    // Endpoint para la foto de perfil (usado en VistaPerfil)
+    imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+        .middleware(async () => {
+            const session = await auth();
+            if (!session?.user) {
+                throw new UploadThingError("No autorizado.");
+            }
+            return { userId: session.user.id };
+        })
+        .onUploadComplete(async ({ metadata, file }) => {
+            console.log("Foto de perfil subida por usuario:", metadata.userId);
             return { url: file.url };
         }),
 } satisfies FileRouter;

@@ -96,3 +96,4 @@ export async function changeRole(userId: string, newRole: Role) {
     revalidatePath("/admin/usuarios");
     return { success: true };
 }
+

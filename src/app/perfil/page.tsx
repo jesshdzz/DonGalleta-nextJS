@@ -12,9 +12,21 @@ export default async function PerfilPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { password: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      image: true,
+      password: true, 
+    },
   });
-  const isOAuthUser = !dbUser?.password;
 
-  return <PerfilView user={session.user} isOAuthUser={isOAuthUser} />;
+  if (!dbUser) {
+    redirect("/auth/login");
+  }
+
+  const isOAuthUser = !dbUser.password;
+
+  return <PerfilView user={dbUser} isOAuthUser={isOAuthUser} />;
 }

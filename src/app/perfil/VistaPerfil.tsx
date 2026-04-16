@@ -11,18 +11,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, User as UserIcon, Mail, Shield, Key } from "lucide-react";
+import { LogOut, User as UserIcon, Mail, Shield, Key, Pencil } from "lucide-react";
 import { EditEmailModal } from "@/components/perfil/edit-email-modal";
 import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
 import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
 import { useCart } from "@/context/CartContext";
 import { ProfilePhoto } from "@/components/perfil/ProfilePhoto";
+import { UploadButton } from "@/lib/uploadthing"; 
+import { updateProfileImage } from "@/actions/pfp-actions";
+import { toast } from "sonner";
 
 type UserSession = {
   id?: string;
   name?: string | null;
   email?: string | null;
   role?: string;
+  image?: string | null;
 };
 
 export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; isOAuthUser: boolean }) {
@@ -36,20 +40,62 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
 
   return (
     <div className="container max-w-3xl mx-auto py-12 px-4 min-h-screen">
-      {/* Cabecera del Perfil */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="bg-[#F7DCBE] p-4 rounded-full border border-[#58321D]/20">
-          <ProfilePhoto/>
+      
+      {/* --- CABECERA DEL PERFIL --- */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 text-center sm:text-left">
+        
+        {/* Contenedor del Avatar Interactivo */}
+        <div className="relative group h-24 w-24 rounded-full overflow-hidden border-2 border-[#58321D]/20 shadow-sm bg-[#F7DCBE] flex items-center justify-center shrink-0">
+          
+          {/* 1. La foto actual (al fondo) */}
+          <ProfilePhoto user={{ name: user.name || "", image: user.image || "" }}/>
+
+          {/* 2. El overlay oscuro con el lapicito (Aparece solo en Hover) */}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
+            <Pencil className="h-8 w-8 text-white drop-shadow-md" />
+          </div>
+
+          {/* 3. El botón de UploadThing (Invisible pero clickeable, cubriendo todo) */}
+          <div className="absolute inset-0 z-20">
+            <UploadButton
+              endpoint="imageUploader"
+              onClientUploadComplete={async (res) => {
+                if (res && res[0]) {
+                  const newUrl = res[0].url;
+                  await updateProfileImage(user.id!, newUrl);
+                  toast.success("Foto de perfil actualizada", {
+                    description: "Tu nueva foto ya es visible para ti.",
+                  });
+                }
+              }}
+              onUploadError={(error: Error) => {
+                toast.error("Error al subir la imagen", {
+                  description: error.message,
+                });
+              }}
+              appearance={{
+                container: "w-full h-full m-0 p-0",
+                button: "w-full h-full m-0 p-0 opacity-0 cursor-pointer",
+                allowedContent: "hidden" 
+              }}
+              content={{
+                button: "" 
+              }}
+            />
+          </div>
         </div>
-        <div>
+
+        {/* Textos de Bienvenida */}
+        <div className="sm:mt-2">
           <h1 className="text-3xl font-serif font-bold text-[#58321D]">
             Hola, {primerNombre}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Gestiona tu información y tu cuenta
           </p>
         </div>
       </div>
+      {/* --- FIN CABECERA --- */}
 
       <div className="grid gap-8">
 
