@@ -3,14 +3,19 @@ import { authConfig } from './auth.config';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
 export const { auth, handlers } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: 'jwt' }, // Obligatorio con Prisma + Credentials
+  session: { strategy: 'jwt' },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z
@@ -19,15 +24,11 @@ export const { auth, handlers } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          
-          // Buscar usuario en DB
           const user = await prisma.user.findUnique({ where: { email } });
           if (!user) return null;
 
-          // Si no tiene password (ej. se registró con Google), fallar
           if (!user.password) return null;
 
-          // Verificar contraseña
           const passwordsMatch = await bcrypt.compare(password, user.password);
           if (passwordsMatch) return user;
         }
@@ -37,4 +38,20 @@ export const { auth, handlers } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user, account }) {
+      // Primera vez que entra (login) — aplica para Credentials y Google
+      if (user) {
+        token.sub = user.id;
+
+        token.role = user.role ?? 'USER';
+      }
+      if (account?.provider === 'google' && user && token.sub) {
+        const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
+        token.role = dbUser?.role ?? 'USER';
+      }
+      return token;
+    },
+  },
 });

@@ -24,7 +24,7 @@ type UserSession = {
   role?: string;
 };
 
-export default function VistaPerfil({ user }: { user: UserSession }) {
+export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; isOAuthUser: boolean }) {
   const { logoutClearCart } = useCart();
   const primerNombre = user.name?.split(" ")[0] || "Galletoso";
 
@@ -113,27 +113,27 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
           </CardContent>
         </Card>
 
-        {/* TARJETA 2: Seguridad */}
-        <Card className="border-[#A6A3A2]/40 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl text-[#58321D] flex items-center gap-2">
-              <Key className="h-5 w-5" />
-              Seguridad
-            </CardTitle>
-            <CardDescription>
-              Actualiza tus credenciales de acceso.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row gap-4">
-            {/* Modal: Cambiar Correo */}
-            <EditEmailModal
-              userId={user.id!}
-              currentEmail={user.email || ""}
-            />
-            {/* Modal: Cambiar Contraseña */}
-            <EditPasswordModal userId={user.id!} />
-          </CardContent>
-        </Card>
+        {/* TARJETA 2: Seguridad — solo para usuarios con contraseña */}
+        {!isOAuthUser && (
+          <Card className="border-[#A6A3A2]/40 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-[#58321D] flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Seguridad
+              </CardTitle>
+              <CardDescription>
+                Actualiza tus credenciales de acceso.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-4">
+              <EditEmailModal
+                userId={user.id!}
+                currentEmail={user.email || ""}
+              />
+              <EditPasswordModal userId={user.id!} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* TARJETA 3: Gestión de Cuenta  */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
@@ -157,7 +157,7 @@ export default function VistaPerfil({ user }: { user: UserSession }) {
             </Button>
 
             {/* Eliminar Cuenta */}
-            <DeleteAccountButton userId={user.id!} />
+            <DeleteAccountButton userId={user.id!} isOAuthUser={isOAuthUser} />
           </CardContent>
         </Card>
 

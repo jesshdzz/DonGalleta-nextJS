@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import PerfilView from "./VistaPerfil";
 
 export default async function PerfilPage() {
@@ -8,5 +9,12 @@ export default async function PerfilPage() {
   if (!session?.user) {
     redirect("/auth/login");
   }
-  return <PerfilView user={session.user} />;
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { password: true },
+  });
+  const isOAuthUser = !dbUser?.password;
+
+  return <PerfilView user={session.user} isOAuthUser={isOAuthUser} />;
 }

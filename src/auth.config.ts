@@ -3,7 +3,6 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: {
     signIn: '/auth/login', // Redirigir aquí si no está logueado
-    newUser: '/auth/register',
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
@@ -23,20 +22,10 @@ export const authConfig = {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      // Ignoramos error de tipado por ahora hasta extender tipos
       if (token.role && session.user) {
-        // @ts-expect-error - Types for NextAuth will be extended later
         session.user.role = token.role;
       }
       return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        // @ts-expect-error - Types for NextAuth will be extended later
-        token.role = user.role;
-      }
-      return token;
     },
   },
   providers: [], // Se configuran en auth.ts para compatibilidad
