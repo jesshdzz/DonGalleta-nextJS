@@ -47,7 +47,7 @@ export const { auth, handlers } = NextAuth({
 
         token.role = user.role ?? 'USER';
       }
-      if (account?.provider === 'google' && token.sub) {
+      if (account?.provider === 'google' && user && token.sub) {
         const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
         token.role = dbUser?.role ?? 'USER';
       }
