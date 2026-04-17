@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -36,18 +35,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-
-  // Aseguramos que la foto del Navbar siempre esté sincronizada con la BD
-  // sin importar que la cookie de NextAuth esté desactualizada.
-  if (session?.user?.id) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { image: true },
-    });
-    if (dbUser) {
-      session.user.image = dbUser.image;
-    }
-  }
 
   return (
     <html lang="es">

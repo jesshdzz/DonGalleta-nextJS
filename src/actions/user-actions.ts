@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { Role } from "@prisma/client";
 import { UTApi } from "uploadthing/server";
+import { auth } from "@/auth";
 
 export async function updateEmail(
     userId: string,
@@ -102,6 +103,11 @@ export async function changeRole(userId: string, newRole: Role) {
 const utapi = new UTApi();
 
 export async function updateProfileImage(userId: string, newImageUrl: string) {
+  // Verificamos que quien llama sea el dueño del perfil
+  const session = await auth();
+  if (!session?.user?.id || session.user.id !== userId)
+    return { success: false, message: "No autorizado." };
+
   try {
     // 1. Buscamos al usuario para ver si ya tiene una foto previa registrada
     const user = await prisma.user.findUnique({
