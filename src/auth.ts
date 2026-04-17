@@ -40,6 +40,18 @@ export const { auth, handlers } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async signIn({ account, profile }) {
+      if (account?.provider === 'google' && profile?.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: profile.email },
+        });
+
+        if (existingUser?.password) {
+          return '/auth/login?error=EmailYaRegistrado';
+        }
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
       // Primera vez que entra (login) — aplica para Credentials y Google
       if (user) {
