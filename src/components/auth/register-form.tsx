@@ -72,7 +72,13 @@ export const RegisterForm = () => {
 
       const result = await registerUser(formData);
 
-      if (result?.errors) {
+      if (result?.emailConflict) {
+        // Redirigir al login
+        const errorParam =
+          result.emailConflict === 'google' ? 'EmailRegistradoConGoogle' : 'EmailYaRegistrado';
+        router.push(`/auth/login?error=${errorParam}`);
+        return;
+      } else if (result?.errors) {
         // Mapear errores de Zod del servidor
         if (result.errors.name) setError('name', { message: result.errors.name[0] });
         if (result.errors.email) setError('email', { message: result.errors.email[0] });

@@ -61,9 +61,10 @@ export async function registerUser(formData: FormData) {
   // Verificar si existe
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
+    const conflictType = existing.password ? 'credentials' : 'google';
     return {
       success: false,
-      errors: { email: ['El correo electrónico ya está registrado'] }
+      emailConflict: conflictType,
     };
   }
 
