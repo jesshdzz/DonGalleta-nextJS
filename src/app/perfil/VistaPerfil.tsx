@@ -18,7 +18,7 @@ import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
 import { useCart } from "@/context/CartContext";
 import { ProfilePhoto } from "@/components/perfil/ProfilePhoto";
 import { UploadButton } from "@/lib/uploadthing"; 
-import { updateProfileImage } from "@/actions/pfp-actions";
+import { updateProfileImage } from "@/actions/user-actions";
 import { toast } from "sonner";
 
 type UserSession = {
