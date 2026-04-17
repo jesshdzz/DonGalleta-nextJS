@@ -1,4 +1,5 @@
 # Manual de Instalación y Desarrollo - Don Galleta
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jesshdzz/DonGalleta-nextJS)
 
 Sigue esta guía paso a paso para levantar el entorno localmente sin errores.
 
