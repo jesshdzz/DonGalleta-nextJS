@@ -7,11 +7,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { auth } from "@/auth";
-
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
-
 import { Providers } from "@/components/Providers";
 import { AdminNotificationProvider } from "@/components/admin/AdminNotificationProvider";
 
@@ -29,6 +27,7 @@ export const metadata: Metadata = {
   title: "Don Galleta | La mejor repostería",
   description: "Compra las mejores galletas artesanales en línea.",
 };
+
 
 export default async function RootLayout({
   children,

@@ -30,7 +30,6 @@ import {
   SheetClose,
   SheetTitle,
 } from "@/components/ui/sheet";
-// Nuevas importaciones para el menú desplegable
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,12 +41,19 @@ import {
 
 import { useCart } from "@/context/CartContext";
 import Logo from "@/assets/images/logo.png";
+import { ProfilePhoto } from "@/components/perfil/ProfilePhoto";
 import { shouldHideLayout } from "@/lib/constants";
 import { searchProducts } from "@/actions/product-actions";
 import { signOut } from "next-auth/react";
 
 type UserSession =
-  | { id?: string; name?: string | null; email?: string | null; role?: string }
+  | {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      role?: string;
+      image?: string | null;
+    }
   | undefined
   | null;
 
@@ -139,7 +145,6 @@ export function Navbar({ user }: { user?: UserSession }) {
 
   useEffect(() => {
     if (searchQuery.length < 3) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchResults([]);
       setIsSearching(false);
       return;
@@ -184,7 +189,11 @@ export function Navbar({ user }: { user?: UserSession }) {
                   setIsMobileSearchOpen={setIsMobileSearchOpen}
                 />
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileSearchOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMobileSearchOpen(false)}
+              >
                 <X className="h-5 w-5" />
               </Button>
             </div>
@@ -236,7 +245,9 @@ export function Navbar({ user }: { user?: UserSession }) {
                       href="/perfil"
                       className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-lg font-medium text-muted-foreground hover:bg-[#F7DCBE]/40 hover:text-[#58321D] transition-all"
                     >
-                      <User className="size-5" />
+                      <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden border border-[#A6A3A2]/40 bg-[#F7DCBE]">
+                        <ProfilePhoto user={{ name: user.name || "", image: user.image || "" }} />
+                      </div>
                       Mi Cuenta
                     </Link>
                   </SheetClose>
@@ -340,7 +351,12 @@ export function Navbar({ user }: { user?: UserSession }) {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileSearchOpen(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsMobileSearchOpen(true)}
+          >
             <Search className="h-5 w-5" />
           </Button>
 
@@ -360,18 +376,28 @@ export function Navbar({ user }: { user?: UserSession }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2 focus-visible:ring-0">
-                    <User className="h-5 w-5" />
-                    {/* Mostramos el nombre del usuario o "Mi Cuenta" si no tiene nombre */}
-                    <span className="font-medium">{user.name?.split(" ")[0] || "Mi Cuenta"}</span>
+                  <Button
+                    variant="ghost"
+                    className="gap-2 focus-visible:ring-0 px-2"
+                  >
+                    <div className="h-8 w-8 shrink-0 rounded-full overflow-hidden border border-[#A6A3A2]/40 bg-[#F7DCBE]">
+                      <ProfilePhoto user={{ name: user.name || "", image: user.image || "" }} />
+                    </div>
+                    <span className="font-medium">
+                      {user.name?.split(" ")[0] || "Mi Cuenta"}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-56 mt-1">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      <p className="text-sm font-medium leading-none">
+                        {user.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -393,7 +419,9 @@ export function Navbar({ user }: { user?: UserSession }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/" className="w-full cursor-pointer"> {/* TODO: Agregar link a direcciones */}
+                    <Link href="/" className="w-full cursor-pointer">
+                      {" "}
+                      {/* TODO: Agregar link a direcciones */}
                       <MapPin className="mr-2 h-4 w-4" /> Mis Direcciones
                     </Link>
                   </DropdownMenuItem>
@@ -402,10 +430,16 @@ export function Navbar({ user }: { user?: UserSession }) {
                   {user.role === "ADMIN" && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[#58321D]">Administración</DropdownMenuLabel>
+                      <DropdownMenuLabel className="text-[#58321D]">
+                        Administración
+                      </DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <Link href="/admin" className="w-full cursor-pointer font-medium">
-                          <Shield className="mr-2 h-4 w-4 text-[#58321D]" /> Panel Admin
+                        <Link
+                          href="/admin"
+                          className="w-full cursor-pointer font-medium"
+                        >
+                          <Shield className="mr-2 h-4 w-4 text-[#58321D]" />{" "}
+                          Panel Admin
                         </Link>
                       </DropdownMenuItem>
                     </>
@@ -441,8 +475,10 @@ export function Navbar({ user }: { user?: UserSession }) {
           <div className="md:hidden">
             {user ? (
               <Link href="/perfil">
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <div className="h-8 w-8 rounded-full overflow-hidden border border-[#A6A3A2]/40 bg-[#F7DCBE]">
+                    <ProfilePhoto user={{ name: user.name || "", image: user.image || "" }} />
+                  </div>
                 </Button>
               </Link>
             ) : (
