@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, User as UserIcon, Mail, Shield, Key, Pencil } from "lucide-react";
+import { LogOut, User as UserIcon, Mail, Shield, Key, Pencil, Loader2 } from "lucide-react";
 import { EditEmailModal } from "@/components/perfil/edit-email-modal";
 import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
 import { DeleteAccountButton } from "@/components/perfil/delete-account-button";
@@ -30,6 +31,7 @@ type UserSession = {
 };
 
 export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; isOAuthUser: boolean }) {
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   const { logoutClearCart } = useCart();
   const primerNombre = user.name?.split(" ")[0] || "Galletoso";
 
@@ -59,16 +61,26 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
           <div className="absolute inset-0 z-20">
             <UploadButton
               endpoint="imageUploader"
+              onUploadBegin={() => {
+                setIsUpdatingPhoto(true);
+              }}
               onClientUploadComplete={async (res) => {
                 if (res && res[0]) {
-                  const newUrl = res[0].url;
-                  await updateProfileImage(user.id!, newUrl);
-                  toast.success("Foto de perfil actualizada", {
-                    description: "Tu nueva foto ya es visible para ti.",
-                  });
+                  try {
+                    const newUrl = res[0].url;
+                    await updateProfileImage(user.id!, newUrl);
+                    toast.success("Foto de perfil actualizada", {
+                      description: "Tu nueva foto ya es visible para ti.",
+                    });
+                  } finally {
+                    setIsUpdatingPhoto(false);
+                  }
+                } else {
+                  setIsUpdatingPhoto(false);
                 }
               }}
               onUploadError={(error: Error) => {
+                setIsUpdatingPhoto(false);
                 toast.error("Error al subir la imagen", {
                   description: error.message,
                 });
@@ -83,6 +95,13 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
               }}
             />
           </div>
+
+          {/* 4. Loader Overlay (Aparece cuando isUpdatingPhoto es true) */}
+          {isUpdatingPhoto && (
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center z-30 transition-opacity duration-200">
+              <Loader2 className="h-6 w-6 text-white animate-spin drop-shadow-md" />
+            </div>
+          )}
         </div>
 
         {/* Textos de Bienvenida */}
