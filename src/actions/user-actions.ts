@@ -34,6 +34,46 @@ export async function updateEmail(
     return { success: true };
 }
 
+export async function updatePhoneNumber(userId: string, phoneNumber: string) {
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId)
+        return { success: false, error: "No autorizado." };
+
+    try {
+        // validamos que el numero de telefono sea correcto
+        const phoneRegex = /^[0-9]{10,15}$/;
+
+        if (!phoneRegex.test(phoneNumber)) {
+            return {
+                success: false,
+                error: "El número telefónico debe contener entre 10 y 15 dígitos y solo números."
+            };
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return {
+                success: false,
+                error: "Usuario no encontrado."
+            };
+        }
+
+        // actualizamos el numero de telefono
+        await prisma.user.update({
+            where: { id: userId },
+            data: { phoneNumber },
+        });
+
+        // refrescamos la pagina
+        revalidatePath("/perfil");
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error al actualizar el teléfono:", error);
+        return { success: false, error: "Ocurrió un error al guardar el número telefónico." };
+    }
+}
+
 export async function updatePassword(
     userId: string,
     currentPassword: string,
@@ -103,46 +143,46 @@ export async function changeRole(userId: string, newRole: Role) {
 const utapi = new UTApi();
 
 export async function updateProfileImage(userId: string, newImageUrl: string) {
-  // Verificamos que quien llama sea el dueño del perfil
-  const session = await auth();
-  if (!session?.user?.id || session.user.id !== userId)
-    return { success: false, message: "No autorizado." };
+    // Verificamos que quien llama sea el dueño del perfil
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId)
+        return { success: false, message: "No autorizado." };
 
-  try {
-    // 1. Buscamos al usuario para ver si ya tiene una foto previa registrada
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { image: true },
-    });
+    try {
+        // 1. Buscamos al usuario para ver si ya tiene una foto previa registrada
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { image: true },
+        });
 
-    // 2. Limpieza en la Nube: Si ya tenía foto y es distinta a la nueva, la borramos
-    if (user?.image && user.image !== newImageUrl) {
-      // Las URLs de UploadThing son tipo "https://utfs.io/f/llave-del-archivo"
-      // Extraemos solo la llave para poder borrarlo
-      const fileKey = user.image.split("/f/")[1];
-      
-      if (fileKey) {
-        // Usamos .catch interno para que si falla el borrado, no tumbe todo el proceso
-        await utapi.deleteFiles(fileKey).catch((err) => 
-          console.error("Error borrando foto vieja de UploadThing:", err)
-        );
-      }
+        // 2. Limpieza en la Nube: Si ya tenía foto y es distinta a la nueva, la borramos
+        if (user?.image && user.image !== newImageUrl) {
+            // Las URLs de UploadThing son tipo "https://utfs.io/f/llave-del-archivo"
+            // Extraemos solo la llave para poder borrarlo
+            const fileKey = user.image.split("/f/")[1];
+
+            if (fileKey) {
+                // Usamos .catch interno para que si falla el borrado, no tumbe todo el proceso
+                await utapi.deleteFiles(fileKey).catch((err) =>
+                    console.error("Error borrando foto vieja de UploadThing:", err)
+                );
+            }
+        }
+
+        // 3. Actualizamos el campo 'image' en Prisma con la nueva URL
+        await prisma.user.update({
+            where: { id: userId },
+            data: { image: newImageUrl },
+        });
+
+        // 4. Refrescamos la caché de Next.js para que los cambios se vean de inmediato
+        // Refrescamos el perfil y cualquier otra ruta donde salga el Avatar (ej. el Navbar)
+        revalidatePath("/");
+        revalidatePath("/perfil");
+
+        return { success: true, message: "Foto de perfil actualizada correctamente" };
+    } catch (error) {
+        console.error("Error al actualizar la imagen de perfil:", error);
+        return { success: false, message: "Hubo un error al actualizar la imagen en el servidor" };
     }
-
-    // 3. Actualizamos el campo 'image' en Prisma con la nueva URL
-    await prisma.user.update({
-      where: { id: userId },
-      data: { image: newImageUrl },
-    });
-
-    // 4. Refrescamos la caché de Next.js para que los cambios se vean de inmediato
-    // Refrescamos el perfil y cualquier otra ruta donde salga el Avatar (ej. el Navbar)
-    revalidatePath("/");
-    revalidatePath("/perfil");
-
-    return { success: true, message: "Foto de perfil actualizada correctamente" };
-  } catch (error) {
-    console.error("Error al actualizar la imagen de perfil:", error);
-    return { success: false, message: "Hubo un error al actualizar la imagen en el servidor" };
-  }
 }
