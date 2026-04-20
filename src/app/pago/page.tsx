@@ -15,6 +15,7 @@ import { useCart } from "@/context/CartContext";
 import doncookImg from "@/assets/images/doncook.png"; 
 import { FormularioPago } from "@/components/pago/Formulario";
 import { createPaymentIntent } from "@/actions/payment-actions";
+import { AddressSelector } from "@/components/pago/AddressSelector";
 
 // Inicializo la conexión con Stripe usando mi llave pública
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
@@ -23,6 +24,7 @@ export default function PagoPage() {
   // Me traigo el total y también el carrito completo para poder mandarlo a la API
   const { totalPrice, cart } = useCart();
   const [clientSecret, setClientSecret] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("pickup");
   const router = useRouter();
 
   // Pido el Client Secret a mi API en cuanto cargo la página y tengo un total válido
@@ -35,7 +37,7 @@ export default function PagoPage() {
 
   useEffect(() => {
     if (totalPrice > 0) {
-      createPaymentIntent(totalPrice, cart)
+      createPaymentIntent(totalPrice, cart, selectedAddressId === "pickup" ? undefined : selectedAddressId)
         .then((res) => {
           if (res.success && res.clientSecret) {
             setClientSecret(res.clientSecret);
@@ -45,7 +47,7 @@ export default function PagoPage() {
         })
         .catch((error) => console.error("Me falló la petición del client secret:", error));
     }
-  }, [totalPrice, cart]);
+  }, [totalPrice, cart, selectedAddressId]);
 
   // Evitamos renderizar la página si el carrito está vacío
   if (cart.length === 0) return null; 
@@ -75,10 +77,17 @@ export default function PagoPage() {
             </CardHeader>
             <CardContent className="px-0 space-y-4 md:space-y-6">
               
+              <AddressSelector 
+                selectedAddressId={selectedAddressId} 
+                onAddressSelect={setSelectedAddressId} 
+              />
+              
               {clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <FormularioPago amount={totalPrice} />
-                </Elements>
+                <div className="border-t border-border pt-6 mt-6">
+                  <Elements stripe={stripePromise} options={{ clientSecret }}>
+                    <FormularioPago amount={totalPrice} />
+                  </Elements>
+                </div>
               ) : (
                 <div className="min-h-62.5 md:min-h-75 border-2 border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center bg-secondary/5 text-muted-foreground p-4 text-center">
                   <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
