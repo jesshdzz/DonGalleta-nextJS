@@ -54,20 +54,21 @@ model User {
 }
 
 model Product {
-  id          Int             @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   name        String
-  description String?         @db.Text
-  price       Decimal         @db.Decimal(10, 2)
+  description String?            @db.Text
+  price       Decimal            @db.Decimal(10, 2)
   image       String?
-  stock       Int             @default(0)
-  slug        String          @unique
-  isActive    Boolean         @default(true)
+  stock       Int                @default(0)
+  slug        String             @unique
+  isActive    Boolean            @default(true)
   cartItems   CartItem[]
   favorites   Favorite[]
   orderItems  OrderItem[]
   flavors     ProductFlavor[]
   reviews     Review[]
   waitingList WaitingList[]
+  promotions  PromotionProduct[]
 }
 
 model ProductFlavor {
@@ -206,16 +207,16 @@ model PasswordResetToken {
 }
 
 model Coupon {
-  id              String   @id @default(cuid())
-  code            String   @unique
-  discountType    String   // "PERCENTAGE" o "FIXED"
-  discountValue   Decimal  @db.Decimal(10, 2)
-  expirationDate  DateTime
-  isActive        Boolean  @default(true)
-  usageLimit      Int?     
-  usedCount       Int      @default(0)
-  orders          Order[]
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String // "PERCENTAGE" o "FIXED"
+  discountValue  Decimal  @db.Decimal(10, 2)
+  expirationDate DateTime
+  isActive       Boolean  @default(true)
+  usageLimit     Int?
+  usedCount      Int      @default(0)
+  orders         Order[]
+  createdAt      DateTime @default(now())
 }
 
 enum Role {
@@ -236,14 +237,47 @@ enum PaymentMethod {
   CASH
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model Promotion {
+  id             Int                @id @default(autoincrement())
+  name           String
+  type           DiscountType
+  value          Decimal            @db.Decimal(10, 2)
+  minAmount      Decimal            @db.Decimal(10, 2)
+  maxDiscount    Decimal            @db.Decimal(10, 2)
+  startDate      DateTime
+  expirationDate DateTime
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  products       PromotionProduct[]
+
+  @@index([isActive])
+  @@index([type])
+}
+
+model PromotionProduct {
+  promotionId Int
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, productId])
+  @@index([productId])
+}
+
 model Banner {
-  id          Int      @id @default(autoincrement())
-  title       String   
-  imageUrl    String   
-  targetUrl   String?  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  targetUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WaitingList {
