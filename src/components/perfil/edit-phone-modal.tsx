@@ -28,6 +28,11 @@ export function EditPhoneModal({ userId, currentPhone }: EditPhoneModalProps) {
     const [phoneNumber, setPhoneNumber] = useState(currentPhone || "");
     const [isPending, startTransition] = useTransition();
 
+    const handleOpenChange = (open: boolean) => {
+        if (!open) setPhoneNumber(currentPhone || "");
+        setIsOpen(open);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -57,14 +62,14 @@ export function EditPhoneModal({ userId, currentPhone }: EditPhoneModalProps) {
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="outline" className="w-full sm:w-auto gap-2 border-[#A6A3A2]/40 text-[#58321D]">
                     <Phone className="h-4 w-4" />
                     {currentPhone ? "Actualizar Teléfono" : "Añadir Teléfono"}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle className="text-[#58321D]">Número Telefónico</DialogTitle>
                     <DialogDescription>
