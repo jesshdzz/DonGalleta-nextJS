@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
 import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
+import { ProductRating } from "@/components/features/ProductRating";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -154,6 +155,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
       <RelatedProducts currentProductId={product.id} />
+      <ProductRating productId={product.id} />
     </div>
   );
 }
