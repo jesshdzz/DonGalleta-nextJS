@@ -35,6 +35,10 @@ export async function updateEmail(
 }
 
 export async function updatePhoneNumber(userId: string, phoneNumber: string) {
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId)
+        return { success: false, error: "No autorizado." };
+
     try {
         // validamos que el numero de telefono sea correcto
         const phoneRegex = /^[0-9]{10,15}$/;
@@ -43,6 +47,14 @@ export async function updatePhoneNumber(userId: string, phoneNumber: string) {
             return {
                 success: false,
                 error: "El número telefónico debe contener entre 10 y 15 dígitos y solo números."
+            };
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return {
+                success: false,
+                error: "Usuario no encontrado."
             };
         }
 
