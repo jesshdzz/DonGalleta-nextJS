@@ -18,7 +18,8 @@ export default async function PerfilPage() {
       email: true,
       role: true,
       image: true,
-      password: true, 
+      password: true,
+      phoneNumber: true,
     },
   });
 
