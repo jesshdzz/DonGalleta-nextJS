@@ -1,5 +1,6 @@
 import { getProducts } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
+import { getProductReviews, getUserReview } from "@/actions/review-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
 import WaitingListButton from "@/components/waiting-list-button";
@@ -13,6 +14,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
 import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
 import { ProductRating } from "@/components/features/ProductRating";
+import { ReviewList } from "@/components/features/ReviewList";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -36,13 +38,20 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
-  // 3. Consultar si este producto está en favoritos del usuario
-  const { isFavorite: isProductFavorite } = await isFavorite(productId);
+  // 3. Paralelizamos todas las consultas independientes para evitar waterfall
+  const [
+    { isFavorite: isProductFavorite },
+    session,
+    reviewsData,
+    userReview,
+  ] = await Promise.all([
+    isFavorite(productId),
+    auth(),
+    getProductReviews(productId),
+    getUserReview(productId),
+  ]);
 
-  // 4. Obtener sesión para el botón de waiting list
-  const session = await auth();
-
-  // 5. Lógica de imagen (Placeholder si está vacía)
+  // 6. Lógica de imagen (Placeholder si está vacía)
   const imageUrl = product.image && product.image.trim() !== "" 
     ? product.image 
     : "https://placehold.co/600x600/png?text=Sin+Imagen";
@@ -155,7 +164,16 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
       <RelatedProducts currentProductId={product.id} />
-      <ProductRating productId={product.id} />
+      
+      {/* Sección de opiniones */}
+      <div className="mt-12 space-y-8">
+        <ProductRating productId={product.id} initialReview={userReview} />
+        <ReviewList 
+          reviews={reviewsData.reviews}
+          averageRating={reviewsData.averageRating}
+          totalReviews={reviewsData.totalReviews}
+        />
+      </div>
     </div>
   );
 }
