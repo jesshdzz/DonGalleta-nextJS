@@ -22,6 +22,7 @@ import { ProfilePhoto } from "@/components/perfil/ProfilePhoto";
 import { UploadButton } from "@/lib/uploadthing";
 import { updateProfileImage } from "@/actions/user-actions";
 import { toast } from "sonner";
+import { FavoriteStoreManager } from "@/components/perfil/stores/FavoriteStoreManager";
 
 type UserSession = {
   id?: string;
@@ -219,6 +220,9 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
             )}
           </CardContent>
         </Card>
+
+        {/* TARJETA DE SUCURSALES FAVORITAS */}
+        <FavoriteStoreManager />
 
         {/* TARJETA 3: Gestión de Cuenta  */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">

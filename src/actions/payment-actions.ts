@@ -14,7 +14,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 type CartItem = { productId: number; quantity: number; price: number };
 
-export async function createPaymentIntent(amount: number, cart: CartItem[]) {
+export async function createPaymentIntent(amount: number, cart: CartItem[], storeId?: string) {
     try {
         const session = await auth();
         let userId = "";
@@ -42,7 +42,8 @@ export async function createPaymentIntent(amount: number, cart: CartItem[]) {
             },
             metadata: {
                 userId: userId, 
-                productos: JSON.stringify(itemsSimplificados)
+                productos: JSON.stringify(itemsSimplificados),
+                storeId: storeId || ""
             }
         });
 
@@ -56,6 +57,7 @@ export async function createPaymentIntent(amount: number, cart: CartItem[]) {
 export async function processSuccessfulPayment(paymentIntentId: string, amount: number, metadata: Stripe.Metadata) {
     const productosCompradosString = metadata.productos;
     const userId = metadata.userId; 
+    const storeId = metadata.storeId;
 
     if (!productosCompradosString || !userId) {
         console.log('❌ Faltan metadatos esenciales en el PaymentIntent');
@@ -107,6 +109,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                     userId: userId,
                     total: amount / 100,
                     status: "PENDING", 
+                    storeId: storeId ? storeId : null,
                     items: {
                         create: productosValidados.map((item) => ({
                             productId: item.id,

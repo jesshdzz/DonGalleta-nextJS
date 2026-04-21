@@ -419,10 +419,8 @@ export function Navbar({ user }: { user?: UserSession }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/" className="w-full cursor-pointer">
-                      {" "}
-                      {/* TODO: Agregar link a direcciones */}
-                      <MapPin className="mr-2 h-4 w-4" /> Mis Direcciones
+                    <Link href="/perfil#sucursales" className="w-full cursor-pointer">
+                      <MapPin className="mr-2 h-4 w-4" /> Mis Sucursales
                     </Link>
                   </DropdownMenuItem>
 
