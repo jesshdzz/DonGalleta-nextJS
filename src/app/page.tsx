@@ -35,7 +35,7 @@ export default async function Home() {
       <ProductCarousel />
       <StoresMap 
         stores={activeStores} 
-        initialFavoriteIds={favoritesRes.success && favoritesRes.favorites ? favoritesRes.favorites.map(f => f.storeId) : []}
+        initialFavoriteIds={favoritesRes.success && favoritesRes.favorites ? favoritesRes.favorites.map((f: { storeId: string }) => f.storeId) : []}
       />
       <Promotions />
     </div>

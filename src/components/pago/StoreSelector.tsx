@@ -24,14 +24,16 @@ export function StoreSelector({ selectedStoreId, onStoreSelect }: Props) {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const allStores = await getStores();
+        const [allStores, favoritesRes] = await Promise.all([
+          getStores(),
+          getUserFavoriteStores(),
+        ]);
+
         const activeStores = allStores.filter(s => s.isActive);
 
         let favSet = new Set<string>();
-        const favoritesRes = await getUserFavoriteStores();
-
         if (favoritesRes.success && favoritesRes.favorites) {
-          favSet = new Set(favoritesRes.favorites.map(f => f.storeId));
+          favSet = new Set(favoritesRes.favorites.map((f: { storeId: string }) => f.storeId));
           setFavoriteIds(favSet);
 
           activeStores.sort((a, b) => {
@@ -45,9 +47,10 @@ export function StoreSelector({ selectedStoreId, onStoreSelect }: Props) {
 
         setStores(activeStores);
 
-        // Auto-seleccionar la primera sucursal si no hay ninguna seleccionada
+        // Auto-seleccionar la primera sucursal favorita (o la primera disponible)
         if (!selectedStoreId && activeStores.length > 0) {
-          onStoreSelect(activeStores[0].id);
+          const firstFav = activeStores.find(s => favSet.has(s.id));
+          setTimeout(() => onStoreSelect((firstFav ?? activeStores[0]).id), 0);
         }
       } catch (error) {
         console.error("Error cargando sucursales:", error);

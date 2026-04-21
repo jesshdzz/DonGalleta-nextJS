@@ -6,7 +6,6 @@ import { Store as StoreIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserFavoriteStores } from "@/actions/favorite-store-actions";
-import { getStores } from "@/actions/store-actions";
 import { FavoriteStoreCard } from "./FavoriteStoreCard";
 
 export function FavoriteStoreManager() {
@@ -17,20 +16,15 @@ export function FavoriteStoreManager() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Obtenemos todas las sucursales activas
-      const allStores = await getStores();
-      const activeStores = allStores.filter(s => s.isActive);
-
-      // Obtenemos las favoritas del usuario
+      // getUserFavoriteStores ya incluye `store: true` en su query de Prisma,
+      // no necesitamos llamar a getStores() por separado.
       const favoritesRes = await getUserFavoriteStores();
 
       if (favoritesRes.success && favoritesRes.favorites) {
-        const favSet = new Set(favoritesRes.favorites.map(f => f.storeId));
+        const favSet = new Set<string>(favoritesRes.favorites.map((f: { storeId: string }) => f.storeId));
         setFavoriteIds(favSet);
-
-        // Solo mostramos las favoritas
-        const userFavorites = activeStores.filter(store => favSet.has(store.id));
-        setStores(userFavorites);
+        // Extraemos directamente los objetos Store del include
+        setStores(favoritesRes.favorites.map((f: { store: Store }) => f.store));
       } else {
         setStores([]);
       }
