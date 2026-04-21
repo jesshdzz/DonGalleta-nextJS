@@ -62,18 +62,22 @@ export async function getUserReview(productId: number) {
 
 export async function getProductReviews(productId: number) {
   try {
-    const reviews = await prisma.review.findMany({
-      where: { productId },
-      include: {
-        user: {
-          select: {
-            name: true,
-            image: true
+    // Ejecutamos el listado y el conteo en paralelo para no hacer dos round-trips secuenciales
+    const [reviews, totalReviews] = await Promise.all([
+      prisma.review.findMany({
+        where: { productId },
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true
+            }
           }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count({ where: { productId } }),
+    ]);
 
     // Calcular promedio
     const averageRating = reviews.length > 0
@@ -81,16 +85,23 @@ export async function getProductReviews(productId: number) {
       : 0;
 
     return {
-      reviews,
+      reviews: reviews.map((r) => ({
+        ...r,
+        createdAt: r.createdAt.toLocaleDateString("es-MX", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      })),
       averageRating: Number(averageRating.toFixed(1)),
-      totalReviews: reviews.length
+      totalReviews,
     };
   } catch (error) {
     console.error("Error al obtener las reseñas:", error);
     return {
       reviews: [],
       averageRating: 0,
-      totalReviews: 0
+      totalReviews: 0,
     };
   }
 }
