@@ -1,46 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { submitReview, getUserReview } from "@/actions/review-actions";
+import { submitReview } from "@/actions/review-actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-interface ProductRatingProps {
-  productId: number;
+interface InitialReview {
+  rating: number;
+  comment: string | null;
 }
 
-export function ProductRating({ productId }: ProductRatingProps) {
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasReviewed, setHasReviewed] = useState(false);
-  const [showCommentBox, setShowCommentBox] = useState(false);
+interface ProductRatingProps {
+  productId: number;
+  // Pasado desde el Server Component para evitar un fetch extra en el cliente
+  initialReview?: InitialReview | null;
+}
 
-  useEffect(() => {
-    async function loadRating() {
-      try {
-        const review = await getUserReview(productId);
-        if (review) {
-          setRating(review.rating);
-          setComment(review.comment || "");
-          setHasReviewed(true);
-          if (review.comment) {
-            setShowCommentBox(true);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadRating();
-  }, [productId]);
+export function ProductRating({ productId, initialReview }: ProductRatingProps) {
+  const [rating, setRating] = useState(initialReview?.rating ?? 0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState(initialReview?.comment ?? "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(!!initialReview);
+  const [showCommentBox, setShowCommentBox] = useState(!!initialReview?.comment);
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -65,13 +50,6 @@ export function ProductRating({ productId }: ProductRatingProps) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4 py-6 border-t border-border">
