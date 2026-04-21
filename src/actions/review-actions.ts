@@ -59,3 +59,38 @@ export async function getUserReview(productId: number) {
     return null;
   }
 }
+
+export async function getProductReviews(productId: number) {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Calcular promedio
+    const averageRating = reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
+
+    return {
+      reviews,
+      averageRating: Number(averageRating.toFixed(1)),
+      totalReviews: reviews.length
+    };
+  } catch (error) {
+    console.error("Error al obtener las reseñas:", error);
+    return {
+      reviews: [],
+      averageRating: 0,
+      totalReviews: 0
+    };
+  }
+}

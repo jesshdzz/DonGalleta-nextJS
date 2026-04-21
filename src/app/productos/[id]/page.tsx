@@ -1,5 +1,6 @@
 import { getProducts } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
+import { getProductReviews } from "@/actions/review-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
 import WaitingListButton from "@/components/waiting-list-button";
@@ -13,6 +14,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
 import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
 import { ProductRating } from "@/components/features/ProductRating";
+import { ReviewList } from "@/components/features/ReviewList";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -42,7 +44,10 @@ export default async function ProductDetailPage({ params }: Props) {
   // 4. Obtener sesión para el botón de waiting list
   const session = await auth();
 
-  // 5. Lógica de imagen (Placeholder si está vacía)
+  // 5. Obtener reviews del producto
+  const reviewsData = await getProductReviews(productId);
+
+  // 6. Lógica de imagen (Placeholder si está vacía)
   const imageUrl = product.image && product.image.trim() !== "" 
     ? product.image 
     : "https://placehold.co/600x600/png?text=Sin+Imagen";
@@ -155,7 +160,16 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
       <RelatedProducts currentProductId={product.id} />
-      <ProductRating productId={product.id} />
+      
+      {/* Sección de opiniones */}
+      <div className="mt-12 space-y-8">
+        <ProductRating productId={product.id} />
+        <ReviewList 
+          reviews={reviewsData.reviews}
+          averageRating={reviewsData.averageRating}
+          totalReviews={reviewsData.totalReviews}
+        />
+      </div>
     </div>
   );
 }
