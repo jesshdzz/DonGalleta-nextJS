@@ -1,6 +1,6 @@
 import { getProducts } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
-import { getProductReviews } from "@/actions/review-actions";
+import { getProductReviews, getUserReview } from "@/actions/review-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
 import WaitingListButton from "@/components/waiting-list-button";
@@ -38,14 +38,18 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
-  // 3. Consultar si este producto está en favoritos del usuario
-  const { isFavorite: isProductFavorite } = await isFavorite(productId);
-
-  // 4. Obtener sesión para el botón de waiting list
-  const session = await auth();
-
-  // 5. Obtener reviews del producto
-  const reviewsData = await getProductReviews(productId);
+  // 3. Paralelizamos todas las consultas independientes para evitar waterfall
+  const [
+    { isFavorite: isProductFavorite },
+    session,
+    reviewsData,
+    userReview,
+  ] = await Promise.all([
+    isFavorite(productId),
+    auth(),
+    getProductReviews(productId),
+    getUserReview(productId),
+  ]);
 
   // 6. Lógica de imagen (Placeholder si está vacía)
   const imageUrl = product.image && product.image.trim() !== "" 
@@ -163,11 +167,12 @@ export default async function ProductDetailPage({ params }: Props) {
       
       {/* Sección de opiniones */}
       <div className="mt-12 space-y-8">
-        <ProductRating productId={product.id} />
+        <ProductRating productId={product.id} initialReview={userReview} />
         <ReviewList 
           reviews={reviewsData.reviews}
           averageRating={reviewsData.averageRating}
           totalReviews={reviewsData.totalReviews}
+          hasMore={reviewsData.hasMore}
         />
       </div>
     </div>
