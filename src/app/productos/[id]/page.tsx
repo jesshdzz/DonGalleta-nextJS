@@ -172,7 +172,6 @@ export default async function ProductDetailPage({ params }: Props) {
           reviews={reviewsData.reviews}
           averageRating={reviewsData.averageRating}
           totalReviews={reviewsData.totalReviews}
-          hasMore={reviewsData.hasMore}
         />
       </div>
     </div>

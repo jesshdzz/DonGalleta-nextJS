@@ -7,7 +7,7 @@ interface Review {
   id: string;
   rating: number;
   comment: string | null;
-  createdAt: Date;
+  createdAt: string;
   user: {
     name: string | null;
     image: string | null;
@@ -83,11 +83,7 @@ export function ReviewList({ reviews, averageRating, totalReviews }: ReviewListP
                           {review.user.name || "Usuario anónimo"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(review.createdAt).toLocaleDateString("es-MX", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
+                          {review.createdAt}
                         </p>
                       </div>
                       {/* Estrellas */}
