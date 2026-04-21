@@ -108,21 +108,25 @@ export function StoreSelector({ selectedStoreId, onStoreSelect }: Props) {
               >
                 <RadioGroupItem value={store.id} id={store.id} className="mt-1" />
                 <Label htmlFor={store.id} className="flex-1 cursor-pointer font-normal pr-6">
-                  <div className="flex items-center mb-1">
-                    <span className="font-medium text-foreground">{store.name}</span>
+                  <div>
+                    <div className="flex items-center my-1">
+                      <span className="font-medium text-foreground">{store.name}</span>
+                    </div>
+
+                    <div className="flex flex-row">
+                      <span className="text-xs text-muted-foreground flex items-start gap-1 mt-1">
+                        <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                        <span>{store.address}</span>
+                      </span>
+                    </div>
+
+                    {store.schedule && (
+                      <span className="text-xs text-muted-foreground flex items-start gap-1 mt-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>{store.schedule}</span>
+                      </span>
+                    )}
                   </div>
-
-                  <span className="text-sm text-muted-foreground flex items-start gap-1 mt-1">
-                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{store.address}</span>
-                  </span>
-
-                  {store.schedule && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{store.schedule}</span>
-                    </span>
-                  )}
                 </Label>
 
                 {isFav && (
