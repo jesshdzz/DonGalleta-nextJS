@@ -5,11 +5,13 @@ import Banner, { BannerItem } from "@/components/features/Banner";
 import { StoresMap } from "@/components/features/StoresMap";
 import { getBanners } from "@/actions/banner-actions";
 import { getStores } from "@/actions/store-actions";
+import { getUserFavoriteStores } from "@/actions/favorite-store-actions";
 
 export default async function Home() {
-  const [dbBanners, allStores] = await Promise.all([
+  const [dbBanners, allStores, favoritesRes] = await Promise.all([
     getBanners(true),
     getStores(),
+    getUserFavoriteStores(),
   ]);
 
   const promoBanners: BannerItem[] = dbBanners.map((b) => ({
@@ -31,7 +33,10 @@ export default async function Home() {
       )}
 
       <ProductCarousel />
-      <StoresMap stores={activeStores} />
+      <StoresMap 
+        stores={activeStores} 
+        initialFavoriteIds={favoritesRes.success && favoritesRes.favorites ? favoritesRes.favorites.map((f: { storeId: string }) => f.storeId) : []}
+      />
       <Promotions />
     </div>
   );

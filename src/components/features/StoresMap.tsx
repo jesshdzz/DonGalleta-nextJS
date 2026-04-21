@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock, Phone, Star } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useSession } from "next-auth/react";
+import { toggleFavoriteStore } from "@/actions/favorite-store-actions";
+import { toast } from "sonner";
 
 interface Store {
   id: string;
@@ -17,6 +20,7 @@ interface Store {
 
 interface StoresMapProps {
   stores: Store[];
+  initialFavoriteIds?: string[];
 }
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
@@ -24,8 +28,11 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 // Centro aproximado de México como fallback
 const DEFAULT_CENTER = { latitude: 23.6345, longitude: -102.5528, zoom: 5 };
 
-export function StoresMap({ stores }: StoresMapProps) {
+export function StoresMap({ stores, initialFavoriteIds = [] }: StoresMapProps) {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set(initialFavoriteIds));
+  const [isLoadingFav, setIsLoadingFav] = useState(false);
+  const { data: session } = useSession();
 
   // Calcular centro del mapa a partir de las tiendas disponibles
   const initialCenter =
@@ -39,8 +46,30 @@ export function StoresMap({ stores }: StoresMapProps) {
 
   if (stores.length === 0) return null;
 
+  const handleToggleFavorite = async (storeId: string) => {
+    if (!session) {
+      toast.error("Debes iniciar sesión para guardar favoritos");
+      return;
+    }
+    
+    setIsLoadingFav(true);
+    const res = await toggleFavoriteStore(storeId);
+    if (res.success) {
+      setFavoriteIds(prev => {
+        const next = new Set(prev);
+        if (res.isFavorite) next.add(storeId);
+        else next.delete(storeId);
+        return next;
+      });
+      toast.success(res.isFavorite ? "Sucursal agregada a favoritas" : "Sucursal eliminada de favoritas");
+    } else {
+      toast.error(res.error || "Ocurrió un error");
+    }
+    setIsLoadingFav(false);
+  };
+
   return (
-    <section className="w-full py-12 px-4">
+    <section id="mapa-sucursales" className="w-full py-12 px-4 scroll-mt-20">
       <div className="max-w-7xl mx-auto">
         {/* Encabezado */}
         <div className="text-center mb-8">
@@ -53,24 +82,6 @@ export function StoresMap({ stores }: StoresMapProps) {
         </div>
 
         {/* Mapa */}
-        <style>{`
-          .mapboxgl-popup-close-button {
-            font-size: 18px;
-            line-height: 1;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #58321D;
-            border-radius: 9999px;
-            margin: 4px;
-          }
-          .mapboxgl-popup-close-button:hover {
-            background-color: #F7DCBE;
-            color: #58321D;
-          }
-        `}</style>
         <div className="rounded-2xl overflow-hidden shadow-lg border border-[#A6A3A2]/30"
              style={{ height: "480px" }}>
           <Map
@@ -90,7 +101,7 @@ export function StoresMap({ stores }: StoresMapProps) {
                 anchor="bottom"
                 onClick={(e) => {
                   e.originalEvent.stopPropagation();
-                  setSelectedStore(store);
+                  setSelectedStore(selectedStore?.id === store.id ? null : store);
                 }}
               >
                 {/* Marcador personalizado */}
@@ -114,12 +125,23 @@ export function StoresMap({ stores }: StoresMapProps) {
                 offset={42}
                 onClose={() => setSelectedStore(null)}
                 closeOnClick={false}
+                closeButton={false}
                 maxWidth="280px"
               >
                 <div className="p-1 space-y-2">
-                  <h3 className="font-serif font-bold text-[#58321D] text-base leading-tight">
-                    {selectedStore.name}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-serif font-bold text-[#58321D] text-base leading-tight">
+                      {selectedStore.name}
+                    </h3>
+                    <button
+                      onClick={() => handleToggleFavorite(selectedStore.id)}
+                      disabled={isLoadingFav}
+                      className={`shrink-0 transition-colors ${favoriteIds.has(selectedStore.id) ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                      title={favoriteIds.has(selectedStore.id) ? "Quitar de favoritas" : "Agregar a favoritas"}
+                    >
+                      <Star className={`h-5 w-5 ${favoriteIds.has(selectedStore.id) ? 'fill-current' : ''}`} />
+                    </button>
+                  </div>
                   <div className="flex items-start gap-1.5 text-sm text-gray-600">
                     <MapPin className="h-3.5 w-3.5 text-[#58321D] mt-0.5 shrink-0" />
                     <span>{selectedStore.address}</span>

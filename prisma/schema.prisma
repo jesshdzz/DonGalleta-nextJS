@@ -50,8 +50,9 @@ model User {
   orders        Order[]
   reviews       Review[]
   sessions      Session[]
-  resetTokens   PasswordResetToken[]
-  waitingList   WaitingList[]
+  resetTokens    PasswordResetToken[]
+  waitingList    WaitingList[]
+  favoriteStores FavoriteStore[]
 }
 
 model Product {
@@ -99,8 +100,11 @@ model Order {
   payment   Payment?
   couponId  String?
   coupon    Coupon?     @relation(fields: [couponId], references: [id])
+  storeId   String?
+  store     Store?      @relation(fields: [storeId], references: [id])
 
   @@index([userId], map: "Order_userId_fkey")
+  @@index([storeId])
 }
 
 model OrderItem {
@@ -183,16 +187,18 @@ model Favorite {
 }
 
 model Store {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  schedule  String?
-  latitude  Float
-  longitude Float
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  address        String
+  schedule       String?
+  latitude       Float
+  longitude      Float
+  phone          String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  favoriteStores FavoriteStore[]
+  orders         Order[]
 }
 
 model PasswordResetToken {
@@ -258,4 +264,17 @@ model WaitingList {
   @@unique([userId, productId])
   @@index([productId], map: "WaitingList_productId_fkey")
   @@index([userId], map: "WaitingList_userId_fkey")
+}
+
+model FavoriteStore {
+  id        String   @id @default(cuid())
+  userId    String
+  storeId   String
+  createdAt DateTime @default(now())
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storeId])
+  @@index([storeId])
+  @@index([userId])
 }
