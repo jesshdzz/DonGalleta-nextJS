@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 import { shouldHideLayout } from "@/lib/constants";
 import { Facebook, Instagram } from "lucide-react";
 
-// Estilos constantes fuera del componente para que no se re-creen en cada render
-const LINK_STYLES = "text-sm text-[#A6A3A2] hover:text-[#58321D] transition-colors duration-200";
-const ICON_STYLES = "text-[#C69A8F] hover:text-[#58321D] transition-colors duration-200";
+const LINK_STYLES =
+  "text-sm text-[#A6A3A2] hover:text-[#58321D] transition-colors duration-200";
+const ICON_STYLES =
+  "text-[#C69A8F] hover:text-[#58321D] transition-colors duration-200";
 
 function FooterComponent() {
   const pathname = usePathname();
@@ -16,37 +17,74 @@ function FooterComponent() {
   if (shouldHideLayout(pathname)) return null;
 
   return (
-    <footer className="w-full bg-white border-t border-[#A6A3A2] contain-intrinsic-size-[auto_300px]">
+    <footer
+      id="footer-section"
+      className="w-full bg-white scroll-mt-16 border-t border-[#A6A3A2] contain-intrinsic-size-[auto_300px]"
+    >
       <div className="container mx-auto px-4 py-12 md:px-6">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between md:items-start text-center md:text-left">
-          
           {/* Contacto */}
           <div className="flex-1">
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Contacto</h3>
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
+              Contacto
+            </h3>
             <ul className="space-y-2 flex flex-col">
-              <li><a href="mailto:hola@dongalleta.com" className={LINK_STYLES}>Email: hola@dongalleta.com</a></li>
-              <li className="text-sm text-[#A6A3A2]">Tel: +52 123 456 7890</li>
-              <li><Link href="/contacto" className={LINK_STYLES} prefetch={false}>Contacta con un administrador</Link></li>
+              <li>
+                <a href="mailto:hola@dongalleta.com" className={LINK_STYLES}>
+                  Email: hola@dongalleta.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+529515502806" className={LINK_STYLES}>
+                  Tel: +52 951 550 2806
+                </a>
+              </li>
+              <li>
+                <Link href="/contacto" className={LINK_STYLES} prefetch={false}>
+                  Contacta con un administrador
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Legal */}
           <div className="flex-1">
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Legal</h3>
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
+              Legal
+            </h3>
             <div className="flex flex-col gap-2">
-              <Link href="/terminos" className={LINK_STYLES}>Términos</Link>
-              <Link href="/privacidad" className={LINK_STYLES}>Privacidad</Link>
+              <Link href="/faq" className={LINK_STYLES}>
+                Preguntas Frecuentes
+              </Link>
+              <Link href="/terminos" className={LINK_STYLES}>
+                Términos
+              </Link>
+              <Link href="/privacidad" className={LINK_STYLES}>
+                Privacidad
+              </Link>
             </div>
           </div>
 
           {/* Redes */}
           <div className="flex-1 flex flex-col items-center md:items-start">
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">Síguenos</h3>
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-[#58321D]">
+              Síguenos
+            </h3>
             <div className="flex gap-6">
-              <a href="https://facebook.com/dongalleta.mx" target="_blank" rel="noopener noreferrer" className={ICON_STYLES}>
+              <a
+                href="https://facebook.com/dongalleta.mx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={ICON_STYLES}
+              >
                 <Facebook className="size-6" />
               </a>
-              <a href="https://instagram.com/dongalleta.mx" target="_blank" rel="noopener noreferrer" className={ICON_STYLES}>
+              <a
+                href="https://instagram.com/dongalleta.mx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={ICON_STYLES}
+              >
                 <Instagram className="size-6" />
               </a>
             </div>
@@ -65,5 +103,4 @@ function FooterComponent() {
   );
 }
 
-// Exportamos el componente memoizado
 export const Footer = memo(FooterComponent);

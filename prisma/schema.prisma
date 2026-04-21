@@ -6,7 +6,6 @@ datasource db {
   provider = "mysql"
 }
 
-// 2. Tablas para NextAuth
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -20,8 +19,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -37,74 +35,72 @@ model Session {
   @@index([userId])
 }
 
-// 3. Modelo de Usuario
 model User {
-  id            String    @id @default(cuid())
+  id            String               @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?              @unique
   emailVerified DateTime?
   image         String?
-  password      String? // Para credenciales (Hash)
-  role          Role      @default(USER) // Enum para roles
-
-  accounts Account[]
-  sessions Session[]
-  orders   Order[]
-  reviews  Review[]
-  cart     Cart? // Relación 1 a 1 con su carrito activo
+  phoneNumber   String?
+  password      String?
+  role          Role                 @default(USER)
+  accounts      Account[]
+  cart          Cart?
+  favorites     Favorite[]
+  orders        Order[]
+  reviews       Review[]
+  sessions      Session[]
+  resetTokens   PasswordResetToken[]
+  waitingList   WaitingList[]
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-// 4. Catálogo de Productos
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
-  description String? @db.Text
-  price       Decimal @db.Decimal(10, 2)
-  image       String? // URL de la imagen
-  stock       Int     @default(0)
-  slug        String  @unique // Para URLs amigables: /producto/galleta-chocolate
-  isActive    Boolean @default(true) // Soft Delete (en lugar de borrar)
-
-  flavors    ProductFlavor[]
-  orderItems OrderItem[]
-  cartItems  CartItem[]
-  reviews    Review[]
+  description String?         @db.Text
+  price       Decimal         @db.Decimal(10, 2)
+  image       String?
+  stock       Int             @default(0)
+  slug        String          @unique
+  isActive    Boolean         @default(true)
+  cartItems   CartItem[]
+  favorites   Favorite[]
+  orderItems  OrderItem[]
+  flavors     ProductFlavor[]
+  reviews     Review[]
+  waitingList WaitingList[]
 }
 
-// Tabla Pivote: Producto <-> Sabor
 model ProductFlavor {
   productId Int
   flavorId  Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   flavor    Flavor  @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@id([productId, flavorId]) // Clave compuesta
+  @@id([productId, flavorId])
+  @@index([flavorId], map: "ProductFlavor_flavorId_fkey")
 }
 
 model Flavor {
   id       Int             @id @default(autoincrement())
-  name     String          @unique
+  name     String
   products ProductFlavor[]
 }
 
-// 5. Sistema de Pedidos
 model Order {
-  id        String      @id @default(cuid()) // IDs seguros tipo 'clh...'
+  id        String      @id @default(cuid())
   userId    String
   total     Decimal     @db.Decimal(10, 2)
   status    OrderStatus @default(PENDING)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  payment   Payment?
+  couponId  String?
+  coupon    Coupon?     @relation(fields: [couponId], references: [id])
 
-  // Relaciones
-  user    User        @relation(fields: [userId], references: [id])
-  items   OrderItem[]
-  payment Payment?
+  @@index([userId], map: "Order_userId_fkey")
 }
 
 model OrderItem {
@@ -112,69 +108,56 @@ model OrderItem {
   orderId   String
   productId Int
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // Precio al momento de la compra (snapshot)
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
 }
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  CANCELLED
-}
-
-// 6. Carrito de Compras
 model Cart {
-  id        String   @id @default(cuid())
-  userId    String?  @unique // Opcional para soportar carritos de invitados
-  updatedAt DateTime @updatedAt
-
-  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items CartItem[]
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  updatedAt DateTime   @updatedAt
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
 }
 
 model CartItem {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   cartId    String
   productId Int
   quantity  Int
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([cartId, productId]) // Evita duplicados del mismo producto en un carrito
+  @@unique([cartId, productId])
+  @@index([productId], map: "CartItem_productId_fkey")
 }
 
-// 7. Extras (Pagos, Reseñas, Sucursales)
 model Payment {
   id            String        @id @default(cuid())
   orderId       String        @unique
   method        PaymentMethod
-  transactionId String? // ID de Stripe/PayPal
+  transactionId String?
   amount        Decimal       @db.Decimal(10, 2)
-  status        String // 'paid', 'failed'
-
-  order Order @relation(fields: [orderId], references: [id])
-}
-
-enum PaymentMethod {
-  PAYPAL
-  STRIPE
-  CASH
+  status        String
+  order         Order         @relation(fields: [orderId], references: [id])
 }
 
 model Review {
   id        String   @id @default(cuid())
   userId    String
   productId Int
-  rating    Int      @default(5) // 1-5 estrellas
+  rating    Int      @default(5)
   comment   String?  @db.Text
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  @@index([productId], map: "Review_productId_fkey")
+  @@index([userId], map: "Review_userId_fkey")
 }
 
 model Branch {
@@ -184,4 +167,95 @@ model Branch {
   lat     Decimal? @db.Decimal(10, 8)
   lng     Decimal? @db.Decimal(11, 8)
   phone   String?
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "Favorite_productId_fkey")
+  @@index([userId], map: "Favorite_userId_fkey")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  schedule  String?
+  latitude  Float
+  longitude Float
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  discountType    String   // "PERCENTAGE" o "FIXED"
+  discountValue   Decimal  @db.Decimal(10, 2)
+  expirationDate  DateTime
+  isActive        Boolean  @default(true)
+  usageLimit      Int?     
+  usedCount       Int      @default(0)
+  orders          Order[]
+  createdAt       DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PAYPAL
+  STRIPE
+  CASH
+}
+
+model Banner {
+  id          Int      @id @default(autoincrement())
+  title       String   
+  imageUrl    String   
+  targetUrl   String?  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WaitingList {
+  id        String   @id @default(cuid())
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "WaitingList_productId_fkey")
+  @@index([userId], map: "WaitingList_userId_fkey")
 }

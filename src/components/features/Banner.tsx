@@ -1,0 +1,140 @@
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export interface BannerItem {
+  id: number;
+  image: string;
+  alt: string;
+  targetUrl?: string | null;
+}
+
+interface BannerProps {
+  banners: BannerItem[];
+  autoPlayInterval?: number;
+}
+
+export default function Banner({
+  banners,
+  autoPlayInterval = 5000,
+}: BannerProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Función para avanzar (memoizada para no causar re-renders innecesarios)
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === banners.length - 1 ? 0 : prevIndex + 1,
+    );
+  }, [banners.length]);
+
+  // Función para retroceder
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? banners.length - 1 : prevIndex - 1,
+    );
+  };
+
+  // Función para ir a un slide específico desde los puntitos
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
+  // Efecto para el Autoplay
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const timer = setInterval(nextSlide, autoPlayInterval);
+    return () => clearInterval(timer);
+  }, [nextSlide, autoPlayInterval, banners.length]);
+
+  if (!banners || banners.length === 0) return null;
+
+  return (
+    <div className="relative w-full overflow-hidden group bg-secondary/20 rounded-lg">
+      
+      {/* 1. Contenedor de Imágenes */}
+      <div
+        className="flex transition-transform duration-500 ease-out h-[200px] sm:h-[300px] md:h-[400px] lg:h-[450px]"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {banners.map((banner, index) => {
+          const imageContent = (
+            <Image
+              src={banner.image}
+              alt={banner.alt}
+              fill
+              className="object-cover"
+              priority={index === 0}
+            />
+          );
+
+          return (
+            <div key={banner.id} className="relative w-full h-full shrink-0">
+              {banner.targetUrl ? (
+                <Link href={banner.targetUrl} className="block w-full h-full">
+                  {imageContent}
+                </Link>
+              ) : (
+                <div className="relative w-full h-full">
+                  {imageContent}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 2. Flecha Izquierda */}
+      {banners.length > 1 && (
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={prevSlide}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/60 hover:bg-background/90 text-foreground rounded-full shadow-sm transition-opacity duration-300 opacity-70 sm:opacity-0 sm:group-hover:opacity-100"
+          aria-label="Anterior banner"
+        >
+          <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
+        </Button>
+      )}
+
+      {/* 3. Flecha Derecha */}
+      {banners.length > 1 && (
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={nextSlide}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/60 hover:bg-background/90 text-foreground rounded-full shadow-sm transition-opacity duration-300 opacity-70 sm:opacity-0 sm:group-hover:opacity-100"
+          aria-label="Siguiente banner"
+        >
+          <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
+        </Button>
+      )}
+
+      {/* 4. Puntitos Inferiores (Dots)*/}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
+          <div className="flex items-center space-x-2 bg-background/20 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto shadow-sm">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.preventDefault();
+                  goToSlide(index);
+                }}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  currentIndex === index
+                    ? "bg-primary w-6"
+                    : "bg-primary/50 w-2.5 hover:bg-primary/80"
+                }`}
+                aria-label={`Ir al banner ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { upsertFlavor } from "@/actions/flavor-actions";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Loader2, Save, Plus } from "lucide-react";
 import {
@@ -24,8 +23,7 @@ interface FlavorFormProps {
     onClose?: () => void;
 }
 
-export const FlavorForm = ({ flavorToEdit, onClose }: FlavorFormProps) => {
-    const router = useRouter();
+const FlavorForm = ({ flavorToEdit, onClose }: FlavorFormProps) => {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FlavorFormValues>({

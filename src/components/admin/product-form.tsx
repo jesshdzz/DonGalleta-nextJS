@@ -13,6 +13,7 @@ import { upsertProduct } from "@/actions/product-actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Save } from "lucide-react";
+import { ImageUpload } from "./image-upload";
 
 // Recibimos un producto opcional por si estamos editando
 interface ProductFormProps {
@@ -27,7 +28,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
     // 1. Configuración del formulario
     // Usamos z.input<typeof productSchema> para que useForm acepte los valores "raw" (strings) antes de la coerción
     // y ProductFormValues para los valores transformados (números) que recibe handleSubmit
-    const form = useForm<z.input<typeof productSchema>, any, ProductFormValues>({
+    const form = useForm<z.input<typeof productSchema>, unknown, ProductFormValues>({
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: defaultValues?.name || "",
@@ -163,18 +164,20 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                     />
                 </div>
 
-                {/* Imagen (URL por ahora) */}
+                {/* Imagen (Uploadthing) */}
                 <FormField
                     control={form.control}
                     name="image"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL de Imagen</FormLabel>
+                            <FormLabel>Imagen del Producto</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://..." {...field} />
+                                <ImageUpload
+                                    value={field.value ?? ""}
+                                    onChange={(url) => field.onChange(url)}
+                                    onRemove={() => field.onChange("")}
+                                />
                             </FormControl>
-                            <FormDescription style={{ marginTop: "0" }}>Pega una URL de imagen externa para probar.</FormDescription>
-                            <FormMessage style={{ marginTop: "0" }} />
                         </FormItem>
                     )}
                 />
@@ -232,7 +235,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                             />
                         ))}
                         {availableFlavors.length === 0 && (
-                            <p className="text-sm text-muted-foreground col-span-3">No hay sabores registrados. Ve a "Sabores" para crear uno.</p>
+                            <p className="text-sm text-muted-foreground col-span-3">No hay sabores registrados. Ve a &quot;Sabores&quot; para crear uno.</p>
                         )}
                     </div>
                     <FormMessage />
