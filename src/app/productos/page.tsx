@@ -2,6 +2,7 @@ import ProductFilter from '@/components/ui/filters/ProductsFilter';
 import { getFilteredProducts } from '@/actions/product-actions';
 import { getFlavors } from '@/actions/flavor-actions';
 import { getUserFavoriteIds } from '@/actions/favorite-actions';
+import { getProductIdsWithActivePromotion } from '@/actions/pomotion-actions';
 import ProductoItem from '@/components/carro/ProductoItem';
 import { Cookie } from "lucide-react";
 import Link from "next/link";
@@ -23,10 +24,11 @@ export default async function ProductosPage({ searchParams }: Props) {
   const query = typeof queryParam === 'string' ? queryParam : "";
 
   // 3. Pasamos AMBOS filtros a la base de datos + consultamos favoritos
-  const [products, availableFlavors, { favoriteIds }] = await Promise.all([
-    getFilteredProducts({ flavors, query }), // <-- Pasamos el texto también
+  const [products, availableFlavors, { favoriteIds }, { hasGlobal: hasGlobalPromo, ids: promoProductIds }] = await Promise.all([
+    getFilteredProducts({ flavors, query }),
     getFlavors(),
-    getUserFavoriteIds() // <-- Obtenemos los favoritos del usuario
+    getUserFavoriteIds(),
+    getProductIdsWithActivePromotion(),
   ]);
 
   return (
@@ -65,6 +67,7 @@ export default async function ProductosPage({ searchParams }: Props) {
                   key={product.id}
                   product={product}
                   initialIsFavorite={favoriteIds.includes(product.id)}
+                  hasPromotion={hasGlobalPromo || promoProductIds.has(product.id)}
                 />
               ))}
             </div>

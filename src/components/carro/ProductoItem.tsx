@@ -19,9 +19,10 @@ interface Product {
 interface ProductoItemProps {
   product: Product;
   initialIsFavorite?: boolean;
+  hasPromotion?: boolean;
 }
 
-export default function ProductoItem({ product, initialIsFavorite = false }: ProductoItemProps) {
+export default function ProductoItem({ product, initialIsFavorite = false, hasPromotion = false }: ProductoItemProps) {
   // Lógica de imagen (placeholder)
   const imageUrl = product.image && product.image.trim() !== ""
     ? product.image
@@ -39,22 +40,32 @@ export default function ProductoItem({ product, initialIsFavorite = false }: Pro
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           priority={false}
         />
-        
+
         {/* Botón de favoritos */}
         <div className="absolute top-2 right-2">
-          <FavoriteButton 
+          <FavoriteButton
             productId={product.id}
             initialIsFavorite={initialIsFavorite}
             size="md"
             variant="ghost"
           />
         </div>
-        
-        {/* Badge flotante si es necesario (ej: Nuevo, Oferta, Poco stock) */}
+
+        {/* Badge flotante de Promoción */}
+        {hasPromotion && product.stock > 0 && (
+          <Badge
+            variant="destructive"
+            className="font-sans text-background absolute top-2 left-2 shadow-sm text-[10px] sm:text-sm px-1.5 py-0 sm:px-2.5 sm:py-0.5"
+          >
+            🏷️ Oferta
+          </Badge>
+        )}
+
+        {/* Badge flotante si es necesario (ej: Agotado) */}
         {product.stock === 0 && (
           <Badge
             variant="destructive"
-            className="absolute top-2 right-2 shadow-sm text-[10px] sm:text-xs px-1.5 py-0 sm:px-2.5 sm:py-0.5"
+            className="font-sans text-background absolute top-2 left-2 shadow-sm text-[10px] sm:text-sm px-1.5 py-0 sm:px-2.5 sm:py-0.5"
           >
             Agotado
           </Badge>
@@ -80,8 +91,8 @@ export default function ProductoItem({ product, initialIsFavorite = false }: Pro
       {/* Footer con Botón - Cambiamos el agresivo -mt-4 por el sutil -mt-2 */}
       <CardFooter className="p-3 sm:p-5 pt-0 sm:pt-0 -mt-2 sm:-mt-1">
         <Link href={`/productos/${product.id}`} className="w-full block">
-          <Button 
-            className="w-full font-bold shadow-sm h-9 sm:h-11 text-xs sm:text-base" 
+          <Button
+            className="w-full font-bold shadow-sm h-9 sm:h-11 text-xs sm:text-base"
             variant="secondary"
           >
             Ver Detalles
