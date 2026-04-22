@@ -2,8 +2,15 @@ import { PromotionForm } from "@/components/admin/promotion-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 export default async function NewPromoPage() {
+    const products = await prisma.product.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+    });
+
     return (
         <div className="container mx-auto py-10 px-10 max-w-3xl">
             <div className="mb-8">
@@ -18,10 +25,8 @@ export default async function NewPromoPage() {
                 </p>
             </div>
             <div className="bg-card border rounded-lg p-6 shadow-sm">
-                <PromotionForm />
+                <PromotionForm availableProducts={products} />
             </div>
-
-
         </div>
     );
 }
