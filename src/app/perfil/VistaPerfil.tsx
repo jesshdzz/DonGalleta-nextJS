@@ -192,7 +192,7 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
           </CardContent>
         </Card>
 
-        {/* TARJETA 2: Seguridad (Y ahora Teléfono) */}
+        {/* TARJETA 2: Seguridad */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl text-[#58321D] flex items-center gap-2">
@@ -205,17 +205,20 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4 flex-wrap">
 
-            {/* El botón de editar teléfono siempre se muestra */}
-            <EditPhoneModal userId={user.id!} currentPhone={user.phoneNumber || null} />
 
-            {/* Opciones de contraseña/email solo para usuarios no-OAuth */}
+
+            {/* Opciones de telefono/contraseña/email solo para usuarios no-OAuth */}
             {!isOAuthUser && (
               <>
+                <EditPhoneModal
+                  userId={user.id!}
+                  currentPhone={user.phoneNumber || null} />
                 <EditEmailModal
                   userId={user.id!}
                   currentEmail={user.email || ""}
                 />
-                <EditPasswordModal userId={user.id!} />
+                <EditPasswordModal
+                  userId={user.id!} />
               </>
             )}
           </CardContent>

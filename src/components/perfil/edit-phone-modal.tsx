@@ -64,7 +64,10 @@ export function EditPhoneModal({ userId, currentPhone }: EditPhoneModalProps) {
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto gap-2 border-[#A6A3A2]/40 text-[#58321D]">
+                <Button
+                    variant="outline"
+                    className="w-full sm:w-auto border-[#58321D] text-[#58321D] hover:bg-[#F7DCBE]/30"
+                >
                     <Phone className="h-4 w-4" />
                     {currentPhone ? "Actualizar Teléfono" : "Añadir Teléfono"}
                 </Button>
