@@ -31,10 +31,10 @@ export function StoresMap({ stores }: StoresMapProps) {
   const initialCenter =
     stores.length > 0
       ? {
-          latitude: stores.reduce((sum, s) => sum + s.latitude, 0) / stores.length,
-          longitude: stores.reduce((sum, s) => sum + s.longitude, 0) / stores.length,
-          zoom: stores.length === 1 ? 13 : 10,
-        }
+        latitude: stores.reduce((sum, s) => sum + s.latitude, 0) / stores.length,
+        longitude: stores.reduce((sum, s) => sum + s.longitude, 0) / stores.length,
+        zoom: stores.length === 1 ? 13 : 10,
+      }
       : DEFAULT_CENTER;
 
   if (stores.length === 0) return null;
@@ -43,13 +43,18 @@ export function StoresMap({ stores }: StoresMapProps) {
     <section className="w-full py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Encabezado */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif font-bold text-[#58321D] mb-2">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
+          <div className="space-y-2">
+            <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+            Encuéntranos
+          </div>
+          <h2 className="text-3xl tracking-tighter font-bold md:text-4xl text-primary">
             Nuestras Sucursales
           </h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="max-w-xl text-muted-foreground md:text-lg/relaxed">
             Encuéntranos en {stores.length} punto{stores.length > 1 ? "s" : ""} de venta
           </p>
+          </div>
         </div>
 
         {/* Mapa */}
@@ -72,7 +77,7 @@ export function StoresMap({ stores }: StoresMapProps) {
           }
         `}</style>
         <div className="rounded-2xl overflow-hidden shadow-lg border border-[#A6A3A2]/30"
-             style={{ height: "480px" }}>
+          style={{ height: "480px" }}>
           <Map
             mapboxAccessToken={MAPBOX_TOKEN}
             initialViewState={initialCenter}
