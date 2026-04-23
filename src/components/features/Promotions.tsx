@@ -41,7 +41,7 @@ export async function Promotions() {
     if (promotions.length === 0) return null;
 
     return (
-        <section className="w-full py-12 md:py-24 bg-secondary/20">
+        <section id="promociones" className="w-full py-12 md:py-24 bg-secondary/20">
             <div className="px-4 md:px-6 max-w-7xl mx-auto">
                 <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
                     <div className="space-y-2">
