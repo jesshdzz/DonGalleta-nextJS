@@ -1,7 +1,7 @@
 import { getAdminOrderById } from "@/actions/orders-actions";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Cookie } from "lucide-react";
+import { ArrowLeft, Cookie, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -136,6 +136,43 @@ export default async function AdminOrderDetailsPage({ params, }: { params: Promi
                             <OrderStatusForm id={order.id} status={order.status} />
                         </CardContent>
                     </Card>
+
+                    {/* Código de verificación */}
+                    {order.pickupCode && (() => {
+                        const isExpired = order.status === 'COMPLETED' || order.status === 'CANCELLED';
+                        const label = order.status === 'COMPLETED'
+                            ? 'Código utilizado'
+                            : order.status === 'CANCELLED'
+                                ? 'Pedido cancelado'
+                                : 'Código de recogida';
+                        const desc = order.status === 'COMPLETED'
+                            ? 'El código ya fue verificado al entregar el pedido.'
+                            : order.status === 'CANCELLED'
+                                ? 'El pedido fue cancelado, el código ya no es válido.'
+                                : 'El cliente debe mostrar este código al pasar por su pedido.';
+                        return (
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <ShieldCheck className={`h-5 w-5 ${isExpired ? 'text-primary/35' : 'text-primary'}`} />
+                                        <span className={isExpired ? 'text-primary/35' : ''}>{label}</span>
+                                    </CardTitle>
+                                    <CardDescription>{desc}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className={`rounded-xl border-2 py-4 flex flex-col items-center gap-1 ${isExpired
+                                        ? 'border-primary/15 bg-primary/[0.03]'
+                                        : 'border-primary/40 bg-primary/5'
+                                        }`}>
+                                        <p className={`font-mono font-extrabold tracking-[0.5em] text-4xl ${isExpired ? 'text-primary/25' : 'text-foreground'
+                                            }`}>
+                                            {order.pickupCode}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })()}
                 </div>
             </div>
         </div>

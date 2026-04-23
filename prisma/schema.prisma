@@ -101,6 +101,7 @@ model Order {
   couponId  String?
   coupon    Coupon?     @relation(fields: [couponId], references: [id])
   storeId   String?
+  pickupCode String?     @unique
   store     Store?      @relation(fields: [storeId], references: [id])
 
   @@index([userId], map: "Order_userId_fkey")
