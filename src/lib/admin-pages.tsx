@@ -1,4 +1,4 @@
-import { IceCream, ImageIcon, Package, ShoppingCart, Store, Users } from "lucide-react";
+import { IceCream, ImageIcon, Package, ShoppingCart, Store, Users, Tag } from "lucide-react";
 
 export const adminPages = [
     {
@@ -18,6 +18,12 @@ export const adminPages = [
         description: "Gestionar usuarios",
         href: "/admin/usuarios",
         icon: Users,
+    },
+    {
+        title: "Promociones",
+        description: "Descuentos y combos",
+        href: "/admin/promociones",
+        icon: Tag,
     },
     {
         title: "Sabores",

@@ -21,10 +21,13 @@ export async function ProductCarousel() {
             <div className="px-4 md:px-6">
                 <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
                     <div className="space-y-2">
+                        <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+                            Nuestros Productos
+                        </div>
                         <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-primary">
                             Productos Destacados
                         </h2>
-                        <p className="max-w-225 text-muted-foreground md:text-lg/relaxed lg:text-base/relaxed xl:text-lg/relaxed">
+                        <p className="max-w-xl text-muted-foreground md:text-lg/relaxed">
                             Nuestras creaciones favoritas, horneadas diariamente para ti.
                         </p>
                     </div>
