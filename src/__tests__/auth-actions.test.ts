@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerUser, requestPasswordReset, resetPassword } from '../actions/auth-actions';
+import { deleteAccount } from '../actions/user-actions';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
@@ -10,6 +11,7 @@ vi.mock('@/lib/prisma', () => ({
             findUnique: vi.fn(),
             create: vi.fn(),
             update: vi.fn(),
+            delete: vi.fn(),
         },
         passwordResetToken: {
             deleteMany: vi.fn(),
@@ -24,6 +26,7 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('bcryptjs', () => ({
     default: {
         hash: vi.fn(),
+        compare: vi.fn(),
     },
 }));
 
@@ -39,7 +42,15 @@ vi.mock('@react-email/render', () => ({
     render: vi.fn().mockResolvedValue('<html>email</html>'),
 }));
 
-describe('registerUser', () => {
+vi.mock('@/auth', () => ({
+    auth: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('next/cache', () => ({
+    revalidatePath: vi.fn(),
+}));
+
+describe('HU-12: Registro de usuarios', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         global.fetch = vi.fn().mockResolvedValue({
@@ -47,7 +58,7 @@ describe('registerUser', () => {
         } as never);
     });
 
-    it('debería retornar error para datos inválidos', async () => {
+    it('HU-12: debería retornar error para datos inválidos', async () => {
         const formData = new FormData();
         formData.append('cf-turnstile-response', 'valid-token');
         formData.append('email', 'not-an-email');
@@ -60,8 +71,12 @@ describe('registerUser', () => {
         expect(result.errors).toBeDefined();
     });
 
-    it('debería retornar error si el usuario ya existe', async () => {
-        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1', email: 'test@example.com' } as never);
+    it('HU-12: debería retornar emailConflict si el correo ya existe (cuenta con contraseña)', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: '1',
+            email: 'test@example.com',
+            password: 'hashed',
+        } as never);
 
         const formData = new FormData();
         formData.append('cf-turnstile-response', 'valid-token');
@@ -72,11 +87,31 @@ describe('registerUser', () => {
         const result = await registerUser(formData);
 
         expect(result.success).toBe(false);
-        expect(result.errors?.email).toContain('El correo electrónico ya está registrado');
+        expect(result.emailConflict).toBe('credentials');
         expect(prisma.user.create).not.toHaveBeenCalled();
     });
 
-    it('debería crear el usuario exitosamente', async () => {
+    it('HU-12: debería retornar emailConflict si el correo ya existe (cuenta Google sin contraseña)', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: '2',
+            email: 'google@example.com',
+            password: null,
+        } as never);
+
+        const formData = new FormData();
+        formData.append('cf-turnstile-response', 'valid-token');
+        formData.append('email', 'google@example.com');
+        formData.append('password', 'password123');
+        formData.append('name', 'Google User');
+
+        const result = await registerUser(formData);
+
+        expect(result.success).toBe(false);
+        expect(result.emailConflict).toBe('google');
+        expect(prisma.user.create).not.toHaveBeenCalled();
+    });
+
+    it('HU-12: debería crear el usuario exitosamente', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
         vi.mocked(bcrypt.hash).mockResolvedValueOnce('hashed-password' as never);
         vi.mocked(prisma.user.create).mockResolvedValueOnce({ id: '1' } as never);
@@ -101,7 +136,7 @@ describe('registerUser', () => {
         });
     });
 
-    it('debería manejar errores de base de datos', async () => {
+    it('HU-12: debería manejar errores de base de datos', async () => {
         vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
         vi.mocked(bcrypt.hash).mockResolvedValueOnce('hashed_pw' as never);
         vi.mocked(prisma.user.create).mockRejectedValueOnce(new Error('DB Error'));
@@ -244,3 +279,79 @@ describe('HU-14: Confirmar nueva contraseña con token', () => {
     });
 });
 
+
+describe('HU-27: Eliminar cuenta vinculada con Google', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('HU-27: debería retornar error si el usuario no existe', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
+
+        const result = await deleteAccount('user-inexistente');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBe('Usuario no encontrado.');
+        expect(prisma.user.delete).not.toHaveBeenCalled();
+    });
+
+    it('HU-27: debería eliminar la cuenta Google (sin contraseña) sin pedir contraseña', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: 'google-user',
+            email: 'google@example.com',
+            password: null,
+        } as never);
+        vi.mocked(prisma.user.delete).mockResolvedValueOnce({} as never);
+
+        const result = await deleteAccount('google-user');
+
+        expect(result.success).toBe(true);
+        expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'google-user' } });
+        expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+
+    it('HU-27: debería retornar error si usuario con contraseña no provee currentPassword', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: 'creds-user',
+            email: 'user@example.com',
+            password: 'hashed-password',
+        } as never);
+
+        const result = await deleteAccount('creds-user');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBe('Debes ingresar tu contraseña para continuar.');
+        expect(prisma.user.delete).not.toHaveBeenCalled();
+    });
+
+    it('HU-27: debería retornar error si la contraseña es incorrecta', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: 'creds-user',
+            email: 'user@example.com',
+            password: 'hashed-password',
+        } as never);
+        vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as never);
+
+        const result = await deleteAccount('creds-user', 'wrong-password');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBe('Contraseña incorrecta. No se eliminó la cuenta.');
+        expect(prisma.user.delete).not.toHaveBeenCalled();
+    });
+
+    it('HU-27: debería eliminar la cuenta Credentials cuando la contraseña es correcta', async () => {
+        vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+            id: 'creds-user',
+            email: 'user@example.com',
+            password: 'hashed-password',
+        } as never);
+        vi.mocked(bcrypt.compare).mockResolvedValueOnce(true as never);
+        vi.mocked(prisma.user.delete).mockResolvedValueOnce({} as never);
+
+        const result = await deleteAccount('creds-user', 'correct-password');
+
+        expect(result.success).toBe(true);
+        expect(bcrypt.compare).toHaveBeenCalledWith('correct-password', 'hashed-password');
+        expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'creds-user' } });
+    });
+});
