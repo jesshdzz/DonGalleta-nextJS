@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Store } from "@prisma/client";
 import { Store as StoreIcon, Star, MapPin, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,13 @@ export function StoreSelector({ selectedStoreId, onStoreSelect }: Props) {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [showAllStores, setShowAllStores] = useState(false);
+
+  const onStoreSelectRef = useRef(onStoreSelect);
+  const selectedStoreIdRef = useRef(selectedStoreId);
+  useEffect(() => {
+    onStoreSelectRef.current = onStoreSelect;
+    selectedStoreIdRef.current = selectedStoreId;
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,9 +55,9 @@ export function StoreSelector({ selectedStoreId, onStoreSelect }: Props) {
         setStores(activeStores);
 
         // Auto-seleccionar la primera sucursal favorita (o la primera disponible)
-        if (!selectedStoreId && activeStores.length > 0) {
+        if (!selectedStoreIdRef.current && activeStores.length > 0) {
           const firstFav = activeStores.find(s => favSet.has(s.id));
-          setTimeout(() => onStoreSelect((firstFav ?? activeStores[0]).id), 0);
+          setTimeout(() => onStoreSelectRef.current((firstFav ?? activeStores[0]).id), 0);
         }
       } catch (error) {
         console.error("Error cargando sucursales:", error);
