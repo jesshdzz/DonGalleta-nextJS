@@ -36,23 +36,25 @@ model Session {
 }
 
 model User {
-  id            String               @id @default(cuid())
-  name          String?
-  email         String?              @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role                 @default(USER)
-  phoneNumber   String?
-  accounts      Account[]
-  cart          Cart?
-  favorites     Favorite[]
-  favoriteStores FavoriteStore[]
-  orders        Order[]
-  resetTokens   PasswordResetToken[]
-  reviews       Review[]
-  sessions      Session[]
-  waitingList   WaitingList[]
+  id              String               @id @default(cuid())
+  name            String?
+  email           String?              @unique
+  emailVerified   DateTime?
+  image           String?
+  loyaltyProgress Float?               @default(0.0)
+  password        String?
+  role            Role                 @default(USER)
+  phoneNumber     String?
+  accounts        Account[]
+  cart            Cart?
+  favorites       Favorite[]
+  favoriteStores  FavoriteStore[]
+  orders          Order[]
+  resetTokens     PasswordResetToken[]
+  reviews         Review[]
+  sessions        Session[]
+  waitingList     WaitingList[]
+  coupons         Coupon[]
 }
 
 model Product {
@@ -100,7 +102,7 @@ model Order {
   storeId    String?
   pickupCode String?     @unique
   coupon     Coupon?     @relation(fields: [couponId], references: [id])
-  Store      Store?      @relation(fields: [storeId], references: [id])
+  store      Store?      @relation(fields: [storeId], references: [id])
   user       User        @relation(fields: [userId], references: [id])
   items      OrderItem[]
   payment    Payment?
@@ -190,16 +192,16 @@ model Favorite {
 }
 
 model Store {
-  id            String          @id @default(cuid())
-  name          String
-  address       String
-  schedule      String?
-  latitude      Float
-  longitude     Float
-  phone         String?
-  isActive      Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  address        String
+  schedule       String?
+  latitude       Float
+  longitude      Float
+  phone          String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   favoriteStores FavoriteStore[]
   orders         Order[]
 }
@@ -225,7 +227,11 @@ model Coupon {
   usageLimit     Int?
   usedCount      Int      @default(0)
   createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders         Order[]
+
+  @@index([userId])
 }
 
 model Banner {
@@ -282,7 +288,7 @@ model PromotionProduct {
 }
 
 model FavoriteStore {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   storeId   String
   createdAt DateTime @default(now())
