@@ -14,7 +14,23 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { validateCoupon } from "@/actions/coupon-actions";
 
-export default function CartPageClient() {
+type DiscountType = "PERCENTAGE" | "FIXED" | "BUY_X_GET_Y";
+
+interface Promotion {
+  id: number;
+  name: string;
+  type: DiscountType;
+  value: number;
+  minOrderAmount: number | null;
+  buyQuantity: number | null;
+  getQuantity: number | null;
+}
+
+interface CartPageClientProps {
+  promotions: Promotion[];
+}
+
+export default function CartPageClient({ promotions }: CartPageClientProps) {
   const router = useRouter();
   const { status } = useSession();
 
