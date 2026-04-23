@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { getAllPromotions } from '@/actions/pomotion-actions';
+import { getAllPromotions } from '@/actions/promotion-actions';
+import { PromotionDeleteButton } from '@/components/admin/promotion-delete-button';
 
 const TYPE_MAP = {
     PERCENTAGE: "Porcentaje",
@@ -84,7 +85,7 @@ export default async function PromocionesPage() {
                                     </Link>
 
                                     {/* Botón Eliminar con Confirmación */}
-                                    {/* <PromotionDeleteButton promotionId={promotion.id} /> */}
+                                    <PromotionDeleteButton promotionId={promotion.id} />
                                 </TableCell>
                             </TableRow>
                         ))}
