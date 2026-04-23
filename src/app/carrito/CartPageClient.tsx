@@ -133,9 +133,19 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
 
         <div className="lg:col-span-8 space-y-6">
           <div className="space-y-4">
-            {cart.map((item) => (
-              <CartItemRow key={item.productId} item={item} />
-            ))}
+            {cart.map((item) => {
+              const applicablePromos = promotions.filter(p =>
+                p.applicableProductIds.length === 0 || p.applicableProductIds.includes(item.productId)
+              );
+              return (
+                <CartItemRow
+                  key={item.productId}
+                  item={item}
+                  applicablePromotions={applicablePromos}
+                  cartTotal={totalPrice}
+                />
+              );
+            })}
           </div>
 
           <div className="flex justify-end pt-2">
