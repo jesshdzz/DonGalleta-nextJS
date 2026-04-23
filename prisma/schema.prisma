@@ -36,23 +36,25 @@ model Session {
 }
 
 model User {
-  id            String               @id @default(cuid())
-  name          String?
-  email         String?              @unique
-  emailVerified DateTime?
-  image         String?
-  phoneNumber   String?
-  password      String?
-  role          Role                 @default(USER)
-  accounts      Account[]
-  cart          Cart?
-  favorites     Favorite[]
-  orders        Order[]
-  reviews       Review[]
-  sessions      Session[]
-  resetTokens    PasswordResetToken[]
-  waitingList    WaitingList[]
+  id             String               @id @default(cuid())
+  name           String?
+  email          String?              @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  role           Role                 @default(USER)
+  phoneNumber    String?
+  loyaltyProgress Float?              @default(0.0)
+  accounts       Account[]
+  cart           Cart?
+  favorites      Favorite[]
   favoriteStores FavoriteStore[]
+  orders         Order[]
+  resetTokens    PasswordResetToken[]
+  reviews        Review[]
+  sessions       Session[]
+  waitingList    WaitingList[]
+  coupons        Coupon[]
 }
 
 model Product {
@@ -89,22 +91,24 @@ model Flavor {
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  userId    String
-  total     Decimal     @db.Decimal(10, 2)
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  user      User        @relation(fields: [userId], references: [id])
-  items     OrderItem[]
-  payment   Payment?
-  couponId  String?
-  coupon    Coupon?     @relation(fields: [couponId], references: [id])
-  storeId   String?
-  store     Store?      @relation(fields: [storeId], references: [id])
+  id         String      @id @default(cuid())
+  userId     String
+  total      Decimal     @db.Decimal(10, 2)
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  couponId   String?
+  storeId    String?
+  pickupCode String?     @unique
+  coupon     Coupon?     @relation(fields: [couponId], references: [id])
+  store      Store?      @relation(fields: [storeId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
+  items      OrderItem[]
+  payment    Payment?
 
   @@index([userId], map: "Order_userId_fkey")
   @@index([storeId])
+  @@index([couponId], map: "Order_couponId_fkey")
 }
 
 model OrderItem {
@@ -213,44 +217,30 @@ model PasswordResetToken {
 }
 
 model Coupon {
-  id              String   @id @default(cuid())
-  code            String   @unique
-  discountType    String   // "PERCENTAGE" o "FIXED"
-  discountValue   Decimal  @db.Decimal(10, 2)
-  expirationDate  DateTime
-  isActive        Boolean  @default(true)
-  usageLimit      Int?     
-  usedCount       Int      @default(0)
-  orders          Order[]
-  createdAt       DateTime @default(now())
-}
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String
+  discountValue  Decimal  @db.Decimal(10, 2)
+  expirationDate DateTime
+  isActive       Boolean  @default(true)
+  usageLimit     Int?
+  usedCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders         Order[]
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  CANCELLED
-}
-
-enum PaymentMethod {
-  PAYPAL
-  STRIPE
-  CASH
+  @@index([userId])
 }
 
 model Banner {
-  id          Int      @id @default(autoincrement())
-  title       String   
-  imageUrl    String   
-  targetUrl   String?  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  targetUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WaitingList {
@@ -277,4 +267,22 @@ model FavoriteStore {
   @@unique([userId, storeId])
   @@index([storeId])
   @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PAYPAL
+  STRIPE
+  CASH
 }
