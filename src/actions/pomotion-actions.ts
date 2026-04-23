@@ -111,6 +111,15 @@ export async function getProductIdsWithActivePromotion() {
     };
 }
 
+export async function getPromotionById(id: number) {
+    return await prisma.promotion.findUnique({
+        where: { id },
+        include: {
+            products: { include: { product: { select: { id: true, name: true } } } },
+        },
+    });
+}
+
 // ── Write operations ───────────────────────────────────────────────────────────
 
 export async function upsertPromotion(id: number | undefined, formData: FormData) {
