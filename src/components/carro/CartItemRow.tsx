@@ -132,22 +132,29 @@ export function CartItemRow({ item, applicablePromotions, cartTotal }: CartItemR
                             let Icon = AlertCircle;
                             if (promo.type === "PERCENTAGE") {
                                 const min = promo.minOrderAmount ?? 0;
-                                if (min > 0 && (cartTotal ?? 0) < min) {
-                                    const missing = (min - (cartTotal ?? 0)).toFixed(2);
+                                if (min > 0 && (item.price * item.quantity) < min) {
+                                    const missing = (min - (item.price * item.quantity)).toFixed(2);
                                     msg = `Agrega $${missing} más en tu pedido y obtén ${promo.value}% de descuento con "${promo.name}".`;
                                 } else {
                                     msg = `¡Aprovecha ${promo.value}% de descuento disponible con "${promo.name}"!`;
                                 }
                             } else if (promo.type === "FIXED") {
                                 const min = promo.minOrderAmount ?? 0;
-                                if (min > 0 && (cartTotal ?? 0) < min) {
-                                    const missing = (min - (cartTotal ?? 0)).toFixed(2);
+                                if (min > 0 && (item.price * item.quantity) < min) {
+                                    const missing = (min - (item.price * item.quantity)).toFixed(2);
                                     msg = `Agrega $${missing} más en tu pedido y obtén $${promo.value.toFixed(2)} de descuento con "${promo.name}".`;
                                 } else {
                                     msg = `¡Aprovecha $${promo.value.toFixed(2)} de descuento disponible con "${promo.name}"!`;
                                 }
                             } else if (promo.type === "BUY_X_GET_Y" && promo.buyQuantity && promo.getQuantity) {
-                                msg = `¡Compra ${promo.buyQuantity} y lleva ${promo.getQuantity} gratis con "${promo.name}"!`;
+                                const currentQuantity = item.quantity;
+                                const min = promo.minOrderAmount ?? 0;
+                                if (currentQuantity < promo.buyQuantity) {
+                                    const needed = promo.buyQuantity - currentQuantity;
+                                    msg = `Agrega ${needed} galleta(s) más y recibe ${promo.getQuantity} galleta(s) de regalo con "${promo.name}."`;
+                                } else {
+                                    msg = `¡Aprovecha la promo "${promo.name}"! Ya puedes llevar ${promo.getQuantity} de regalo.`;
+                                }
                             }
 
                             return msg ? (
