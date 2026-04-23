@@ -47,7 +47,7 @@ model User {
   accounts      Account[]
   cart          Cart?
   favorites     Favorite[]
-  FavoriteStore FavoriteStore[]
+  favoriteStores FavoriteStore[]
   orders        Order[]
   resetTokens   PasswordResetToken[]
   reviews       Review[]
@@ -200,8 +200,8 @@ model Store {
   isActive      Boolean         @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  FavoriteStore FavoriteStore[]
-  Order         Order[]
+  favoriteStores FavoriteStore[]
+  orders         Order[]
 }
 
 model PasswordResetToken {
@@ -255,11 +255,11 @@ model Promotion {
   id             Int                @id @default(autoincrement())
   name           String
   type           DiscountType
-  value          Decimal            @db.Decimal(10, 2) // PERCENTAGE: descuento en %. FIXED: descuento en $. BUY_X_GET_Y: sin uso (value=0)
-  minOrderAmount Decimal?           @db.Decimal(10, 2) // PERCENTAGE/FIXED: monto mínimo de compra para aplicar el descuento. BUY_X_GET_Y: sin uso
-  maxDiscountCap Decimal?           @db.Decimal(10, 2) // PERCENTAGE: tope máximo del descuento en $. Null = sin tope. BUY_X_GET_Y/FIXED: sin uso
-  buyQuantity    Int? // BUY_X_GET_Y: cantidad mínima de productos a comprar
-  getQuantity    Int? // BUY_X_GET_Y: cantidad de productos que se llevan gratis
+  value          Decimal            @db.Decimal(10, 2)
+  minOrderAmount Decimal?           @db.Decimal(10, 2)
+  maxDiscountCap Decimal?           @db.Decimal(10, 2)
+  buyQuantity    Int?
+  getQuantity    Int?
   startDate      DateTime
   expirationDate DateTime
   isActive       Boolean            @default(true)
@@ -286,8 +286,8 @@ model FavoriteStore {
   userId    String
   storeId   String
   createdAt DateTime @default(now())
-  Store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, storeId])
   @@index([storeId])
