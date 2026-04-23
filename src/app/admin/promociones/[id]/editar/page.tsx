@@ -1,4 +1,4 @@
-import { getPromotionById } from "@/actions/pomotion-actions";
+import { getPromotionById } from "@/actions/promotion-actions";
 import { getProducts } from "@/actions/product-actions";
 import { PromotionForm } from "@/components/admin/promotion-form";
 import { Button } from "@/components/ui/button";

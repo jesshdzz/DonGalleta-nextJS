@@ -15,7 +15,7 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Switch } from "../ui/switch";
-import { upsertPromotion } from "@/actions/pomotion-actions";
+import { upsertPromotion } from "@/actions/promotion-actions";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 const PROMOTION_TYPES = [

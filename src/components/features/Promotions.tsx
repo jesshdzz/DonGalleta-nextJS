@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gift, ArrowRight, BadgePercent, BadgeDollarSign } from "lucide-react";
-import { getActivePromotions } from "@/actions/pomotion-actions";
+import { getActivePromotions } from "@/actions/promotion-actions";
 import Link from "next/link";
 
 type DiscountType = "PERCENTAGE" | "FIXED" | "BUY_X_GET_Y";

@@ -2,7 +2,7 @@ import ProductFilter from '@/components/ui/filters/ProductsFilter';
 import { getFilteredProducts } from '@/actions/product-actions';
 import { getFlavors } from '@/actions/flavor-actions';
 import { getUserFavoriteIds } from '@/actions/favorite-actions';
-import { getProductIdsWithActivePromotion } from '@/actions/pomotion-actions';
+import { getProductIdsWithActivePromotion } from '@/actions/promotion-actions';
 import ProductoItem from '@/components/carro/ProductoItem';
 import { Cookie } from "lucide-react";
 import Link from "next/link";
