@@ -5,6 +5,7 @@ import { Store } from "@prisma/client";
 import { Store as StoreIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { getUserFavoriteStores } from "@/actions/favorite-store-actions";
 import { FavoriteStoreCard } from "./FavoriteStoreCard";
 
@@ -79,7 +80,7 @@ export function FavoriteStoreManager() {
               Añade direcciones favoritas aquí para seleccionarlas rápidamente en tus pedidos.
             </p>
             <Button variant="outline" asChild>
-              <a href="/#mapa-sucursales">Ver mapa de sucursales</a>
+              <Link href="/#mapa-sucursales">Ver mapa de sucursales</Link>
             </Button>
           </div>
         )}

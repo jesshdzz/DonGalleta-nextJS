@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle2, FileText, MessageCircle, Loader2, Package, Mail, ShieldCheck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -93,8 +92,8 @@ METODO: Stripe
 ----------------------------------------
 CANT / ART.          P.U.        TOTAL
 ----------------------------------------
-${ordenDb?.items?.map((item: any) => 
-  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(item.price * item.quantity).toFixed(2).padStart(6)}`
+${ordenDb?.items?.map((item: { quantity: number; price: number | string; product?: { name: string } | null }) => 
+  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(Number(item.price) * item.quantity).toFixed(2).padStart(6)}`
 ).join('\n')}
 
 ----------------------------------------
@@ -150,7 +149,7 @@ Mas productos en dongalleta.com`;
           orderNumber: ordenDb.id.slice(0, 8).toUpperCase(),
           customerName: ordenDb.user?.name || 'Cliente',
           customerEmail: email,
-          items: ordenDb.items?.map((item: any) => ({
+          items: ordenDb.items?.map((item: { quantity: number; price: number | string; product?: { name: string } | null }) => ({
             quantity: item.quantity,
             name: item.product?.name || 'Producto',
             price: Number(item.price)

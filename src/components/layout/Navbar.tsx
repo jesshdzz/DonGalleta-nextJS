@@ -144,19 +144,18 @@ export function Navbar({ user }: { user?: UserSession }) {
   };
 
   useEffect(() => {
-    if (searchQuery.length < 3) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-
     const timer = setTimeout(async () => {
+      if (searchQuery.length < 3) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
       const results = await searchProducts(searchQuery, 5);
       setSearchResults(results);
       setIsSearching(false);
-    }, 300);
+    }, searchQuery.length < 3 ? 0 : 300);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);

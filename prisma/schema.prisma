@@ -41,35 +41,36 @@ model User {
   email         String?              @unique
   emailVerified DateTime?
   image         String?
-  phoneNumber   String?
   password      String?
   role          Role                 @default(USER)
+  phoneNumber   String?
   accounts      Account[]
   cart          Cart?
   favorites     Favorite[]
+  favoriteStores FavoriteStore[]
   orders        Order[]
+  resetTokens   PasswordResetToken[]
   reviews       Review[]
   sessions      Session[]
-  resetTokens    PasswordResetToken[]
-  waitingList    WaitingList[]
-  favoriteStores FavoriteStore[]
+  waitingList   WaitingList[]
 }
 
 model Product {
-  id          Int             @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   name        String
-  description String?         @db.Text
-  price       Decimal         @db.Decimal(10, 2)
+  description String?            @db.Text
+  price       Decimal            @db.Decimal(10, 2)
   image       String?
-  stock       Int             @default(0)
-  slug        String          @unique
-  isActive    Boolean         @default(true)
+  stock       Int                @default(0)
+  slug        String             @unique
+  isActive    Boolean            @default(true)
   cartItems   CartItem[]
   favorites   Favorite[]
   orderItems  OrderItem[]
   flavors     ProductFlavor[]
   reviews     Review[]
   waitingList WaitingList[]
+  promotions  PromotionProduct[]
 }
 
 model ProductFlavor {
@@ -95,16 +96,17 @@ model Order {
   status    OrderStatus @default(PENDING)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  couponId  String?
+  storeId   String?
+  pickupCode String?     @unique
+  coupon    Coupon?     @relation(fields: [couponId], references: [id])
+  store     Store?      @relation(fields: [storeId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
   payment   Payment?
-  couponId  String?
-  coupon    Coupon?     @relation(fields: [couponId], references: [id])
-  storeId   String?
-  pickupCode String?     @unique
-  store     Store?      @relation(fields: [storeId], references: [id])
 
   @@index([userId], map: "Order_userId_fkey")
+  @@index([couponId], map: "Order_couponId_fkey")
   @@index([storeId])
 }
 
@@ -188,16 +190,16 @@ model Favorite {
 }
 
 model Store {
-  id             String          @id @default(cuid())
-  name           String
-  address        String
-  schedule       String?
-  latitude       Float
-  longitude      Float
-  phone          String?
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  name          String
+  address       String
+  schedule      String?
+  latitude      Float
+  longitude     Float
+  phone         String?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   favoriteStores FavoriteStore[]
   orders         Order[]
 }
@@ -214,16 +216,82 @@ model PasswordResetToken {
 }
 
 model Coupon {
-  id              String   @id @default(cuid())
-  code            String   @unique
-  discountType    String   // "PERCENTAGE" o "FIXED"
-  discountValue   Decimal  @db.Decimal(10, 2)
-  expirationDate  DateTime
-  isActive        Boolean  @default(true)
-  usageLimit      Int?     
-  usedCount       Int      @default(0)
-  orders          Order[]
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  code           String   @unique
+  discountType   String
+  discountValue  Decimal  @db.Decimal(10, 2)
+  expirationDate DateTime
+  isActive       Boolean  @default(true)
+  usageLimit     Int?
+  usedCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  orders         Order[]
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  targetUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WaitingList {
+  id        String   @id @default(cuid())
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "WaitingList_productId_fkey")
+  @@index([userId], map: "WaitingList_userId_fkey")
+}
+
+model Promotion {
+  id             Int                @id @default(autoincrement())
+  name           String
+  type           DiscountType
+  value          Decimal            @db.Decimal(10, 2)
+  minOrderAmount Decimal?           @db.Decimal(10, 2)
+  maxDiscountCap Decimal?           @db.Decimal(10, 2)
+  buyQuantity    Int?
+  getQuantity    Int?
+  startDate      DateTime
+  expirationDate DateTime
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  products       PromotionProduct[]
+
+  @@index([isActive])
+  @@index([type])
+}
+
+model PromotionProduct {
+  promotionId Int
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, productId])
+  @@index([productId])
+}
+
+model FavoriteStore {
+  id        String   @id
+  userId    String
+  storeId   String
+  createdAt DateTime @default(now())
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storeId])
+  @@index([storeId])
+  @@index([userId])
 }
 
 enum Role {
@@ -244,38 +312,8 @@ enum PaymentMethod {
   CASH
 }
 
-model Banner {
-  id          Int      @id @default(autoincrement())
-  title       String   
-  imageUrl    String   
-  targetUrl   String?  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model WaitingList {
-  id        String   @id @default(cuid())
-  userId    String
-  productId Int
-  createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-  @@index([productId], map: "WaitingList_productId_fkey")
-  @@index([userId], map: "WaitingList_userId_fkey")
-}
-
-model FavoriteStore {
-  id        String   @id @default(cuid())
-  userId    String
-  storeId   String
-  createdAt DateTime @default(now())
-  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, storeId])
-  @@index([storeId])
-  @@index([userId])
+enum DiscountType {
+  BUY_X_GET_Y
+  PERCENTAGE
+  FIXED
 }
