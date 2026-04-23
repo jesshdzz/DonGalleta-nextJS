@@ -123,7 +123,7 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
           Tu Carrito <span className="text-xl font-sans font-normal text-muted-foreground">({cart.length} productos)</span>
         </h1>
         <Link href="/#promociones" className="mb-6">
-          <Button variant="outline" size="sm" className="gap-2 text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 transition-colors">
+          <Button variant="outline" size="sm" className="gap-2 bg-accent border-accent hover:border-accent hover:bg-accent/70">
             <Ticket className="w-4 h-4" /> Ver todas las promociones
           </Button>
         </Link>
