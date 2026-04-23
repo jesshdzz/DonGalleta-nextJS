@@ -1,10 +1,14 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package, Pencil, Plus } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getAllPromotions } from '@/actions/pomotion-actions';
+
+const TYPE_MAP = {
+    PERCENTAGE: "Porcentaje",
+    FIXED: "Fijo",
+    BUY_X_GET_Y: "Compra X y llévate Y"
+}
 
 export default async function PromocionesPage() {
     const promotions = await getAllPromotions()
@@ -31,13 +35,12 @@ export default async function PromocionesPage() {
                             <TableHead>Nombre</TableHead>
                             <TableHead>Tipo</TableHead>
                             <TableHead>Valor</TableHead>
-                            <TableHead>Galletas</TableHead>
-                            <TableHead>Monto mínimo</TableHead>
+                            <TableHead>Monto mínimo de compra</TableHead>
                             <TableHead>Descuento máximo</TableHead>
+
                             <TableHead>Vigencia</TableHead>
                             <TableHead>Estado</TableHead>
-                            <TableHead>Creación</TableHead>
-                            <TableHead>Actualización</TableHead>
+                            <TableHead>Última modificación</TableHead>
                             <TableHead className='text-right'>Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -48,14 +51,16 @@ export default async function PromocionesPage() {
                                     {promotion.name}
                                 </TableCell>
                                 <TableCell>
-                                    {promotion.type}
+                                    {TYPE_MAP[promotion.type]}
                                 </TableCell>
                                 <TableCell>
-                                    ${Number(promotion.value).toFixed(2)}
+                                    {promotion.type === "PERCENTAGE" ? `${promotion.value}%` : (promotion.type === "FIXED" ? `$${promotion.value}` : 'N/A')}
                                 </TableCell>
-
                                 <TableCell>
-                                    ${Number(promotion.minAmount).toFixed(2)}
+                                    {promotion.minOrderAmount ? `$${Number(promotion.minOrderAmount).toFixed(2)}` : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                    {promotion.maxDiscountCap ? `$${Number(promotion.maxDiscountCap).toFixed(2)}` : 'N/A'}
                                 </TableCell>
                                 <TableCell>
                                     {promotion.startDate.toISOString().split('T')[0]} - {promotion.expirationDate.toISOString().split('T')[0]}
@@ -68,11 +73,7 @@ export default async function PromocionesPage() {
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    {promotion.isActive ? (
-                                        <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">Activo</span>
-                                    ) : (
-                                        <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-500/10">Inactivo</span>
-                                    )}
+                                    {promotion.updatedAt.toISOString().split('T')[0]}
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
                                     {/* Botón Editar */}
