@@ -24,6 +24,7 @@ interface Promotion {
   minOrderAmount: number | null;
   buyQuantity: number | null;
   getQuantity: number | null;
+  applicableProductIds: number[];
 }
 
 interface CartPageClientProps {
@@ -117,9 +118,16 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
         </Link>
       </div>
 
-      <h1 className="text-4xl font-serif font-bold text-primary mb-8 flex items-center gap-3">
-        Tu Carrito <span className="text-xl font-sans font-normal text-muted-foreground">({cart.length} productos)</span>
-      </h1>
+      <div className="flex flex-row items-center justify-between" >
+        <h1 className="text-4xl font-serif font-bold text-primary mb-8 flex items-end gap-3">
+          Tu Carrito <span className="text-xl font-sans font-normal text-muted-foreground">({cart.length} productos)</span>
+        </h1>
+        <Link href="/#promociones" className="mb-6">
+          <Button variant="outline" size="sm" className="gap-2 text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 transition-colors">
+            <Ticket className="w-4 h-4" /> Ver todas las promociones
+          </Button>
+        </Link>
+      </div>
 
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
 

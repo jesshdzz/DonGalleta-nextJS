@@ -12,6 +12,7 @@ export default async function CartPage() {
         minOrderAmount: p.minOrderAmount,
         buyQuantity: p.buyQuantity,
         getQuantity: p.getQuantity,
+        applicableProductIds: p.products.map(pp => pp.product.id)
     }));
 
     return <CartPageClient promotions={promoData} />;
