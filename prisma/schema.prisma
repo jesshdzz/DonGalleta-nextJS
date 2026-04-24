@@ -56,7 +56,6 @@ model User {
   sessions        Session[]
   waitingList     WaitingList[]
   coupons         Coupon[]
-  invoiceData InvoiceData?
 }
 
 model Product {
