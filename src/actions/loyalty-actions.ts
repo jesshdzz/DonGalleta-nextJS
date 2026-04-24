@@ -38,8 +38,8 @@ export async function incrementarProgresoLealtad(
     let nuevoProgreso = Math.min(progresoAnterior + incremento, 100);
 
     // Detectar qué umbrales se cruzaron
-    const umbralesAlcanzados: number[] = [];
-    for (const umbral of [50, 75, 100]) {
+    const umbralesAlcanzados: (50 | 75 | 100)[] = [];
+    for (const umbral of [50, 75, 100] as const) {
       if (progresoAnterior < umbral && nuevoProgreso >= umbral) {
         umbralesAlcanzados.push(umbral);
       }
