@@ -92,14 +92,14 @@ model Flavor {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  total      Decimal     @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  couponId   String?
-  storeId    String?
+  id        String      @id @default(cuid())
+  userId    String
+  total     Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  couponId  String?
+  storeId   String?
   pickupCode String?     @unique
   coupon     Coupon?     @relation(fields: [couponId], references: [id])
   store      Store?      @relation(fields: [storeId], references: [id])
