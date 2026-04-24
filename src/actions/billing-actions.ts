@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
 
 export async function saveInvoiceData(userId: string, data: {
     rfc: string;
@@ -10,6 +11,11 @@ export async function saveInvoiceData(userId: string, data: {
     codigoPostal: string;
     usoCFDI: string;
 }) {
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId) {
+        return { success: false, error: "No autorizado." };
+    }
+
     try {
         await prisma.invoiceData.upsert({
             where: { userId },
@@ -26,6 +32,11 @@ export async function saveInvoiceData(userId: string, data: {
 }
 
 export async function requestOrderInvoice(orderId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "No autorizado." };
+    }
+
     try {
         const order = await prisma.order.findUnique({
             where: { id: orderId },
@@ -33,6 +44,11 @@ export async function requestOrderInvoice(orderId: string) {
         });
 
         if (!order) return { success: false, error: "Orden no encontrada." };
+        
+        if (order.userId !== session.user.id && session.user.role !== "ADMIN") {
+            return { success: false, error: "No autorizado para solicitar factura de esta orden." };
+        }
+
         if (!order.user?.invoiceData) {
             return { success: false, error: "Faltan datos fiscales. Regístralos en tu perfil primero." };
         }

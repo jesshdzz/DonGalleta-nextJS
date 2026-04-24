@@ -72,7 +72,7 @@ export function EditInvoiceModal({ userId, currentData }: EditInvoiceModalProps)
                     {currentData ? "Actualizar Datos Fiscales" : "Registrar Datos Fiscales"}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle className="text-[#58321D]">Datos de Facturación</DialogTitle>
                     <DialogDescription>
