@@ -20,6 +20,7 @@ export default async function PerfilPage() {
       image: true,
       password: true,
       phoneNumber: true,
+      invoiceData: true,
     },
   });
 
