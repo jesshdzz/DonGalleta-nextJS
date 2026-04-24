@@ -148,12 +148,21 @@ export function CartItemRow({ item, applicablePromotions, cartTotal }: CartItemR
                                 }
                             } else if (promo.type === "BUY_X_GET_Y" && promo.buyQuantity && promo.getQuantity) {
                                 const currentQuantity = item.quantity;
-                                const min = promo.minOrderAmount ?? 0;
-                                if (currentQuantity < promo.buyQuantity) {
-                                    const needed = promo.buyQuantity - currentQuantity;
-                                    msg = `Agrega ${needed} galleta(s) más y recibe ${promo.getQuantity} galleta(s) de regalo con "${promo.name}."`;
+                                const groupSize = promo.buyQuantity;
+                                const remainder = currentQuantity % groupSize;
+                                
+                                if (remainder > 0) {
+                                    const needed = groupSize - remainder;
+                                    const groups = Math.floor(currentQuantity / groupSize);
+                                    
+                                    if (groups === 0) {
+                                        msg = `Lleva ${needed} galleta(s) más y recibe ${promo.getQuantity} de regalo con "${promo.name}".`;
+                                    } else {
+                                        msg = `Lleva ${needed} galleta(s) más para tu siguiente grupo de ${promo.getQuantity} de regalo con "${promo.name}".`;
+                                    }
                                 } else {
-                                    msg = `¡Aprovecha la promo "${promo.name}"! Ya puedes llevar ${promo.getQuantity} de regalo.`;
+                                    const groups = currentQuantity / groupSize;
+                                    msg = `¡Aprovechando la promo "${promo.name}"! Tienes ${groups * promo.getQuantity} de regalo.`;
                                 }
                             }
 
