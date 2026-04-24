@@ -37,7 +37,7 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
 
   const {
     cart, clearCart, totalItems, totalPrice,
-    discountedPrice, appliedCoupon, applyCoupon, refreshCartStock
+    discountedPrice, appliedCoupon, applyCoupon, refreshCartStock, promoDiscount
   } = useCart();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -173,6 +173,12 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                       <span className="text-muted-foreground">Subtotal ({totalItems} items)</span>
                       <span className="font-medium">${totalPrice.toFixed(2)}</span>
                     </div>
+                    {promoDiscount > 0 && (
+                      <div className="flex justify-between text-base text-amber-600 font-medium">
+                        <span>Promociones aplicadas</span>
+                        <span>-${promoDiscount.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-base">
                       <span className="text-muted-foreground">Envío</span>
                       <span className="text-green-600 font-bold">Gratis</span>
@@ -183,7 +189,7 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                         <div>
                           <span className="block text-sm font-bold text-green-700">Cupón: {appliedCoupon.code}</span>
                           <span className="block text-xs text-green-600">
-                            Descuento: -${(totalPrice - discountedPrice).toFixed(2)}
+                            Descuento: -${(totalPrice - discountedPrice - promoDiscount).toFixed(2)}
                           </span>
                         </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => applyCoupon(null)}>

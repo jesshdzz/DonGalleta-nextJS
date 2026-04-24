@@ -4,6 +4,8 @@ import { checkStock, checkout as checkoutAction } from "@/actions/cart-actions";
 import { getCart, syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { getActivePromotions } from "@/actions/promotion-actions";
+import { calculatePromotionsDiscount, Promotion } from "@/lib/calculate-promotions";
 
 interface Product {
   id: number;
@@ -42,6 +44,7 @@ interface CartContextType {
   appliedCoupon: Coupon | null;
   applyCoupon: (coupon: Coupon | null) => void;
   checkout: () => Promise<{ success: boolean; message?: string; isAuthError?: boolean }>;
+  promoDiscount: number;
 }
 
 const CART_STORAGE_VERSION = 1;
@@ -53,9 +56,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   // SEGURO ANTI-RECARGA: Evita que la DB reescriba un carrito recién vaciado
   const cartClearedRef = useRef(false);
+
+  useEffect(() => {
+    getActivePromotions().then(promos => {
+      const formattedPromos = promos.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        type: p.type,
+        value: p.value,
+        minOrderAmount: p.minOrderAmount,
+        buyQuantity: p.buyQuantity,
+        getQuantity: p.getQuantity,
+        applicableProductIds: p.products?.map((pp: any) => pp.product?.id) || []
+      }));
+      setPromotions(formattedPromos as Promotion[]);
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     try {
@@ -210,17 +230,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = validCartItems.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = validCartItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
-  const discountAmount = appliedCoupon
+  const promoDiscount = calculatePromotionsDiscount(validCartItems, promotions);
+
+  // Aplicar cupón sobre el total o sobre el total después de promociones?
+  // Normalmente los cupones aplican sobre el subtotal original o después. Hagámoslo sobre el precio total.
+  const couponDiscountAmount = appliedCoupon
     ? (appliedCoupon.discountType === 'PERCENTAGE'
       ? (totalPrice * (appliedCoupon.discountValue / 100))
       : appliedCoupon.discountValue)
     : 0;
+    
+  const discountAmount = promoDiscount + couponDiscountAmount;
   const discountedPrice = Math.max(0, totalPrice - discountAmount);
 
   return (
     <CartContext.Provider value={{
       cart, addToCart, removeFromCart, updateQuantity, clearCart, logoutClearCart, refreshCartStock,
-      totalItems, totalPrice, discountedPrice, appliedCoupon, applyCoupon: setAppliedCoupon, checkout
+      totalItems, totalPrice, discountedPrice, appliedCoupon, applyCoupon: setAppliedCoupon, checkout,
+      promoDiscount
     }}>
       {children}
     </CartContext.Provider>
