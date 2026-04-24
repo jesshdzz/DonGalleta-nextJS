@@ -41,6 +41,7 @@ model User {
   email           String?              @unique
   emailVerified   DateTime?
   image           String?
+  invoiceData     InvoiceData?
   loyaltyProgress Float?               @default(0.0)
   password        String?
   role            Role                 @default(USER)
@@ -93,21 +94,21 @@ model Flavor {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  total      Decimal     @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  couponId   String?
-  storeId    String?
-  pickupCode String?     @unique
-  coupon     Coupon?     @relation(fields: [couponId], references: [id])
-  store      Store?      @relation(fields: [storeId], references: [id])
-  user       User        @relation(fields: [userId], references: [id])
-  items      OrderItem[]
-  payment    Payment?
-  invoiceRequested Boolean @default(false)
+  id               String      @id @default(cuid())
+  userId           String
+  total            Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(PENDING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  couponId         String?
+  storeId          String?
+  pickupCode       String?     @unique
+  invoiceRequested Boolean     @default(false)
+  coupon           Coupon?     @relation(fields: [couponId], references: [id])
+  store            Store?      @relation(fields: [storeId], references: [id])
+  user             User        @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+  payment          Payment?
 
   @@index([userId], map: "Order_userId_fkey")
   @@index([couponId], map: "Order_couponId_fkey")
@@ -259,19 +260,6 @@ model WaitingList {
   @@index([userId], map: "WaitingList_userId_fkey")
 }
 
-model InvoiceData {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rfc             String
-  razonSocial     String
-  regimenFiscal   String
-  codigoPostal    String
-  usoCFDI         String   @default("G03") // Gastos en general
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 model Promotion {
   id             Int                @id @default(autoincrement())
   name           String
@@ -313,6 +301,19 @@ model FavoriteStore {
   @@unique([userId, storeId])
   @@index([storeId])
   @@index([userId])
+}
+
+model InvoiceData {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rfc           String
+  razonSocial   String
+  regimenFiscal String
+  codigoPostal  String
+  usoCFDI       String   @default("G03") // Gastos en general
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum Role {

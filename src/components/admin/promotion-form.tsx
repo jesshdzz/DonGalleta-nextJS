@@ -282,7 +282,7 @@ export const PromotionForm = ({ defaultValues, availableProducts = [] }: Promoti
                     <div className="rounded-lg border border-dashed p-5 space-y-5">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Info className="h-4 w-4" />
-                            <span>El cliente compra X unidades y recibe Y unidades adicionales gratis del mismo producto.</span>
+                            <span>Ejemplo "Lleva 12, Paga 10": El tamaño del grupo (X) es 12, y de esos, (Y) 2 son gratis.</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
                             <FormField
@@ -290,11 +290,11 @@ export const PromotionForm = ({ defaultValues, availableProducts = [] }: Promoti
                                 name={"buyQuantity" as keyof PromotionFormValues}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Compra (X unidades)*</FormLabel>
+                                        <FormLabel>Cantidad a llevar (X)*</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1" min="1" placeholder="2" {...field} value={(field.value as number | null) ?? ""} />
+                                            <Input type="number" step="1" min="1" placeholder="Ej. 12" {...field} value={(field.value as number | null) ?? ""} />
                                         </FormControl>
-                                        <FormDescription style={{ marginTop: "0" }}>Cantidad mínima a comprar</FormDescription>
+                                        <FormDescription style={{ marginTop: "0" }}>El total de unidades en el carrito</FormDescription>
                                         <FormMessage style={{ marginTop: "0" }} />
                                     </FormItem>
                                 )}
@@ -304,11 +304,11 @@ export const PromotionForm = ({ defaultValues, availableProducts = [] }: Promoti
                                 name={"getQuantity" as keyof PromotionFormValues}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Lleva gratis (Y unidades)*</FormLabel>
+                                        <FormLabel>Cantidad gratis (Y)*</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1" min="1" placeholder="1" {...field} value={(field.value as number | null) ?? ""} />
+                                            <Input type="number" step="1" min="1" placeholder="Ej. 2" {...field} value={(field.value as number | null) ?? ""} />
                                         </FormControl>
-                                        <FormDescription style={{ marginTop: "0" }}>Cantidad que se lleva gratis</FormDescription>
+                                        <FormDescription style={{ marginTop: "0" }}>Unidades descontadas del total (X)</FormDescription>
                                         <FormMessage style={{ marginTop: "0" }} />
                                     </FormItem>
                                 )}

@@ -13,6 +13,7 @@ import {
   Loader2,
   XCircle,
   AlertTriangle,
+  ShieldCheck,
   FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export type Order = {
   total: number;
   status: string;
   createdAt: string | Date;
+  pickupCode?: string | null;
   invoiceRequested: boolean;
   items: OrderItem[];
 };
@@ -271,7 +273,40 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-6">
+                <CardContent className="p-6 space-y-4">
+                  {/* Código de Recogida */}
+                  {pedido.pickupCode && (() => {
+                    const isExpired = pedido.status === 'COMPLETED' || pedido.status === 'CANCELLED';
+                    const label = pedido.status === 'COMPLETED'
+                      ? 'Código utilizado'
+                      : pedido.status === 'CANCELLED'
+                        ? 'Pedido cancelado'
+                        : 'Código de recogida';
+                    return (
+                      <div className={`rounded-xl border-2 p-4 flex flex-col items-center gap-2 text-center ${isExpired
+                        ? 'border-primary/15 bg-primary/3'
+                        : 'border-primary/30 bg-primary/5'
+                        }`}>
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className={`h-4 w-4 ${isExpired ? 'text-primary/35' : 'text-primary'}`} />
+                          <span className={`text-xs font-semibold uppercase tracking-widest ${isExpired ? 'text-primary/35' : 'text-primary'
+                            }`}>
+                            {label}
+                          </span>
+                        </div>
+                        <span className={`font-mono font-extrabold tracking-[0.4em] text-3xl ${isExpired ? 'text-primary/25' : 'text-foreground'
+                          }`}>
+                          {pedido.pickupCode}
+                        </span>
+                        {!isExpired && (
+                          <p className="text-xs text-muted-foreground">
+                            Muestra este código al recoger tu pedido en la sucursal
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   <div className="bg-secondary/5 rounded-lg p-4 border border-border">
                     <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">Resumen de artículos</h4>
                     <div className="space-y-2">

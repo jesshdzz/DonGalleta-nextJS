@@ -9,7 +9,8 @@ vi.mock('@/lib/prisma', () => ({
     user: { findUnique: vi.fn() },
     order: { 
       findFirst: vi.fn(),
-      create: vi.fn()
+      create: vi.fn(),
+      findUnique: vi.fn(),
     },
     product: { 
       update: vi.fn(),
@@ -68,7 +69,8 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             expect(mockPaymentIntentsCreate).toHaveBeenCalledWith(expect.objectContaining({
                 metadata: {
                     userId: "",
-                    productos: JSON.stringify([{ id: 1, cantidad: 2, precio: 100 }])
+                    productos: JSON.stringify([{ id: 1, cantidad: 2, precio: 100 }]),
+                    storeId: ""
                 }
             }));
         });
@@ -104,10 +106,16 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
 
         it('debe procesar el pago correctamente e invocar a pusher si los datos son válidos', async () => {
             vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
+            vi.mocked(prisma.order.findUnique).mockResolvedValue(null);
             
             const res = await processSuccessfulPayment('pi_123', 20000, metadataBase);
 
-            expect(prisma.order.create).toHaveBeenCalled();
+            expect(prisma.order.findUnique).toHaveBeenCalled();
+            expect(prisma.order.create).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({
+                    pickupCode: expect.any(String)
+                })
+            }));
             expect(prisma.product.update).toHaveBeenCalledWith({
                 where: { id: 1 },
                 data: { stock: { decrement: 2 } }
@@ -134,6 +142,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             const mockOrder = {
                 id: 'ord-123',
                 total: { toNumber: () => 200.50 },
+                pickupCode: 'XYZ789',
                 items: [
                     { price: { toNumber: () => 100 }, product: { price: { toNumber: () => 100 } } }
                 ]
@@ -144,6 +153,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             
             expect(result.success).toBe(true);
             expect(result.order?.total).toBe(200.50);
+            expect(result.order?.pickupCode).toBe('XYZ789');
             expect(result.order?.items[0].price).toBe(100);
         });
 
