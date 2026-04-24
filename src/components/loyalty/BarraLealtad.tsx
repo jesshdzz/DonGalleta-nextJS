@@ -18,9 +18,9 @@ export default function BarraLealtad() {
     setLoading(true);
     const resultado = await obtenerProgresoLealtad();
     if (resultado.success) {
-      setProgreso(resultado.progreso);
-      setSiguienteUmbral(resultado.siguienteUmbral);
-      setFaltan(resultado.faltan);
+      setProgreso(resultado.progreso ?? 0);
+      setSiguienteUmbral(resultado.siguienteUmbral ?? null);
+      setFaltan(resultado.faltan ?? 0);
     }
     setLoading(false);
   };

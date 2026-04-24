@@ -16,6 +16,9 @@ import doncookImg from "@/assets/images/doncook.png";
 import { FormularioPago } from "@/components/pago/Formulario";
 import { createPaymentIntent } from "@/actions/payment-actions";
 import { StoreSelector } from "@/components/pago/StoreSelector";
+import { SelectorCuponesLealtad } from "@/components/loyalty";
+import { validateCoupon } from "@/actions/coupon-actions";
+import { toast } from "sonner";
 
 // Inicializo la conexión con Stripe usando mi llave pública
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
@@ -25,6 +28,9 @@ export default function PagoPage() {
   const { totalPrice, cart } = useCart();
   const [clientSecret, setClientSecret] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [codigoCupon, setCodigoCupon] = useState("");
+  const [cuponAplicado, setCuponAplicado] = useState<{ code: string; discountType: "PERCENTAGE" | "FIXED"; discountValue: number; id: string } | null>(null);
+  const [totalConDescuento, setTotalConDescuento] = useState(totalPrice);
   const router = useRouter();
 
   // Pido el Client Secret a mi API en cuanto cargo la página y tengo un total válido
@@ -35,9 +41,50 @@ export default function PagoPage() {
     }
   }, [cart, router]);
 
+  // Aplicar cupón cuando se selecciona
+  const handleAplicarCupon = async (codigo: string) => {
+    if (!codigo) {
+      setCuponAplicado(null);
+      setTotalConDescuento(totalPrice);
+      setCodigoCupon("");
+      return;
+    }
+
+    const resultado = await validateCoupon(codigo);
+    
+    if (!resultado.success || !resultado.coupon) {
+      toast.error("Cupón inválido", { description: resultado.error || "No se pudo aplicar el cupón" });
+      return;
+    }
+
+    const cupon = resultado.coupon;
+    let descuento = 0;
+
+    if (cupon.discountType === "PERCENTAGE") {
+      descuento = totalPrice * (cupon.discountValue / 100);
+    } else {
+      descuento = cupon.discountValue;
+    }
+
+    const nuevoTotal = Math.max(totalPrice - descuento, 0);
+    
+    setCuponAplicado({
+      code: cupon.code,
+      discountType: cupon.discountType,
+      discountValue: cupon.discountValue,
+      id: cupon.id,
+    });
+    setTotalConDescuento(nuevoTotal);
+    setCodigoCupon(codigo);
+
+    toast.success("¡Cupón aplicado!", {
+      description: `Descuento de ${cupon.discountType === "PERCENTAGE" ? `${cupon.discountValue}%` : `$${cupon.discountValue} MXN`}`,
+    });
+  };
+
   useEffect(() => {
     if (totalPrice > 0 && selectedStoreId) {
-      createPaymentIntent(totalPrice, cart, selectedStoreId)
+      createPaymentIntent(totalConDescuento, cart, selectedStoreId, cuponAplicado?.id)
         .then((res) => {
           if (res.success && res.clientSecret) {
             setClientSecret(res.clientSecret);
@@ -47,7 +94,7 @@ export default function PagoPage() {
         })
         .catch((error) => console.error("Me falló la petición del client secret:", error));
     }
-  }, [totalPrice, cart, selectedStoreId]);
+  }, [totalConDescuento, cart, selectedStoreId, cuponAplicado?.id]);
 
   // Evitamos renderizar la página si el carrito está vacío
   if (cart.length === 0) return null; 
@@ -82,10 +129,29 @@ export default function PagoPage() {
                 onStoreSelect={setSelectedStoreId} 
               />
               
+              <div className="border-t border-border pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Cupones de Lealtad</h3>
+                <SelectorCuponesLealtad
+                  onSeleccionarCupon={handleAplicarCupon}
+                  cuponAplicado={codigoCupon}
+                />
+                
+                {cuponAplicado && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm font-medium text-green-800">
+                      Cupón <span className="font-bold">{cuponAplicado.code}</span> aplicado
+                    </p>
+                    <p className="text-lg font-bold text-green-900 mt-1">
+                      Total con descuento: ${totalConDescuento.toFixed(2)} MXN
+                    </p>
+                  </div>
+                )}
+              </div>
+              
               {clientSecret ? (
                 <div className="border-t border-border pt-6 mt-6">
                   <Elements stripe={stripePromise} options={{ clientSecret }}>
-                    <FormularioPago amount={totalPrice} />
+                    <FormularioPago amount={totalConDescuento} />
                   </Elements>
                 </div>
               ) : selectedStoreId ? (

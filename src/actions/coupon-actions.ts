@@ -25,6 +25,7 @@ export async function validateCoupon(code: string) {
         return {
             success: true,
             coupon: {
+                id: coupon.id,
                 code: coupon.code,
                 discountType: coupon.discountType as "PERCENTAGE" | "FIXED",
                 discountValue: Number(coupon.discountValue)
