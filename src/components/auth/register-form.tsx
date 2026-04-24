@@ -8,19 +8,24 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile'; // <-- Importamos Turnstile
+import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Schema de validación idéntico/compatible con el de servidor
+// Schema de validación
 const RegisterSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Ingresa un correo electrónico válido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-  confirmPassword: z.string().min(1, "Confirma tu contraseña"),
+  name: z.string().min(2, "El nombre es obligatorio y debe tener al menos 2 caracteres"),
+  email: z.string().email("Ingresa un correo electrónico válido (Obligatorio)"),
+  // Teléfono es opcional: permite estar vacío ('') o cumplir con el regex de números
+  phone: z.string()
+    .regex(/^[0-9]{10,15}$/, "Si agregas un teléfono, debe tener entre 10 y 15 dígitos")
+    .optional()
+    .or(z.literal('')),
+  password: z.string().min(6, "La contraseña es obligatoria (mínimo 6 caracteres)"),
+  confirmPassword: z.string().min(1, "Confirma tu contraseña (Obligatorio)"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
@@ -33,16 +38,21 @@ export const RegisterForm = () => {
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // mostrar/ocultar contraseñas
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Estado y Referencia para el Captcha
   const [captchaToken, setCaptchaToken] = useState<string>('');
   const turnstileRef = useRef<TurnstileInstance>(null);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: ''
+    }
   });
 
   const {
@@ -56,38 +66,38 @@ export const RegisterForm = () => {
     setServerError('');
     setSuccess('');
 
-    // Validación extra en el cliente para asegurar que resolvió el Captcha
     if (!captchaToken) {
       setServerError('Por favor, espera a que se complete la validación de seguridad.');
       return;
     }
 
     try {
-      // Creamos FormData para enviar al Server Action
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('email', data.email);
       formData.append('password', data.password);
-      formData.append('cf-turnstile-response', captchaToken); // <-- Agregamos el token manualmente
+      formData.append('cf-turnstile-response', captchaToken);
+
+      // Solo enviamos el teléfono si el usuario lo rellenó
+      if (data.phone) {
+        formData.append('phone', data.phone);
+      }
 
       const result = await registerUser(formData);
 
       if (result?.emailConflict) {
-        // Redirigir al login
-        const errorParam =
-          result.emailConflict === 'google' ? 'EmailRegistradoConGoogle' : 'EmailYaRegistrado';
+        const errorParam = result.emailConflict === 'google' ? 'EmailRegistradoConGoogle' : 'EmailYaRegistrado';
         router.push(`/auth/login?error=${errorParam}`);
         return;
       } else if (result?.errors) {
-        // Mapear errores de Zod del servidor
         if (result.errors.name) setError('name', { message: result.errors.name[0] });
         if (result.errors.email) setError('email', { message: result.errors.email[0] });
         if (result.errors.password) setError('password', { message: result.errors.password[0] });
-        turnstileRef.current?.reset(); // Reiniciamos captcha si falla
+        if (result.errors.phone) setError('phone', { message: result.errors.phone[0] });
+        turnstileRef.current?.reset();
       } else if (result?.message || result?.error) {
-        // Mapear errores generales (ej. Correo duplicado o fallo de Turnstile backend)
         setServerError(result.message || result.error || 'Error al procesar el registro');
-        turnstileRef.current?.reset(); // Reiniciamos captcha si falla
+        turnstileRef.current?.reset();
       } else if (result?.success) {
         setSuccess('¡Cuenta creada exitosamente!');
         setTimeout(() => {
@@ -114,7 +124,7 @@ export const RegisterForm = () => {
 
           {/* Nombre */}
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre Completo</Label>
+            <Label htmlFor="name">Nombre Completo <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               placeholder="Ej. Juan Pérez"
@@ -131,7 +141,7 @@ export const RegisterForm = () => {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
+            <Label htmlFor="email">Correo Electrónico <span className="text-destructive">*</span></Label>
             <Input
               id="email"
               placeholder="nombre@ejemplo.com"
@@ -146,9 +156,27 @@ export const RegisterForm = () => {
             )}
           </div>
 
-          {/* toggle show/hide */}
+          {/* Teléfono (Opcional) */}
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="phone">
+              Teléfono <span className="text-muted-foreground font-normal text-xs italic">(Opcional)</span>
+            </Label>
+            <Input
+              id="phone"
+              placeholder="Ej. 9531234567 (opcional)"
+              type="tel"
+              autoComplete="tel"
+              {...register('phone')}
+              disabled={isSubmitting}
+            />
+            {errors.phone && (
+              <p className="text-xs text-destructive font-medium mt-0">{errors.phone.message}</p>
+            )}
+          </div>
+
+          {/* Contraseña */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="password"
@@ -175,7 +203,7 @@ export const RegisterForm = () => {
 
           {/* Confirmar contraseña */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+            <Label htmlFor="confirmPassword">Confirmar Contraseña <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -205,7 +233,7 @@ export const RegisterForm = () => {
             <Turnstile
               ref={turnstileRef}
               siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-              onSuccess={(token) => setCaptchaToken(token)} // <-- Guardamos el token en el estado
+              onSuccess={(token) => setCaptchaToken(token)}
               options={{ theme: 'light', size: 'normal' }}
             />
           </div>
