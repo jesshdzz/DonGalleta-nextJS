@@ -15,6 +15,25 @@ const UMBRALES = {
 const RATIO_PROGRESO = 1; // 1% por cada peso
 
 /**
+ * Convierte un cupón de Prisma a un objeto plano serializable
+ */
+function serializarCupon(cupon: any) {
+  if (!cupon) return null;
+  return {
+    id: cupon.id,
+    code: cupon.code,
+    discountType: cupon.discountType,
+    discountValue: Number(cupon.discountValue),
+    expirationDate: cupon.expirationDate?.toISOString() || null,
+    isActive: cupon.isActive,
+    usageLimit: cupon.usageLimit,
+    usedCount: cupon.usedCount,
+    createdAt: cupon.createdAt?.toISOString() || null,
+    userId: cupon.userId,
+  };
+}
+
+/**
  * Incrementa el progreso de lealtad del usuario después de una compra
  * Genera cupones automáticamente al alcanzar umbrales
  */
@@ -54,9 +73,9 @@ export async function incrementarProgresoLealtad(
     // Generar cupones por umbrales alcanzados
     const cuponesGenerados = [];
     for (const umbral of umbralesAlcanzados) {
-      const cupon = await generarCuponPorUmbral(userId, umbral);
-      if (cupon.success) {
-        cuponesGenerados.push(cupon.coupon);
+      const resultado = await generarCuponPorUmbral(userId, umbral);
+      if (resultado.success && resultado.coupon) {
+        cuponesGenerados.push(resultado.coupon);
       }
     }
 
@@ -104,7 +123,7 @@ export async function generarCuponPorUmbral(userId: string, umbral: 50 | 75 | 10
       return {
         success: true,
         mensaje: "Cupón ya existe",
-        coupon: cuponExistente,
+        coupon: serializarCupon(cuponExistente),
       };
     }
 
@@ -132,7 +151,7 @@ export async function generarCuponPorUmbral(userId: string, umbral: 50 | 75 | 10
 
     return {
       success: true,
-      coupon: cupon,
+      coupon: serializarCupon(cupon),
       mensaje: `Cupón de ${config.descuento}% generado`,
     };
   } catch (error) {
@@ -209,11 +228,11 @@ export async function obtenerCuponesLealtadDisponibles() {
       },
     });
 
-    // Identificar qué umbrales están desbloqueados
+    // Identificar qué umbrales están desbloqueados y serializar
     const cuponesDisponibles = {
-      "10": cupones.find((c) => c.code.startsWith("LOYAL50-")) || null,
-      "20": cupones.find((c) => c.code.startsWith("LOYAL75-")) || null,
-      "40": cupones.find((c) => c.code.startsWith("LOYAL100-")) || null,
+      "10": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL50-"))),
+      "20": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL75-"))),
+      "40": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL100-"))),
     };
 
     return {
