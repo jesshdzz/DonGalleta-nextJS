@@ -8,6 +8,7 @@ import { render } from '@react-email/render';
 import PasswordResetEmail from '@/emails/PasswordResetEmail';
 import crypto from 'crypto';
 
+
 function createTransporter() {
   return nodemailer.createTransport({
     service: 'gmail',
@@ -22,6 +23,7 @@ const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string(),
+  phone: z.string().optional().or(z.literal('')),
 });
 
 // Función auxiliar para validar con Cloudflare
@@ -56,7 +58,7 @@ export async function registerUser(formData: FormData) {
     };
   }
 
-  const { email, password, name } = parsed.data;
+  const { email, password, name, phone } = parsed.data;
 
   // Verificar si existe
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -79,6 +81,7 @@ export async function registerUser(formData: FormData) {
         password: hashedPassword,
         name,
         role: 'USER',
+        phoneNumber: phone || null,
       },
     });
     return { success: true };
