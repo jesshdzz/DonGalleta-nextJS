@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   Loader2,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getUserOrders, cancelOrder } from "@/actions/orders-actions";
+import { requestOrderInvoice } from "@/actions/billing-actions";
 
 type OrderItem = {
   id: string;
@@ -44,6 +46,7 @@ export type Order = {
   total: number;
   status: string;
   createdAt: string | Date;
+  invoiceRequested: boolean;
   items: OrderItem[];
 };
 
@@ -83,8 +86,9 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
   const router = useRouter();
 
   const [pedidos, setPedidos] = useState<Order[]>(initialOrders);
-  const [cargando] = useState(false); // We initialize with data, so no loading initially
+  const [cargando] = useState(false);
   const [cancelandoId, setCancelandoId] = useState<string | null>(null);
+  const [facturandoId, setFacturandoId] = useState<string | null>(null);
 
   const obtenerPedidos = async () => {
     try {
@@ -112,30 +116,37 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
     }
   }, [sessionStatus, router]);
 
-  // Lógica para cancelar pedido
   const handleCancelarPedido = async (orderId: string) => {
     setCancelandoId(orderId);
     try {
       const result = await cancelOrder(orderId);
-
       if (result.success) {
-        toast.success("Pedido cancelado", {
-          description: "Tu pedido ha sido cancelado exitosamente.",
-          icon: <CheckCircle2 className="text-green-500" />
-        });
-        obtenerPedidos(); // Refrescamos la lista
+        toast.success("Pedido cancelado", { description: "Tu pedido ha sido cancelado exitosamente.", icon: <CheckCircle2 className="text-green-500" /> });
+        obtenerPedidos();
       } else {
-        toast.error("No se pudo cancelar", {
-          description: result.error,
-          icon: <AlertTriangle className="text-red-500" />
-        });
+        toast.error("No se pudo cancelar", { description: result.error, icon: <AlertTriangle className="text-red-500" /> });
       }
     } catch {
-      toast.error("Error del servidor", {
-        description: "Ocurrió un error inesperado al intentar cancelar."
-      });
+      toast.error("Error del servidor", { description: "Ocurrió un error inesperado al intentar cancelar." });
     } finally {
       setCancelandoId(null);
+    }
+  };
+
+  const handleSolicitarFactura = async (orderId: string) => {
+    setFacturandoId(orderId);
+    try {
+      const result = await requestOrderInvoice(orderId);
+      if (result.success) {
+        toast.success("Factura solicitada", { description: "Tu solicitud ha sido enviada al área contable." });
+        obtenerPedidos();
+      } else {
+        toast.error("Atención", { description: result.error });
+      }
+    } catch {
+      toast.error("Error del servidor", { description: "Ocurrió un error al procesar tu solicitud." });
+    } finally {
+      setFacturandoId(null);
     }
   };
 
@@ -181,11 +192,10 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
       ) : (
         <div className="space-y-6">
           {pedidos.map((pedido) => {
-            // Validaciones para mostrar el botón de cancelar
             const esPendiente = pedido.status === "PENDING";
+            const esCompletado = pedido.status === "COMPLETED";
             const msTranscurridos = Date.now() - new Date(pedido.createdAt).getTime();
-            const limiteUnaHora = 3600000;
-            const sePuedeCancelar = esPendiente && (msTranscurridos < limiteUnaHora);
+            const sePuedeCancelar = esPendiente && (msTranscurridos < 3600000);
 
             return (
               <Card key={pedido.id} className="shadow-md border-primary/10 overflow-hidden hover:shadow-lg transition-shadow">
@@ -211,49 +221,51 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
                         </span>
                       </div>
 
-                      {/* Botón de Cancelación */}
+                      {/* Botón Facturar (Solo si está completado) */}
+                      {esCompletado && !pedido.invoiceRequested && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2 w-full md:w-auto text-blue-600 border-blue-200 hover:bg-blue-50"
+                          onClick={() => handleSolicitarFactura(pedido.id)}
+                          disabled={facturandoId === pedido.id}
+                        >
+                          {facturandoId === pedido.id ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
+                          ) : (
+                            <><FileText className="w-4 h-4 mr-2" /> Solicitar Factura</>
+                          )}
+                        </Button>
+                      )}
+
+                      {/* Badge Factura Solicitada */}
+                      {pedido.invoiceRequested && (
+                        <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800 hover:bg-blue-100">
+                          <FileText className="w-3 h-3 mr-1" /> Factura Solicitada
+                        </Badge>
+                      )}
+
+                      {/* Botón Cancelar */}
                       {sePuedeCancelar && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="mt-2 w-full md:w-auto"
-                              disabled={cancelandoId === pedido.id}
-                            >
-                              {cancelandoId === pedido.id ? (
-                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...</>
-                              ) : (
-                                <><XCircle className="w-4 h-4 mr-2" /> Cancelar Pedido</>
-                              )}
+                            <Button variant="destructive" size="sm" className="mt-2 w-full md:w-auto" disabled={cancelandoId === pedido.id}>
+                              {cancelandoId === pedido.id ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...</> : <><XCircle className="w-4 h-4 mr-2" /> Cancelar Pedido</>}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>¿Cancelar pedido #{pedido.id.slice(0, 8).toUpperCase()}?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Estás a punto de cancelar tu pedido. Esta acción devolverá el stock de las galletas y no se puede deshacer. ¿Deseas continuar?
-                              </AlertDialogDescription>
+                              <AlertDialogDescription>Esta acción devolverá el stock y no se puede deshacer. ¿Deseas continuar?</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel disabled={cancelandoId === pedido.id}>Cerrar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleCancelarPedido(pedido.id)}
-                                disabled={cancelandoId === pedido.id}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {cancelandoId === pedido.id ? "Cancelando..." : "Sí, cancelar pedido"}
+                              <AlertDialogAction onClick={() => handleCancelarPedido(pedido.id)} disabled={cancelandoId === pedido.id} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                {cancelandoId === pedido.id ? "Cancelando..." : "Sí, cancelar"}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      )}
-
-                      {/* Mensaje sutil si es pendiente pero ya pasó la hora */}
-                      {esPendiente && !sePuedeCancelar && (
-                        <span className="text-xs text-muted-foreground">
-                          El tiempo para cancelar expiró
-                        </span>
                       )}
                     </div>
                   </div>
@@ -261,16 +273,11 @@ export function PedidosClient({ initialOrders = [] }: { initialOrders?: Order[] 
 
                 <CardContent className="p-6">
                   <div className="bg-secondary/5 rounded-lg p-4 border border-border">
-                    <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">
-                      Resumen de artículos
-                    </h4>
+                    <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">Resumen de artículos</h4>
                     <div className="space-y-2">
                       {pedido.items?.map((item) => (
                         <div key={item.id} className="flex justify-between items-center text-sm font-medium">
-                          <span>
-                            <span className="text-primary mr-2 font-bold">{item.quantity}x</span>
-                            {item.product?.name || `Producto #${item.productId}`}
-                          </span>
+                          <span><span className="text-primary mr-2 font-bold">{item.quantity}x</span>{item.product?.name || `Producto #${item.productId}`}</span>
                           <span className="text-muted-foreground">${Number(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}

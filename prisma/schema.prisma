@@ -55,6 +55,7 @@ model User {
   sessions        Session[]
   waitingList     WaitingList[]
   coupons         Coupon[]
+  invoiceData InvoiceData?
 }
 
 model Product {
@@ -106,6 +107,7 @@ model Order {
   user       User        @relation(fields: [userId], references: [id])
   items      OrderItem[]
   payment    Payment?
+  invoiceRequested Boolean @default(false)
 
   @@index([userId], map: "Order_userId_fkey")
   @@index([couponId], map: "Order_couponId_fkey")
@@ -255,6 +257,19 @@ model WaitingList {
   @@unique([userId, productId])
   @@index([productId], map: "WaitingList_productId_fkey")
   @@index([userId], map: "WaitingList_userId_fkey")
+}
+
+model InvoiceData {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rfc             String
+  razonSocial     String
+  regimenFiscal   String
+  codigoPostal    String
+  usoCFDI         String   @default("G03") // Gastos en general
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Promotion {
