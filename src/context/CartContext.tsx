@@ -51,31 +51,15 @@ const CART_STORAGE_VERSION = 1;
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children, initialPromotions = [], initialCart = [] }: { children: ReactNode, initialPromotions?: Promotion[], initialCart?: CartItem[] }) {
   const { status } = useSession();
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(initialCart);
   const [isLoaded, setIsLoaded] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>(initialPromotions);
 
   // SEGURO ANTI-RECARGA: Evita que la DB reescriba un carrito recién vaciado
   const cartClearedRef = useRef(false);
-
-  useEffect(() => {
-    getActivePromotions().then(promos => {
-      const formattedPromos = promos.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        type: p.type,
-        value: p.value,
-        minOrderAmount: p.minOrderAmount,
-        buyQuantity: p.buyQuantity,
-        getQuantity: p.getQuantity,
-        applicableProductIds: p.products?.map((pp: any) => pp.product?.id) || []
-      }));
-      setPromotions(formattedPromos as Promotion[]);
-    }).catch(console.error);
-  }, []);
 
   useEffect(() => {
     try {
@@ -83,8 +67,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.version === CART_STORAGE_VERSION && Array.isArray(parsed?.data)) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- Hidratación necesaria desde localStorage
-          setCart(parsed.data);
+          // Si tenemos carrito de la DB (initialCart), y el localStorage también tiene,
+          // podríamos querer unirlos, pero por ahora solo usaremos el del LocalStorage
+          // si no hay inicial de la BD o confiaremos en el de localStorage que es el más reciente de la sesión actual.
+          if (initialCart.length === 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setCart(parsed.data);
+          }
         } else {
           localStorage.removeItem('cart_session');
           localStorage.removeItem('cart');
@@ -92,7 +81,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } else {
         const legacyCart = localStorage.getItem('cart');
         if (legacyCart) {
-          setCart(JSON.parse(legacyCart));
+          if (initialCart.length === 0) {
+            setCart(JSON.parse(legacyCart));
+          }
           localStorage.removeItem('cart');
         }
       }
@@ -101,21 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('cart_session');
     }
     setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (status === "authenticated" && isLoaded) {
-      const loadFromDb = async () => {
-        const res = await getCart();
-        // Si el carrito se vació mientras traíamos los datos, ignoramos la respuesta
-        if (cartClearedRef.current) return;
-        if (res.success && res.cart) {
-          setCart(res.cart);
-        }
-      };
-      loadFromDb();
-    }
-  }, [status, isLoaded]);
+  }, [initialCart.length]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -183,13 +160,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = async (productId: number, newQuantity: number) => {
     if (newQuantity <= 0) return removeFromCart(productId);
     try {
-      const stock = await checkStock(productId);
-      if (newQuantity > stock) {
-        toast.warning(`Máximo disponible: ${stock}`);
-        setCart(prev => prev.map(i => i.productId === productId ? { ...i, availableQuantity: stock } : i));
-        return;
-      }
-      setCart(prev => prev.map(i => i.productId === productId ? { ...i, quantity: newQuantity, availableQuantity: stock } : i));
+      setCart(prev => prev.map(i => {
+        if (i.productId === productId) {
+          if (newQuantity > i.availableQuantity) {
+            toast.warning(`Máximo disponible: ${i.availableQuantity}`);
+            return i;
+          }
+          return { ...i, quantity: newQuantity, availableQuantity: i.availableQuantity };
+        }
+        return i;
+      }));
     } catch {
       toast.error("Error al actualizar.");
     }

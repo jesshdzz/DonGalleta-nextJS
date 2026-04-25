@@ -6,10 +6,11 @@ import { revalidatePath } from "next/cache";
 import { notifyWaitingList } from "./waiting-list-actions";
 
 // --- OBTENER PRODUCTOS ---
-export async function getProducts() {
+export async function getProducts(limit?: number) {
   const products = await prisma.product.findMany({
     where: { isActive: true },
     orderBy: { id: "desc" }, // Los más nuevos primero
+    take: limit,
     include: { flavors: { include: { flavor: true } } },
   });
 
@@ -18,6 +19,20 @@ export async function getProducts() {
     ...product,
     price: product.price.toNumber(), // Decimal.js -> number
   }));
+}
+
+export async function getProductById(id: number) {
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: { flavors: { include: { flavor: true } } },
+  });
+
+  if (!product) return null;
+
+  return {
+    ...product,
+    price: product.price.toNumber(),
+  };
 }
 
 

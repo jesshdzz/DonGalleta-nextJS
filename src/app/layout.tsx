@@ -29,12 +29,33 @@ export const metadata: Metadata = {
 };
 
 
+import { getCart } from "@/actions/cart-actions";
+import { getActivePromotions } from "@/actions/promotion-actions";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  
+  const [promosRes, cartRes] = await Promise.all([
+    getActivePromotions(),
+    getCart()
+  ]);
+
+  const initialPromotions = promosRes.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    type: p.type,
+    value: p.value,
+    minOrderAmount: p.minOrderAmount,
+    buyQuantity: p.buyQuantity,
+    getQuantity: p.getQuantity,
+    applicableProductIds: p.products?.map((pp: any) => pp.product?.id) || []
+  }));
+
+  const initialCart = cartRes.success && cartRes.cart ? cartRes.cart : [];
 
   return (
     <html lang="es">
@@ -42,7 +63,7 @@ export default async function RootLayout({
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <Providers>
           <AdminNotificationProvider>
-            <CartProvider>
+            <CartProvider initialPromotions={initialPromotions} initialCart={initialCart}>
               <Navbar user={session?.user} />
               <main className="flex-1">
                 {children}
