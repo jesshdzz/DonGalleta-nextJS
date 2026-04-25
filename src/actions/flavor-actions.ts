@@ -12,6 +12,28 @@ export async function getFlavors() {
     return flavors;
 }
 
+export async function getAdminFlavors(params?: { page?: number; pageSize?: number }) {
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
+
+    const [total, flavors] = await Promise.all([
+        prisma.flavor.count(),
+        prisma.flavor.findMany({
+            orderBy: { name: 'asc' },
+            skip,
+            take: pageSize,
+        })
+    ]);
+
+    return {
+        flavors,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: page,
+        totalItems: total,
+    };
+}
+
 // --- CREAR / EDITAR SABOR ---
 export async function upsertFlavor(prevState: unknown, formData: FormData) {
     const rawData = {

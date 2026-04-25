@@ -117,17 +117,31 @@ export async function deleteAccount(userId: string, currentPassword?: string) {
     return { success: true };
 }
 
-export async function getAllUsers() {
-    const users = await prisma.user.findMany({
-        orderBy: { id: "desc" },
-        include: {
-            _count: {
-                select: { orders: true }
-            }
-        }
-    });
+export async function getAllUsers(params?: { page?: number; pageSize?: number }) {
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
 
-    return users;
+    const [total, users] = await Promise.all([
+        prisma.user.count(),
+        prisma.user.findMany({
+            orderBy: { id: "desc" },
+            skip,
+            take: pageSize,
+            include: {
+                _count: {
+                    select: { orders: true }
+                }
+            }
+        })
+    ]);
+
+    return {
+        users,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: page,
+        totalItems: total,
+    };
 }
 
 export async function changeRole(userId: string, newRole: Role) {

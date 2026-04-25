@@ -44,6 +44,31 @@ export async function getAllPromotions() {
     return promotions.map(serializePromotion);
 }
 
+export async function getAdminPromotions(params?: { page?: number; pageSize?: number }) {
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
+
+    const [total, promotions] = await Promise.all([
+        prisma.promotion.count(),
+        prisma.promotion.findMany({
+            orderBy: { id: "desc" },
+            skip,
+            take: pageSize,
+            include: {
+                products: { include: { product: { select: { id: true, name: true } } } },
+            },
+        })
+    ]);
+
+    return {
+        promotions: promotions.map(serializePromotion),
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: page,
+        totalItems: total,
+    };
+}
+
 export async function getActivePromotions() {
     const now = new Date();
     const promotions = await prisma.promotion.findMany({

@@ -140,36 +140,75 @@ export async function deleteProduct(id: number) {
   }
 }
 
+export async function getAdminProducts(params?: { page?: number; pageSize?: number }) {
+  const page = params?.page || 1;
+  const pageSize = params?.pageSize || 10;
+  const skip = (page - 1) * pageSize;
+
+  const [total, products] = await Promise.all([
+    prisma.product.count(),
+    prisma.product.findMany({
+      orderBy: { id: "desc" },
+      skip,
+      take: pageSize,
+      include: { flavors: { include: { flavor: true } } },
+    }),
+  ]);
+
+  return {
+    products: products.map((product) => ({
+      ...product,
+      price: product.price.toNumber(),
+    })),
+    totalPages: Math.ceil(total / pageSize),
+    currentPage: page,
+    totalItems: total,
+  };
+}
+
 // --- OBTENER PRODUCTOS FILTRADOS (CHECKBOXES)---
 // En product-actions.ts
-export async function getFilteredProducts(filters: { flavors?: string[]; query?: string }) {
-  const { flavors, query } = filters;
+export async function getFilteredProducts(filters: { flavors?: string[]; query?: string; page?: number; pageSize?: number }) {
+  const { flavors, query, page = 1, pageSize = 12 } = filters;
+  const skip = (page - 1) * pageSize;
 
-  const products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      // 1. Aplica el filtro de checkboxes (si existen)
-      ...(flavors?.length ? {
-        flavors: {
-          some: { flavor: { name: { in: flavors } } },
-        },
-      } : {}),
-      // 2. Aplica el filtro de búsqueda por o (si existe)
-      ...(query ? {
-        OR: [
-          { name: { contains: query } },
-          { flavors: { some: { flavor: { name: { contains: query } } } } },
-        ],
-      } : {}),
-    },
-    orderBy: { id: "desc" },
-    include: { flavors: { include: { flavor: true } } },
-  });
+  const where = {
+    isActive: true,
+    // 1. Aplica el filtro de checkboxes (si existen)
+    ...(flavors?.length ? {
+      flavors: {
+        some: { flavor: { name: { in: flavors } } },
+      },
+    } : {}),
+    // 2. Aplica el filtro de búsqueda por o (si existe)
+    ...(query ? {
+      OR: [
+        { name: { contains: query } },
+        { flavors: { some: { flavor: { name: { contains: query } } } } },
+      ],
+    } : {}),
+  };
 
-  return products.map((product) => ({
-    ...product,
-    price: product.price.toNumber(),
-  }));
+  const [total, products] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      orderBy: { id: "desc" },
+      skip,
+      take: pageSize,
+      include: { flavors: { include: { flavor: true } } },
+    }),
+  ]);
+
+  return {
+    products: products.map((product) => ({
+      ...product,
+      price: product.price.toNumber(),
+    })),
+    totalPages: Math.ceil(total / pageSize),
+    currentPage: page,
+    totalItems: total
+  };
 }
 
 

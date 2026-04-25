@@ -5,18 +5,32 @@ import { auth } from "@/auth";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-export async function getAdminOrders() {
-    const orders = await prisma.order.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-            user: true,
-        },
-    });
+export async function getAdminOrders(params?: { page?: number; pageSize?: number }) {
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
 
-    return orders.map((order) => ({
-        ...order,
-        total: order.total.toNumber(),
-    }));
+    const [total, orders] = await Promise.all([
+        prisma.order.count(),
+        prisma.order.findMany({
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: pageSize,
+            include: {
+                user: true,
+            },
+        })
+    ]);
+
+    return {
+        orders: orders.map((order) => ({
+            ...order,
+            total: order.total.toNumber(),
+        })),
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: page,
+        totalItems: total,
+    };
 }
 
 export async function getAdminOrderById(id: string) {
