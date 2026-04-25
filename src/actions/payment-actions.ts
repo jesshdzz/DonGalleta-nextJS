@@ -162,8 +162,8 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
             if (cupon) {
                 descontarProgresoAlUsarCupon(userId, cupon.code)
                     .then((result) => {
-                        if (result.success && result.umbralDescontado) {
-                            console.log(`📉 Lealtad: Progreso descontado ${result.umbralDescontado}% (${result.progresoAnterior}% → ${result.nuevoProgreso}%)`);
+                        if (result.success && result.porcentajeDescontado) {
+                            console.log(`📉 Lealtad: Progreso descontado ${result.porcentajeDescontado}% (${result.progresoAnterior}% → ${result.nuevoProgreso}%)`);
                         }
                     })
                     .catch((error) => {

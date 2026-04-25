@@ -23,6 +23,7 @@ interface CartItem {
 }
 
 interface Coupon {
+  id: string;
   code: string;
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;

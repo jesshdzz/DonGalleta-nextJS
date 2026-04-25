@@ -105,7 +105,7 @@ export async function generarCuponPorUmbral(userId: string, umbral: 50 | 75 | 10
       return { success: false, error: "Umbral inválido" };
     }
 
-    // Verificar si ya existe un cupón activo para este usuario y umbral
+    // Verificar si ya existe un cupón activo Y DISPONIBLE para este usuario y umbral
     const cuponExistente = await prisma.coupon.findFirst({
       where: {
         userId,
@@ -115,6 +115,9 @@ export async function generarCuponPorUmbral(userId: string, umbral: 50 | 75 | 10
         isActive: true,
         expirationDate: {
           gt: new Date(),
+        },
+        usedCount: {
+          lt: prisma.coupon.fields.usageLimit, // Cupón aún tiene usos disponibles
         },
       },
     });
@@ -199,6 +202,7 @@ export async function obtenerProgresoLealtad() {
 
 /**
  * Obtiene los cupones de lealtad disponibles del usuario
+ * Solo muestra cupones si el usuario alcanza el umbral requerido
  */
 export async function obtenerCuponesLealtadDisponibles() {
   try {
@@ -206,6 +210,14 @@ export async function obtenerCuponesLealtadDisponibles() {
     if (!session?.user?.id) {
       return { success: false, error: "No autenticado" };
     }
+
+    // Obtener progreso actual del usuario
+    const usuario = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { loyaltyProgress: true },
+    });
+
+    const progresoActual = usuario?.loyaltyProgress || 0;
 
     const cupones = await prisma.coupon.findMany({
       where: {
@@ -228,16 +240,23 @@ export async function obtenerCuponesLealtadDisponibles() {
       },
     });
 
-    // Identificar qué umbrales están desbloqueados y serializar
+    // Solo mostrar cupones si el usuario alcanza el umbral requerido
     const cuponesDisponibles = {
-      "10": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL50-"))),
-      "20": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL75-"))),
-      "40": serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL100-"))),
+      "10": progresoActual >= 50 
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL50-")))
+        : null,
+      "20": progresoActual >= 75
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL75-")))
+        : null,
+      "40": progresoActual >= 100
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL100-")))
+        : null,
     };
 
     return {
       success: true,
       cupones: cuponesDisponibles,
+      progresoActual: Math.round(progresoActual * 100) / 100,
       total: cupones.length,
     };
   } catch (error) {
@@ -292,6 +311,7 @@ export async function descontarProgresoAlUsarCupon(
       progresoAnterior: progresoActual,
       nuevoProgreso,
       umbralDescontado: umbralUsado,
+      porcentajeDescontado: umbralUsado, // Alias para tests
     };
   } catch (error) {
     console.error("Error descontando progreso:", error);
