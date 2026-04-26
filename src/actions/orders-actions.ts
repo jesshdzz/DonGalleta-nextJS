@@ -85,6 +85,7 @@ export async function getUserOrders() {
         const parsedOrders = orders.map(order => ({
             ...order,
             total: order.total.toNumber(),
+            pickupCode: order.pickupCode ?? null,
             items: order.items.map(item => ({
                 ...item,
                 price: item.price.toNumber(),

@@ -21,8 +21,8 @@ import { StoreSelector } from "@/components/pago/StoreSelector";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
 export default function PagoPage() {
-  // Me traigo el total y el carrito del contexto (incluye descuento aplicado)
-  const { totalPrice, discountedPrice, cart, appliedCoupon } = useCart();
+  // Me traigo el total con descuentos y el carrito completo
+  const { discountedPrice, totalPrice, promoDiscount, appliedCoupon, cart } = useCart();
   const [clientSecret, setClientSecret] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const router = useRouter();
@@ -37,7 +37,6 @@ export default function PagoPage() {
 
   useEffect(() => {
     if (discountedPrice > 0 && selectedStoreId) {
-      // Usar el precio con descuento del carrito y pasar el couponId si existe
       createPaymentIntent(discountedPrice, cart, selectedStoreId, appliedCoupon?.id)
         .then((res) => {
           if (res.success && res.clientSecret) {
@@ -107,6 +106,33 @@ export default function PagoPage() {
               
               {clientSecret ? (
                 <div className="border-t border-border pt-6 mt-6">
+                  
+                  {/* Resumen Mini de Descuentos */}
+                  {(promoDiscount > 0 || appliedCoupon) && (
+                    <div className="mb-6 bg-secondary/20 p-4 rounded-lg space-y-2 border border-primary/10">
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Subtotal:</span>
+                        <span>${totalPrice.toFixed(2)}</span>
+                      </div>
+                      {promoDiscount > 0 && (
+                        <div className="flex justify-between text-sm text-amber-600 font-medium">
+                          <span>Descuento Promociones:</span>
+                          <span>-${promoDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {appliedCoupon && (
+                        <div className="flex justify-between text-sm text-green-600 font-medium">
+                          <span>Cupón ({appliedCoupon.code}):</span>
+                          <span>-${(totalPrice - discountedPrice - promoDiscount).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-primary pt-2 border-t border-primary/10">
+                        <span>Total a Pagar:</span>
+                        <span>${discountedPrice.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <Elements stripe={stripePromise} options={{ clientSecret }}>
                     <FormularioPago amount={discountedPrice} />
                   </Elements>

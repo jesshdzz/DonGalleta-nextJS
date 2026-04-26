@@ -2,15 +2,15 @@
 
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth"; 
-import { pusher } from "@/lib/pusher"; 
+import { auth } from "@/auth";
+import { pusher } from "@/lib/pusher";
 import { z } from "zod";
 import { CarritoMetadataSchema } from "@/lib/validators/stripe-schema";
 import { processMultipleStockNotifications } from "@/lib/stock-notifications";
 import { incrementarProgresoLealtad, descontarProgresoAlUsarCupon } from "@/actions/loyalty-actions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2026-02-25.clover", 
+    apiVersion: "2026-02-25.clover",
 });
 
 type CartItem = { productId: number; quantity: number; price: number };
@@ -19,9 +19,9 @@ export async function createPaymentIntent(amount: number, cart: CartItem[], stor
     try {
         const session = await auth();
         let userId = "";
-        
+
         if (session?.user?.email) {
-            const user = await prisma.user.findUnique({ 
+            const user = await prisma.user.findUnique({
                 where: { email: session.user.email }
             });
             if (user) {
@@ -32,17 +32,17 @@ export async function createPaymentIntent(amount: number, cart: CartItem[], stor
         const itemsSimplificados = cart.map((item) => ({
             id: item.productId,
             cantidad: item.quantity,
-            precio: item.price 
+            precio: item.price
         }));
 
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), 
-            currency: "mxn", 
+            amount: Math.round(amount * 100),
+            currency: "mxn",
             automatic_payment_methods: {
-                enabled: true, 
+                enabled: true,
             },
             metadata: {
-                userId: userId, 
+                userId: userId,
                 productos: JSON.stringify(itemsSimplificados),
                 storeId: storeId || "",
                 couponId: couponId || ""
@@ -56,9 +56,19 @@ export async function createPaymentIntent(amount: number, cart: CartItem[], stor
     }
 }
 
+// GENERADOR DE CÓDIGO DE RECOGIDAA
+function generatePickupCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
 export async function processSuccessfulPayment(paymentIntentId: string, amount: number, metadata: Stripe.Metadata) {
     const productosCompradosString = metadata.productos;
-    const userId = metadata.userId; 
+    const userId = metadata.userId;
     const storeId = metadata.storeId;
     const couponId = metadata.couponId;
 
@@ -70,7 +80,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
     try {
         const parsedData = JSON.parse(productosCompradosString);
         const productosValidados = CarritoMetadataSchema.parse(parsedData);
-        
+
         // 1. Obtener información de productos ANTES de actualizar stock
         const ids = productosValidados.map(item => item.id);
         const fetchedProducts = await prisma.product.findMany({
@@ -80,11 +90,11 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
 
         const productsInfo = productosValidados.map((item) => {
             const product = fetchedProducts.find(p => p.id === item.id);
-            
+
             if (!product) {
                 throw new Error(`Producto ${item.id} no encontrado`);
             }
-            
+
             return {
                 id: item.id,
                 name: product.name,
@@ -95,7 +105,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 newStock: Math.max(0, product.stock - item.cantidad)
             };
         });
-        
+
         // 2. Procesar transacción de base de datos
         await prisma.$transaction(async (tx) => {
             const existingOrder = await tx.order.findFirst({
@@ -107,12 +117,25 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                 return;
             }
 
+            // Generar código único de recogida
+            let pickupCode: string | null = null;
+            let codeIsUnique = false;
+            while (!codeIsUnique) {
+                const candidate = generatePickupCode();
+                const exists = await tx.order.findUnique({ where: { pickupCode: candidate } });
+                if (!exists) {
+                    pickupCode = candidate;
+                    codeIsUnique = true;
+                }
+            }
+
             await tx.order.create({
                 data: {
                     userId: userId,
                     total: amount / 100,
-                    status: "PENDING", 
+                    status: "PENDING",
                     storeId: storeId ? storeId : null,
+                    pickupCode,
                     couponId: couponId ? couponId : null,
                     items: {
                         create: productosValidados.map((item) => ({
@@ -124,7 +147,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                     payment: {
                         create: {
                             method: "STRIPE",
-                            transactionId: paymentIntentId, 
+                            transactionId: paymentIntentId,
                             amount: amount / 100,
                             status: "paid"
                         }
@@ -133,7 +156,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
             });
 
             await Promise.all(
-                productosValidados.map(item => 
+                productosValidados.map(item =>
                     tx.product.update({
                         where: { id: item.id },
                         data: { stock: { decrement: item.cantidad } }
@@ -171,7 +194,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                     });
             }
         }
-        
+
         // 3. Procesar notificaciones de stock por email DESPUÉS de actualización exitosa
         const stockNotificationData = productsInfo.map(product => ({
             productId: product.id,
@@ -179,7 +202,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
             oldStock: product.oldStock,
             newStock: product.newStock,
         }));
-        
+
         // Enviar notificaciones de stock por email (asíncrono)
         processMultipleStockNotifications(stockNotificationData)
             .catch(error => {
@@ -225,8 +248,8 @@ export async function verifyPaymentIntent(intentId: string) {
         const fetchOrderFromDb = async () => prisma.order.findFirst({
             where: { payment: { transactionId: intentId } },
             include: {
-                items: { include: { product: true } }, 
-                user: true 
+                items: { include: { product: true } },
+                user: true
             }
         });
 
@@ -246,7 +269,7 @@ export async function verifyPaymentIntent(intentId: string) {
                 // Mandamos a crear la orden y descontar inventario nosotros mismos forzando el action del webhook.
                 // Como processSuccessfulPayment usa prisma.$transaction y detecta si ya existe o no, es completamente seguro contra condiciones de carrera.
                 await processSuccessfulPayment(stripeIntent.id, stripeIntent.amount, stripeIntent.metadata || {});
-                
+
                 // Con la orden ya creada forzosamente, la volvemos a extraer de la base de datos
                 order = await fetchOrderFromDb();
             }
@@ -255,8 +278,8 @@ export async function verifyPaymentIntent(intentId: string) {
         // 3. Verificamos por última vez
         if (!order) return { success: false, error: "No encontrada y el pago no ha sido liquidado" };
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             order: {
                 ...order,
                 total: order.total.toNumber(),
@@ -268,7 +291,7 @@ export async function verifyPaymentIntent(intentId: string) {
                         price: item.product.price.toNumber(),
                     } : null
                 }))
-            } 
+            }
         };
     } catch (error) {
         console.error("Error validando intent:", error);

@@ -36,42 +36,44 @@ model Session {
 }
 
 model User {
-  id             String               @id @default(cuid())
-  name           String?
-  email          String?              @unique
-  emailVerified  DateTime?
-  image          String?
-  password       String?
-  role           Role                 @default(USER)
-  phoneNumber    String?
-  loyaltyProgress Float?              @default(0.0)
-  accounts       Account[]
-  cart           Cart?
-  favorites      Favorite[]
-  favoriteStores FavoriteStore[]
-  orders         Order[]
-  resetTokens    PasswordResetToken[]
-  reviews        Review[]
-  sessions       Session[]
-  waitingList    WaitingList[]
-  coupons        Coupon[]
+  id              String               @id @default(cuid())
+  name            String?
+  email           String?              @unique
+  emailVerified   DateTime?
+  image           String?
+  invoiceData     InvoiceData?
+  loyaltyProgress Float?               @default(0.0)
+  password        String?
+  role            Role                 @default(USER)
+  phoneNumber     String?
+  accounts        Account[]
+  cart            Cart?
+  favorites       Favorite[]
+  favoriteStores  FavoriteStore[]
+  orders          Order[]
+  resetTokens     PasswordResetToken[]
+  reviews         Review[]
+  sessions        Session[]
+  waitingList     WaitingList[]
+  coupons         Coupon[]
 }
 
 model Product {
-  id          Int             @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   name        String
-  description String?         @db.Text
-  price       Decimal         @db.Decimal(10, 2)
+  description String?            @db.Text
+  price       Decimal            @db.Decimal(10, 2)
   image       String?
-  stock       Int             @default(0)
-  slug        String          @unique
-  isActive    Boolean         @default(true)
+  stock       Int                @default(0)
+  slug        String             @unique
+  isActive    Boolean            @default(true)
   cartItems   CartItem[]
   favorites   Favorite[]
   orderItems  OrderItem[]
   flavors     ProductFlavor[]
   reviews     Review[]
   waitingList WaitingList[]
+  promotions  PromotionProduct[]
 }
 
 model ProductFlavor {
@@ -91,24 +93,25 @@ model Flavor {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  total      Decimal     @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  couponId   String?
-  storeId    String?
-  pickupCode String?     @unique
-  coupon     Coupon?     @relation(fields: [couponId], references: [id])
-  store      Store?      @relation(fields: [storeId], references: [id])
-  user       User        @relation(fields: [userId], references: [id])
-  items      OrderItem[]
-  payment    Payment?
+  id               String      @id @default(cuid())
+  userId           String
+  total            Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(PENDING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  couponId         String?
+  storeId          String?
+  pickupCode       String?     @unique
+  invoiceRequested Boolean     @default(false)
+  coupon           Coupon?     @relation(fields: [couponId], references: [id])
+  store            Store?      @relation(fields: [storeId], references: [id])
+  user             User        @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+  payment          Payment?
 
   @@index([userId], map: "Order_userId_fkey")
-  @@index([storeId])
   @@index([couponId], map: "Order_couponId_fkey")
+  @@index([storeId])
 }
 
 model OrderItem {
@@ -256,6 +259,36 @@ model WaitingList {
   @@index([userId], map: "WaitingList_userId_fkey")
 }
 
+model Promotion {
+  id             Int                @id @default(autoincrement())
+  name           String
+  type           DiscountType
+  value          Decimal            @db.Decimal(10, 2)
+  minOrderAmount Decimal?           @db.Decimal(10, 2)
+  maxDiscountCap Decimal?           @db.Decimal(10, 2)
+  buyQuantity    Int?
+  getQuantity    Int?
+  startDate      DateTime
+  expirationDate DateTime
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  products       PromotionProduct[]
+
+  @@index([isActive])
+  @@index([type])
+}
+
+model PromotionProduct {
+  promotionId Int
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, productId])
+  @@index([productId])
+}
+
 model FavoriteStore {
   id        String   @id @default(cuid())
   userId    String
@@ -267,6 +300,19 @@ model FavoriteStore {
   @@unique([userId, storeId])
   @@index([storeId])
   @@index([userId])
+}
+
+model InvoiceData {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rfc           String
+  razonSocial   String
+  regimenFiscal String
+  codigoPostal  String
+  usoCFDI       String   @default("G03") // Gastos en general
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum Role {
@@ -285,4 +331,10 @@ enum PaymentMethod {
   PAYPAL
   STRIPE
   CASH
+}
+
+enum DiscountType {
+  BUY_X_GET_Y
+  PERCENTAGE
+  FIXED
 }

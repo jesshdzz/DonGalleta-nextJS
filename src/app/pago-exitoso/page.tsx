@@ -5,9 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, FileText, MessageCircle, Loader2, Package, Mail } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Loader2, Package, Mail, ShieldCheck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
@@ -23,7 +22,7 @@ function EstadoDelPago() {
   const { clearCart } = useCart();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
-  interface OrderData { id: string; createdAt: string | Date; total: number | string; user?: { name: string | null }; items: { id: string | number; quantity: number; price: number | string; product?: { name: string } | null }[]; }
+  interface OrderData { id: string; createdAt: string | Date; total: number | string; pickupCode?: string | null; user?: { name: string | null }; items: { id: string | number; quantity: number; price: number | string; product?: { name: string } | null }[]; }
   const [ordenDb, setOrdenDb] = useState<OrderData | null>(null);
   const yaProcesado = useRef(false);
   
@@ -93,8 +92,8 @@ METODO: Stripe
 ----------------------------------------
 CANT / ART.          P.U.        TOTAL
 ----------------------------------------
-${ordenDb?.items?.map((item: any) => 
-  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(item.price * item.quantity).toFixed(2).padStart(6)}`
+${ordenDb?.items?.map((item: { quantity: number; price: number | string; product?: { name: string } | null }) => 
+  `${item.quantity}x ${(item.product?.name || 'Producto').substring(0, 12).padEnd(15)} $${Number(item.price).toFixed(2).padStart(6)} $${(Number(item.price) * item.quantity).toFixed(2).padStart(6)}`
 ).join('\n')}
 
 ----------------------------------------
@@ -150,7 +149,7 @@ Mas productos en dongalleta.com`;
           orderNumber: ordenDb.id.slice(0, 8).toUpperCase(),
           customerName: ordenDb.user?.name || 'Cliente',
           customerEmail: email,
-          items: ordenDb.items?.map((item: any) => ({
+          items: ordenDb.items?.map((item: { quantity: number; price: number | string; product?: { name: string } | null }) => ({
             quantity: item.quantity,
             name: item.product?.name || 'Producto',
             price: Number(item.price)
@@ -219,6 +218,24 @@ Mas productos en dongalleta.com`;
             <p className="text-muted-foreground text-lg">Tu orden ha sido registrada. Tu número de pedido es <b>#{ordenDb?.id?.slice(0, 8).toUpperCase()}</b>.</p>
           </div>
         </div>
+
+        {/* Código de recogida */}
+        {ordenDb?.pickupCode && (
+          <div className="w-full max-w-lg rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 flex flex-col items-center gap-3 text-center shadow-sm">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <span className="text-sm font-bold uppercase tracking-widest text-primary">Código de recogida</span>
+            </div>
+            <span className="font-mono font-extrabold tracking-[0.5em] text-4xl text-foreground">
+              {ordenDb.pickupCode}
+            </span>
+            <p className="text-sm text-muted-foreground">
+              Muestra este código en la sucursal al pasar por tu pedido.
+              También puedes consultarlo en{" "}
+              <Link href="/pedidos" className="text-primary font-semibold hover:underline">Mis Pedidos</Link>.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
           <Button variant="outline" className="gap-2 h-12 border-primary/20 hover:bg-primary/5 shadow-sm" onClick={descargarPDF}>

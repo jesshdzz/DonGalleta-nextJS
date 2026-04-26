@@ -1,6 +1,7 @@
 import { getProducts } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
 import { getProductReviews, getUserReview } from "@/actions/review-actions";
+import { getPromotionsForProduct } from "@/actions/promotion-actions";
 import AddToCartButton from "@/components/carro/AddToCartButton";
 import FavoriteButton from "@/components/ui/favorite-button";
 import WaitingListButton from "@/components/waiting-list-button";
@@ -10,7 +11,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle2, XCircle, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Package, Gift, BadgePercent, BadgeDollarSign } from "lucide-react";
 import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
 import { ProductRating } from "@/components/features/ProductRating";
@@ -44,16 +45,18 @@ export default async function ProductDetailPage({ params }: Props) {
     session,
     reviewsData,
     userReview,
+    productPromotions,
   ] = await Promise.all([
     isFavorite(productId),
     auth(),
     getProductReviews(productId),
     getUserReview(productId),
+    getPromotionsForProduct(productId),
   ]);
 
   // 6. Lógica de imagen (Placeholder si está vacía)
-  const imageUrl = product.image && product.image.trim() !== "" 
-    ? product.image 
+  const imageUrl = product.image && product.image.trim() !== ""
+    ? product.image
     : "https://placehold.co/600x600/png?text=Sin+Imagen";
 
   return (
@@ -122,6 +125,53 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="text-3xl font-bold text-foreground">
               ${product.price.toFixed(2)}
             </p>
+
+            {/* Bloque de Promociones */}
+            {productPromotions.length > 0 && (
+              <div className="my-5">
+                {productPromotions.map((promo) => {
+                  const isPercent = promo.type === "PERCENTAGE";
+                  const isFixed = promo.type === "FIXED";
+                  const Icon = isPercent ? BadgePercent : isFixed ? BadgeDollarSign : Gift;
+                  const colorClass = isPercent
+                    ? "border-blue-200 bg-blue-50 text-blue-800"
+                    : isFixed
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : "border-purple-200 bg-purple-50 text-purple-800";
+
+                  const valueLabel = isPercent
+                    ? `${promo.value}% de descuento`
+                    : isFixed
+                      ? `$${promo.value.toFixed(2)} de descuento`
+                      : promo.buyQuantity && promo.getQuantity
+                        ? `Compra ${promo.buyQuantity}, lleva ${promo.getQuantity} gratis`
+                        : "Compra y lleva gratis";
+
+                  return (
+                    <div
+                      key={promo.id}
+                      className={`flex flex-row items-start gap-3 rounded-lg border px-4 py-3 text-sm ${colorClass}`}
+                    >
+                      <Icon className="h-6 w-6 shrink-0 mt-1.5" />
+                      <div className="space-y-0.5">
+                        <p className="font-serif font-bold text-lg">{promo.name}</p>
+                        <p className="font-medium">{valueLabel}</p>
+                        {promo.type !== "BUY_X_GET_Y" && promo.minOrderAmount != null && promo.minOrderAmount > 0 && (
+                          <p className="text-xs opacity-80">Compra mínima: ${promo.minOrderAmount.toFixed(2)}</p>
+                        )}
+                        {isPercent && promo.maxDiscountCap != null && promo.maxDiscountCap > 0 && (
+                          <p className="text-xs opacity-80">Descuento máximo: ${promo.maxDiscountCap.toFixed(2)}</p>
+                        )}
+                        <p className="text-xs opacity-70 mt-0">
+                          Válido hasta el {new Date(promo.expirationDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
           </div>
 
           <Card className="bg-secondary/10 border-none shadow-none">
@@ -153,7 +203,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   No disponible por el momento
                 </Button>
                 {session?.user && (
-                  <WaitingListButton 
+                  <WaitingListButton
                     productId={product.id}
                     initialStock={product.stock}
                   />
@@ -164,11 +214,11 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
       <RelatedProducts currentProductId={product.id} />
-      
+
       {/* Sección de opiniones */}
       <div className="mt-12 space-y-8">
         <ProductRating productId={product.id} initialReview={userReview} />
-        <ReviewList 
+        <ReviewList
           reviews={reviewsData.reviews}
           averageRating={reviewsData.averageRating}
           totalReviews={reviewsData.totalReviews}
