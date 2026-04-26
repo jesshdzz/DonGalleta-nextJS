@@ -218,29 +218,36 @@ describe('HU-21: Ver todos los usuarios', () => {
     ];
 
     vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+    vi.mocked(prisma.user.count).mockResolvedValue(2);
 
     const result = await getAllUsers();
 
     expect(prisma.user.findMany).toHaveBeenCalledWith({
       orderBy: { id: "desc" },
+      skip: 0,
+      take: 10,
       include: {
         _count: {
           select: { orders: true }
         }
       }
     });
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe('User 1');
-    expect(result[0]._count.orders).toBe(5);
-    expect(result[1]._count.orders).toBe(2);
+    expect(result.users).toHaveLength(2);
+    expect(result.users[0].name).toBe('User 1');
+    expect(result.users[0]._count.orders).toBe(5);
+    expect(result.users[1]._count.orders).toBe(2);
+    expect(result.totalPages).toBe(1);
+    expect(result.totalItems).toBe(2);
   });
 
   it('HU-21: Debería retornar un arreglo vacío si no hay usuarios', async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
+    vi.mocked(prisma.user.count).mockResolvedValueOnce(0);
 
     const result = await getAllUsers();
 
-    expect(result).toEqual([]);
+    expect(result.users).toEqual([]);
+    expect(result.totalPages).toBe(0);
   });
 });
 

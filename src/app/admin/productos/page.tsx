@@ -1,4 +1,4 @@
-import { getProducts } from "@/actions/product-actions";
+import { getAdminProducts } from "@/actions/product-actions";
 import { ProductDeleteButton } from "@/components/admin/product-delete-button";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,9 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Plus, Package, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
-export default async function AdminProductsPage() {
-    const products = await getProducts();
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminProductsPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { products, totalPages, currentPage, totalItems } = await getAdminProducts({ page, pageSize: 10 });
 
     return (
         <div className="container mx-auto py-10 px-4">
@@ -36,7 +45,7 @@ export default async function AdminProductsPage() {
             {/* Tabla */}
             <div className="rounded-lg border bg-card shadow-sm">
                 <Table>
-                    <TableCaption>Lista total de productos en catálogo ({products.length})</TableCaption>
+                    <TableCaption>Mostrando {products.length} productos de un total de {totalItems} en catálogo.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-20">Imagen</TableHead>
@@ -98,6 +107,13 @@ export default async function AdminProductsPage() {
                     </TableBody>
                 </Table>
             </div>
+            
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/productos"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }

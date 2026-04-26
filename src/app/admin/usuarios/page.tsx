@@ -5,9 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { ChangeRoleButton } from "@/components/admin/change-role-button";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
-export default async function AdminUsersPage() {
-    const usuarios = await getAllUsers();
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminUsersPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { users: usuarios, totalPages, currentPage, totalItems } = await getAllUsers({ page, pageSize: 10 });
     const session = await auth();
     const me = session?.user?.name;
 
@@ -22,7 +31,7 @@ export default async function AdminUsersPage() {
 
             <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
                 <Table>
-                    <TableCaption>Lista total de usuarios ({usuarios.length})</TableCaption>
+                    <TableCaption>Mostrando {usuarios.length} usuarios de un total de {totalItems}.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Usuario</TableHead>
@@ -90,6 +99,13 @@ export default async function AdminUsersPage() {
                     </TableBody>
                 </Table>
             </div>
+            
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/usuarios"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }
