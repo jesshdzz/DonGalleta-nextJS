@@ -148,38 +148,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (product: Product, quantity: number) => {
     cartClearedRef.current = false; // Quitamos el seguro si el usuario agrega algo nuevo
-    try {
-      const stock = await checkStock(product.id);
-      const existing = cart.find(i => i.productId === product.id);
-      const currentQty = existing ? existing.quantity : 0;
+    
+    // Optimización: Usamos el stock que viene en el producto para evitar una llamada a la BD que bloquee la UI
+    // La validación real se hará durante el checkout
+    const stock = product.stock;
+    const existing = cart.find(i => i.productId === product.id);
+    const currentQty = existing ? existing.quantity : 0;
 
-      if (stock <= 0) {
-        toast.error("Producto agotado.");
-        return;
-      }
-
-      if (currentQty + quantity > stock) {
-        toast.error(`Solo quedan ${stock} disponibles.`);
-        return;
-      }
-
-      setCart(prev => {
-        if (existing) {
-          return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + quantity, availableQuantity: stock } : i);
-        }
-        return [...prev, {
-          productId: product.id,
-          name: product.name,
-          price: Number(product.price),
-          quantity,
-          image: product.image || "/placeholder-product.jpg",
-          availableQuantity: stock
-        }];
-      });
-      toast.success(`Agregaste ${product.name}.`);
-    } catch {
-      toast.error("Error al verificar stock.");
+    if (stock <= 0) {
+      toast.error("Producto agotado.");
+      return;
     }
+
+    if (currentQty + quantity > stock) {
+      toast.error(`Solo quedan ${stock} disponibles.`);
+      return;
+    }
+
+    setCart(prev => {
+      if (existing) {
+        return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + quantity, availableQuantity: stock } : i);
+      }
+      return [...prev, {
+        productId: product.id,
+        name: product.name,
+        price: Number(product.price),
+        quantity,
+        image: product.image || "/placeholder-product.jpg",
+        availableQuantity: stock
+      }];
+    });
+    toast.success(`Agregaste ${product.name}.`);
   };
 
   const removeFromCart = (productId: number) => {
