@@ -282,7 +282,7 @@ export const PromotionForm = ({ defaultValues, availableProducts = [] }: Promoti
                     <div className="rounded-lg border border-dashed p-5 space-y-5">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Info className="h-4 w-4" />
-                            <span>Ejemplo "Lleva 12, Paga 10": El tamaño del grupo (X) es 12, y de esos, (Y) 2 son gratis.</span>
+                            <span>Ejemplo &quot;Lleva 12, Paga 10&quot;: El tamaño del grupo (X) es 12, y de esos, (Y) 2 son gratis.</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
                             <FormField

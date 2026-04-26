@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { getAllPromotions } from '@/actions/promotion-actions';
+import { getAdminPromotions } from '@/actions/promotion-actions';
 import { PromotionDeleteButton } from '@/components/admin/promotion-delete-button';
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const TYPE_MAP = {
     PERCENTAGE: "Porcentaje",
@@ -11,8 +12,16 @@ const TYPE_MAP = {
     BUY_X_GET_Y: "Compra X y llévate Y"
 }
 
-export default async function PromocionesPage() {
-    const promotions = await getAllPromotions()
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function PromocionesPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { promotions, totalPages, currentPage, totalItems } = await getAdminPromotions({ page, pageSize: 10 });
 
     return (
         <div className='container mx-auto py-10 px-4'>
@@ -30,7 +39,7 @@ export default async function PromocionesPage() {
 
             <div className='rounded-lg border bg-card shadow-sm'>
                 <Table>
-                    <TableCaption>Lista total de promociones</TableCaption>
+                    <TableCaption>Mostrando {promotions.length} promociones de un total de {totalItems}.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nombre</TableHead>
@@ -93,6 +102,12 @@ export default async function PromocionesPage() {
                 </Table>
             </div>
 
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/promociones"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }

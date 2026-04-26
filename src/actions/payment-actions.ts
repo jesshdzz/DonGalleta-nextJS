@@ -7,6 +7,7 @@ import { pusher } from "@/lib/pusher";
 import { z } from "zod";
 import { CarritoMetadataSchema } from "@/lib/validators/stripe-schema";
 import { processMultipleStockNotifications } from "@/lib/stock-notifications";
+import { incrementarProgresoLealtad, descontarProgresoAlUsarCupon } from "@/actions/loyalty-actions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2026-02-25.clover",
@@ -14,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 type CartItem = { productId: number; quantity: number; price: number };
 
-export async function createPaymentIntent(amount: number, cart: CartItem[], storeId?: string) {
+export async function createPaymentIntent(amount: number, cart: CartItem[], storeId?: string, couponId?: string) {
     try {
         const session = await auth();
         let userId = "";
@@ -43,7 +44,8 @@ export async function createPaymentIntent(amount: number, cart: CartItem[], stor
             metadata: {
                 userId: userId,
                 productos: JSON.stringify(itemsSimplificados),
-                storeId: storeId || ""
+                storeId: storeId || "",
+                couponId: couponId || ""
             }
         });
 
@@ -68,6 +70,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
     const productosCompradosString = metadata.productos;
     const userId = metadata.userId;
     const storeId = metadata.storeId;
+    const couponId = metadata.couponId;
 
     if (!productosCompradosString || !userId) {
         console.log('❌ Faltan metadatos esenciales en el PaymentIntent');
@@ -133,6 +136,7 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                     status: "PENDING",
                     storeId: storeId ? storeId : null,
                     pickupCode,
+                    couponId: couponId ? couponId : null,
                     items: {
                         create: productosValidados.map((item) => ({
                             productId: item.id,
@@ -159,9 +163,37 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
                     })
                 )
             );
+
+            // Incrementar contador de uso del cupón si se aplicó uno
+            if (couponId) {
+                await tx.coupon.update({
+                    where: { id: couponId },
+                    data: { usedCount: { increment: 1 } }
+                });
+            }
         });
 
         console.log('✅ Stock actualizado exitosamente');
+
+        // Si se usó un cupón de lealtad, descontar progreso
+        if (couponId) {
+            const cupon = await prisma.coupon.findUnique({
+                where: { id: couponId },
+                select: { code: true }
+            });
+            
+            if (cupon) {
+                descontarProgresoAlUsarCupon(userId, cupon.code)
+                    .then((result) => {
+                        if (result.success && result.porcentajeDescontado) {
+                            console.log(`📉 Lealtad: Progreso descontado ${result.porcentajeDescontado}% (${result.progresoAnterior}% → ${result.nuevoProgreso}%)`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ Error descontando progreso de lealtad:', error);
+                    });
+            }
+        }
 
         // 3. Procesar notificaciones de stock por email DESPUÉS de actualización exitosa
         const stockNotificationData = productsInfo.map(product => ({
@@ -187,6 +219,18 @@ export async function processSuccessfulPayment(paymentIntentId: string, amount: 
         } catch (pusherError) {
             console.error('❌ Error enviando notificación Pusher:', pusherError);
         }
+
+        // 5. Acumular progreso de lealtad (asíncrono)
+        incrementarProgresoLealtad(userId, amount / 100)
+            .then((result) => {
+                if (result.success && result.cuponesGenerados && result.cuponesGenerados.length > 0) {
+                    console.log(`🎉 Lealtad: Usuario ganó ${result.incremento}% de progreso (${result.progresoAnterior}% → ${result.nuevoProgreso}%)`);
+                    console.log(`🎁 Cupones generados:`, result.cuponesGenerados.map(c => c.code));
+                }
+            })
+            .catch((error) => {
+                console.error('❌ Error acumulando progreso de lealtad:', error);
+            });
 
         return { success: true };
     } catch (error) {

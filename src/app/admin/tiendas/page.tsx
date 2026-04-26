@@ -1,12 +1,21 @@
-import { getStores } from "@/actions/store-actions";
+import { getAdminStores } from "@/actions/store-actions";
 import { StoreDeleteButton } from "@/components/admin/store-delete-button";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pencil, Plus, MapPin, Phone, Clock } from "lucide-react";
 import Link from "next/link";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
-export default async function AdminStoresPage() {
-    const stores = await getStores();
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminStoresPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { stores, totalPages, currentPage, totalItems } = await getAdminStores({ page, pageSize: 10 });
 
     return (
         <div className="container mx-auto py-10 px-4">
@@ -29,7 +38,7 @@ export default async function AdminStoresPage() {
             {/* Tabla */}
             <div className="rounded-lg border bg-card shadow-sm">
                 <Table>
-                    <TableCaption>Lista total de sucursales ({stores.length})</TableCaption>
+                    <TableCaption>Mostrando {stores.length} sucursales de un total de {totalItems}.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nombre</TableHead>
@@ -95,6 +104,13 @@ export default async function AdminStoresPage() {
                     </TableBody>
                 </Table>
             </div>
+            
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/tiendas"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }

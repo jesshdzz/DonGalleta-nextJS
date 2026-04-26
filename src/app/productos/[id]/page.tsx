@@ -1,4 +1,4 @@
-import { getProducts } from "@/actions/product-actions";
+import { getProductById } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
 import { getProductReviews, getUserReview } from "@/actions/review-actions";
 import { getPromotionsForProduct } from "@/actions/promotion-actions";
@@ -14,8 +14,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Package, Gift, BadgePercent, BadgeDollarSign } from "lucide-react";
 import { auth } from "@/auth";
 import { RelatedProducts } from "@/components/features/RelatedProducts";
+import { RelatedProductsSkeleton } from "@/components/features/RelatedProductsSkeleton";
 import { ProductRating } from "@/components/features/ProductRating";
 import { ReviewList } from "@/components/features/ReviewList";
+import { Suspense } from "react";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -31,8 +33,7 @@ export default async function ProductDetailPage({ params }: Props) {
   }
 
   // 2. Obtener datos desde el Server Action
-  const products = await getProducts();
-  const product = products.find((p) => p.id === productId);
+  const product = await getProductById(productId);
 
   // Si no existe el producto, mostrar página 404
   if (!product) {
@@ -95,7 +96,6 @@ export default async function ProductDetailPage({ params }: Props) {
                 <h1 className="text-4xl font-bold text-primary tracking-tight">
                   {product.name}
                 </h1>
-                {/* Botón de favoritos */}
                 <div className="mt-1">
                   <FavoriteButton
                     productId={product.id}
@@ -112,8 +112,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   variant="outline"
                   className="bg-green-50 text-green-700 border-green-200 gap-1.5 px-3 py-1"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" /> En stock (
-                  {product.stock})
+                  <CheckCircle2 className="w-3.5 h-3.5" /> En stock ({product.stock})
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="gap-1.5 px-3 py-1">
@@ -171,7 +170,6 @@ export default async function ProductDetailPage({ params }: Props) {
                 })}
               </div>
             )}
-
           </div>
 
           <Card className="bg-secondary/10 border-none shadow-none">
@@ -189,13 +187,9 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="pt-6 border-t border-border">
             {product.stock > 0 ? (
               <div className="space-y-4">
-                {/* Botón de Añadir al Carrito (Componente Cliente) */}
                 <div className="w-full">
                   <AddToCartButton product={{ ...product }} />
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Envío calculado al finalizar la compra.
-                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -213,7 +207,11 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
-      <RelatedProducts currentProductId={product.id} />
+
+      {/* Streaming de productos relacionados */}
+      <Suspense fallback={<RelatedProductsSkeleton />}>
+        <RelatedProducts currentProductId={product.id} />
+      </Suspense>
 
       {/* Sección de opiniones */}
       <div className="mt-12 space-y-8">

@@ -119,7 +119,6 @@ export async function getWaitingListByProduct(productId: number) {
   try {
     const session = await auth();
     
-    // @ts-expect-error - Types for NextAuth will be extended later
     if (!session?.user || session.user.role !== "ADMIN") {
       return { success: false, error: "No autorizado" };
     }

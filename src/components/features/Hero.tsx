@@ -1,10 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
     return (
-        <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-[url('https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?q=80&w=2080&auto=format&fit=crop')] bg-cover bg-center">
+        <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 overflow-hidden">
+            {/* Imagen de Fondo Optimizada */}
+            <Image 
+                src="https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?q=80&w=2080&auto=format&fit=crop"
+                alt="Galletas recién horneadas"
+                fill
+                priority
+                className="object-cover"
+                sizes="100vw"
+            />
+            
+            {/* Overlay */}
             <div className="absolute inset-0 bg-black/50" />
+            
             <div className="relative px-4 md:px-6 flex flex-col items-center text-center space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white drop-shadow-md">
                     Galletas que <span className="text-secondary">encantan</span>, Sabores que <span className="text-secondary">inspiran:</span> <br className="hidden md:inline" />

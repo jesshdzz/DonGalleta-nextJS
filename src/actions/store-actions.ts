@@ -12,6 +12,28 @@ export async function getStores() {
     return stores;
 }
 
+export async function getAdminStores(params?: { page?: number; pageSize?: number }) {
+    const page = params?.page || 1;
+    const pageSize = params?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
+
+    const [total, stores] = await Promise.all([
+        prisma.store.count(),
+        prisma.store.findMany({
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: pageSize,
+        })
+    ]);
+
+    return {
+        stores,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: page,
+        totalItems: total,
+    };
+}
+
 // --- CREAR / EDITAR TIENDA ---
 export async function upsertStore(prevState: unknown, formData: FormData) {
     // 1. Convertir FormData a objeto simple para Zod

@@ -62,7 +62,6 @@ describe('HU-53: Combos y descuentos', () => {
 
     describe('HU-53: getActivePromotions', () => {
         it('HU-53: debería retornar solo promociones activas', async () => {
-            const now = new Date();
             vi.mocked(prisma.promotion.findMany).mockResolvedValue([]);
 
             const { getActivePromotions } = await import('../actions/promotion-actions');

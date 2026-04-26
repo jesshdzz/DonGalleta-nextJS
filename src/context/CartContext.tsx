@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { checkStock, checkout as checkoutAction } from "@/actions/cart-actions";
-import { getCart, syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
+import { checkStock, checkout as checkoutAction, getCart, syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { getActivePromotions } from "@/actions/promotion-actions";
@@ -24,7 +23,8 @@ interface CartItem {
   availableQuantity: number;
 }
 
-interface Coupon {
+export interface Coupon {
+  id: string;
   code: string;
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
@@ -37,7 +37,7 @@ interface CartContextType {
   updateQuantity: (productId: number, newQuantity: number) => Promise<void>;
   clearCart: (silent?: boolean) => void;
   logoutClearCart: () => void;
-  refreshCartStock: () => Promise<CartItem[]>; // <-- Añadido aquí
+  refreshCartStock: () => Promise<CartItem[]>;
   totalItems: number;
   totalPrice: number;
   discountedPrice: number;
@@ -58,10 +58,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
 
-  // SEGURO ANTI-RECARGA: Evita que la DB reescriba un carrito recién vaciado
   const cartClearedRef = useRef(false);
+  const isInitialMount = useRef(true);
 
+  // Cargar promociones y carrito
   useEffect(() => {
+    // Promociones
     getActivePromotions().then(promos => {
       const formattedPromos = promos.map((p: any) => ({
         id: p.id,
@@ -71,54 +73,58 @@ export function CartProvider({ children }: { children: ReactNode }) {
         minOrderAmount: p.minOrderAmount,
         buyQuantity: p.buyQuantity,
         getQuantity: p.getQuantity,
-        applicableProductIds: p.products?.map((pp: any) => pp.product?.id) || []
+        applicableProductIds: p.products?.map((pp: any) => pp.product?.id).filter((id: any) => id !== undefined) || []
       }));
       setPromotions(formattedPromos as Promotion[]);
     }).catch(console.error);
-  }, []);
 
-  useEffect(() => {
+    // Carrito local
+    let localCart: CartItem[] = [];
     try {
       const saved = localStorage.getItem('cart_session');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.version === CART_STORAGE_VERSION && Array.isArray(parsed?.data)) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- Hidratación necesaria desde localStorage
-          setCart(parsed.data);
+          localCart = parsed.data;
         } else {
           localStorage.removeItem('cart_session');
-          localStorage.removeItem('cart');
         }
       } else {
         const legacyCart = localStorage.getItem('cart');
         if (legacyCart) {
-          setCart(JSON.parse(legacyCart));
+          localCart = JSON.parse(legacyCart);
           localStorage.removeItem('cart');
         }
       }
     } catch {
-      console.error('Error loading cart');
       localStorage.removeItem('cart_session');
     }
-    setIsLoaded(true);
+
+    // Carrito de servidor (si está logueado)
+    getCart().then(res => {
+      if (res.success && res.cart && res.cart.length > 0) {
+        setCart(res.cart);
+        localStorage.setItem('cart_session', JSON.stringify({ version: CART_STORAGE_VERSION, data: res.cart }));
+      } else if (localCart.length > 0) {
+        setCart(localCart);
+      }
+      setIsLoaded(true);
+    }).catch((err) => {
+      console.error(err);
+      if (localCart.length > 0) setCart(localCart);
+      setIsLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
-    if (status === "authenticated" && isLoaded) {
-      const loadFromDb = async () => {
-        const res = await getCart();
-        // Si el carrito se vació mientras traíamos los datos, ignoramos la respuesta
-        if (cartClearedRef.current) return;
-        if (res.success && res.cart) {
-          setCart(res.cart);
-        }
-      };
-      loadFromDb();
-    }
-  }, [status, isLoaded]);
-
-  useEffect(() => {
     if (!isLoaded) return;
+    
+    // Solo guardamos en LocalStorage y sincronizamos si NO es el montaje inicial
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     localStorage.setItem('cart_session', JSON.stringify({ version: CART_STORAGE_VERSION, data: cart }));
 
     if (status === "authenticated") {
@@ -142,38 +148,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (product: Product, quantity: number) => {
     cartClearedRef.current = false; // Quitamos el seguro si el usuario agrega algo nuevo
-    try {
-      const stock = await checkStock(product.id);
-      const existing = cart.find(i => i.productId === product.id);
-      const currentQty = existing ? existing.quantity : 0;
+    
+    // Optimización: Usamos el stock que viene en el producto para evitar una llamada a la BD que bloquee la UI
+    // La validación real se hará durante el checkout
+    const stock = product.stock;
+    const existing = cart.find(i => i.productId === product.id);
+    const currentQty = existing ? existing.quantity : 0;
 
-      if (stock <= 0) {
-        toast.error("Producto agotado.");
-        return;
-      }
-
-      if (currentQty + quantity > stock) {
-        toast.error(`Solo quedan ${stock} disponibles.`);
-        return;
-      }
-
-      setCart(prev => {
-        if (existing) {
-          return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + quantity, availableQuantity: stock } : i);
-        }
-        return [...prev, {
-          productId: product.id,
-          name: product.name,
-          price: Number(product.price),
-          quantity,
-          image: product.image || "/placeholder-product.jpg",
-          availableQuantity: stock
-        }];
-      });
-      toast.success(`Agregaste ${product.name}.`);
-    } catch {
-      toast.error("Error al verificar stock.");
+    if (stock <= 0) {
+      toast.error("Producto agotado.");
+      return;
     }
+
+    if (currentQty + quantity > stock) {
+      toast.error(`Solo quedan ${stock} disponibles.`);
+      return;
+    }
+
+    setCart(prev => {
+      if (existing) {
+        return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + quantity, availableQuantity: stock } : i);
+      }
+      return [...prev, {
+        productId: product.id,
+        name: product.name,
+        price: Number(product.price),
+        quantity,
+        image: product.image || "/placeholder-product.jpg",
+        availableQuantity: stock
+      }];
+    });
+    toast.success(`Agregaste ${product.name}.`);
   };
 
   const removeFromCart = (productId: number) => {
@@ -183,13 +188,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = async (productId: number, newQuantity: number) => {
     if (newQuantity <= 0) return removeFromCart(productId);
     try {
-      const stock = await checkStock(productId);
-      if (newQuantity > stock) {
-        toast.warning(`Máximo disponible: ${stock}`);
-        setCart(prev => prev.map(i => i.productId === productId ? { ...i, availableQuantity: stock } : i));
-        return;
-      }
-      setCart(prev => prev.map(i => i.productId === productId ? { ...i, quantity: newQuantity, availableQuantity: stock } : i));
+      setCart(prev => prev.map(i => {
+        if (i.productId === productId) {
+          if (newQuantity > i.availableQuantity) {
+            toast.warning(`Máximo disponible: ${i.availableQuantity}`);
+            return i;
+          }
+          return { ...i, quantity: newQuantity, availableQuantity: i.availableQuantity };
+        }
+        return i;
+      }));
     } catch {
       toast.error("Error al actualizar.");
     }

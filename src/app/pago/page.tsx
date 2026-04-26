@@ -37,7 +37,7 @@ export default function PagoPage() {
 
   useEffect(() => {
     if (discountedPrice > 0 && selectedStoreId) {
-      createPaymentIntent(discountedPrice, cart, selectedStoreId)
+      createPaymentIntent(discountedPrice, cart, selectedStoreId, appliedCoupon?.id)
         .then((res) => {
           if (res.success && res.clientSecret) {
             setClientSecret(res.clientSecret);
@@ -47,7 +47,7 @@ export default function PagoPage() {
         })
         .catch((error) => console.error("Me falló la petición del client secret:", error));
     }
-  }, [discountedPrice, cart, selectedStoreId]);
+  }, [discountedPrice, cart, selectedStoreId, appliedCoupon?.id]);
 
   // Evitamos renderizar la página si el carrito está vacío
   if (cart.length === 0) return null; 
@@ -82,6 +82,8 @@ export default function PagoPage() {
                 onStoreSelect={setSelectedStoreId} 
               />
               
+
+              
               {clientSecret ? (
                 <div className="border-t border-border pt-6 mt-6">
                   
@@ -108,6 +110,11 @@ export default function PagoPage() {
                         <span>Total a Pagar:</span>
                         <span>${discountedPrice.toFixed(2)}</span>
                       </div>
+                      {appliedCoupon && (
+                        <p className="text-xs text-muted-foreground mt-2 text-center border-t border-primary/10 pt-2">
+                          💡 Puedes cambiar el cupón en el carrito
+                        </p>
+                      )}
                     </div>
                   )}
 

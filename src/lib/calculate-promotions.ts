@@ -49,7 +49,6 @@ export function calculatePromotionsDiscount(cart: CartItem[], promotions: Promot
       if (groupSize <= getQ) continue;
       
       const groups = Math.floor(totalApplicableQty / groupSize);
-      const remainder = totalApplicableQty % groupSize;
       
       // Los items gratis son simplemente Y por cada grupo completo
       const freeItemsCount = groups * getQ;

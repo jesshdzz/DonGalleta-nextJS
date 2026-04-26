@@ -13,6 +13,7 @@ import { CartItemRow } from "@/components/carro/CartItemRow";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { validateCoupon } from "@/actions/coupon-actions";
+import { SelectorCuponesLealtad } from "@/components/loyalty";
 
 type DiscountType = "PERCENTAGE" | "FIXED" | "BUY_X_GET_Y";
 
@@ -86,6 +87,24 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
     setIsCheckingCoupon(false);
   };
 
+  const handleSeleccionarCuponLealtad = async (codigo: string) => {
+    if (!codigo) {
+      applyCoupon(null);
+      setCouponCode("");
+      return;
+    }
+
+    setIsCheckingCoupon(true);
+    const res = await validateCoupon(codigo);
+    if (res.success && res.coupon) {
+      applyCoupon(res.coupon);
+      toast.success("¡Cupón de lealtad aplicado!");
+    } else {
+      toast.error(res.error || "Error al aplicar cupón");
+    }
+    setIsCheckingCoupon(false);
+  };
+
   if (cart.length === 0) {
     return (
       <div className="w-full min-h-[70vh] flex flex-col items-center justify-center p-4 text-center space-y-8 animate-in fade-in duration-500">
@@ -142,7 +161,6 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                   key={item.productId}
                   item={item}
                   applicablePromotions={applicablePromos}
-                  cartTotal={totalPrice}
                 />
               );
             })}
@@ -197,22 +215,43 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex gap-2 mt-4">
-                        <Input
-                          placeholder="Código de cupón"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                          className="uppercase"
-                        />
-                        <Button
-                          variant="secondary"
-                          onClick={handleApplyCoupon}
-                          disabled={isCheckingCoupon || !couponCode}
-                        >
-                          {isCheckingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ticket className="h-4 w-4" />}
-                        </Button>
-                      </div>
+                      <>
+                        {/* Cupones de Lealtad */}
+                        {status === "authenticated" && (
+                          <div className="space-y-3 mt-4">
+                            <SelectorCuponesLealtad
+                              onSeleccionarCupon={handleSeleccionarCuponLealtad}
+                              cuponAplicado={(appliedCoupon as { code: string } | null)?.code || ""}
+                            />
+                          </div>
+                        )}
+
+                        {/* Separador */}
+                        <div className="relative my-4">
+                          <Separator />
+                          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                            o ingresa un código
+                          </span>
+                        </div>
+
+                        {/* Input manual de cupón */}
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Código de cupón"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                            className="uppercase"
+                          />
+                          <Button
+                            variant="secondary"
+                            onClick={handleApplyCoupon}
+                            disabled={isCheckingCoupon || !couponCode}
+                          >
+                            {isCheckingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ticket className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </>
                     )}
 
                     <Separator className="my-4" />
