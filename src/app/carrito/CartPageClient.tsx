@@ -161,7 +161,6 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                   key={item.productId}
                   item={item}
                   applicablePromotions={applicablePromos}
-                  cartTotal={totalPrice}
                 />
               );
             })}
@@ -220,9 +219,6 @@ export default function CartPageClient({ promotions }: CartPageClientProps) {
                         {/* Cupones de Lealtad */}
                         {status === "authenticated" && (
                           <div className="space-y-3 mt-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              🎁 Cupones de Lealtad
-                            </h4>
                             <SelectorCuponesLealtad
                               onSeleccionarCupon={handleSeleccionarCuponLealtad}
                               cuponAplicado={(appliedCoupon as { code: string } | null)?.code || ""}

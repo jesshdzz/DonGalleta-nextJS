@@ -13,28 +13,25 @@ interface Props {
 
 export default function SelectorCuponesLealtad({ onSeleccionarCupon, cuponAplicado }: Props) {
   const [loading, setLoading] = useState(true);
-  const [cupones, setCupones] = useState<{
-    "10": any;
-    "20": any;
-    "40": any;
-  }>({
+  const [cupones, setCupones] = useState<Record<string, { code: string } | null>>({
     "10": null,
     "20": null,
     "40": null,
   });
 
   useEffect(() => {
+    const cargarCupones = async () => {
+      const resultado = await obtenerCuponesLealtadDisponibles();
+      if (resultado.success) {
+        if (resultado.cupones) {
+        setCupones(resultado.cupones);
+      }
+      }
+      setLoading(false);
+    };
+
     cargarCupones();
   }, []);
-
-  const cargarCupones = async () => {
-    setLoading(true);
-    const resultado = await obtenerCuponesLealtadDisponibles();
-    if (resultado.success) {
-      setCupones(resultado.cupones);
-    }
-    setLoading(false);
-  };
 
   const manejarSeleccion = (codigo: string | null, descuento: string) => {
     if (!codigo) {
@@ -68,7 +65,7 @@ export default function SelectorCuponesLealtad({ onSeleccionarCupon, cuponAplica
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
         <Gift className="w-5 h-5 text-primary" />
-        <h4 className="font-semibold text-sm">Cupones de Lealtad</h4>
+        <h4 className="font-semibold text-sm mb-0">Cupones de Lealtad</h4>
       </div>
 
       <div className="grid grid-cols-3 gap-2">

@@ -27,7 +27,7 @@ interface CartItemRowProps {
     cartTotal?: number;
 }
 
-export function CartItemRow({ item, applicablePromotions, cartTotal }: CartItemRowProps) {
+export function CartItemRow({ item, applicablePromotions }: CartItemRowProps) {
     const { updateQuantity, removeFromCart } = useCart();
 
     const isOutOfStock = item.availableQuantity === 0;
@@ -129,7 +129,6 @@ export function CartItemRow({ item, applicablePromotions, cartTotal }: CartItemR
                     <div className="space-y-2">
                         {applicablePromotions.map(promo => {
                             let msg = "";
-                            let Icon = AlertCircle;
                             if (promo.type === "PERCENTAGE") {
                                 const min = promo.minOrderAmount ?? 0;
                                 if (min > 0 && (item.price * item.quantity) < min) {

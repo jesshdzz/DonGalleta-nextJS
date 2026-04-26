@@ -17,7 +17,7 @@ const RATIO_PROGRESO = 1; // 1% por cada peso
 /**
  * Convierte un cupón de Prisma a un objeto plano serializable
  */
-function serializarCupon(cupon: any) {
+function serializarCupon(cupon: import("@prisma/client").Coupon | null) {
   if (!cupon) return null;
   return {
     id: cupon.id,
@@ -54,7 +54,7 @@ export async function incrementarProgresoLealtad(
 
     const progresoAnterior = usuario.loyaltyProgress || 0;
     const incremento = montoCompra * RATIO_PROGRESO;
-    let nuevoProgreso = Math.min(progresoAnterior + incremento, 100);
+    const nuevoProgreso = Math.min(progresoAnterior + incremento, 100);
 
     // Detectar qué umbrales se cruzaron
     const umbralesAlcanzados: (50 | 75 | 100)[] = [];
@@ -243,13 +243,13 @@ export async function obtenerCuponesLealtadDisponibles() {
     // Solo mostrar cupones si el usuario alcanza el umbral requerido
     const cuponesDisponibles = {
       "10": progresoActual >= 50 
-        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL50-")))
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL50-")) || null)
         : null,
       "20": progresoActual >= 75
-        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL75-")))
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL75-")) || null)
         : null,
       "40": progresoActual >= 100
-        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL100-")))
+        ? serializarCupon(cupones.find((c) => c.code.startsWith("LOYAL100-")) || null)
         : null,
     };
 

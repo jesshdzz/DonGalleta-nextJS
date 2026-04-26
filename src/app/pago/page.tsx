@@ -82,27 +82,7 @@ export default function PagoPage() {
                 onStoreSelect={setSelectedStoreId} 
               />
               
-              {/* Mostrar cupón aplicado si existe */}
-              {appliedCoupon && (
-                <div className="border-t border-border pt-4 mt-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm font-medium text-green-800 flex items-center gap-2">
-                      ✓ Cupón <span className="font-bold">{appliedCoupon.code}</span> aplicado
-                    </p>
-                    <div className="mt-2 flex justify-between items-center">
-                      <span className="text-sm text-green-700">Subtotal:</span>
-                      <span className="text-sm line-through text-muted-foreground">${totalPrice.toFixed(2)} MXN</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-semibold text-green-800">Total con descuento:</span>
-                      <span className="text-lg font-bold text-green-900">${discountedPrice.toFixed(2)} MXN</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    💡 Puedes cambiar el cupón en el carrito
-                  </p>
-                </div>
-              )}
+
               
               {clientSecret ? (
                 <div className="border-t border-border pt-6 mt-6">
@@ -130,6 +110,11 @@ export default function PagoPage() {
                         <span>Total a Pagar:</span>
                         <span>${discountedPrice.toFixed(2)}</span>
                       </div>
+                      {appliedCoupon && (
+                        <p className="text-xs text-muted-foreground mt-2 text-center border-t border-primary/10 pt-2">
+                          💡 Puedes cambiar el cupón en el carrito
+                        </p>
+                      )}
                     </div>
                   )}
 

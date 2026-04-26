@@ -11,19 +11,18 @@ export default function BarraLealtad() {
   const [faltan, setFaltan] = useState(0);
 
   useEffect(() => {
+    const cargarProgreso = async () => {
+      const resultado = await obtenerProgresoLealtad();
+      if (resultado.success) {
+        setProgreso(resultado.progreso ?? 0);
+        setSiguienteUmbral(resultado.siguienteUmbral ?? null);
+        setFaltan(resultado.faltan ?? 0);
+      }
+      setLoading(false);
+    };
+
     cargarProgreso();
   }, []);
-
-  const cargarProgreso = async () => {
-    setLoading(true);
-    const resultado = await obtenerProgresoLealtad();
-    if (resultado.success) {
-      setProgreso(resultado.progreso ?? 0);
-      setSiguienteUmbral(resultado.siguienteUmbral ?? null);
-      setFaltan(resultado.faltan ?? 0);
-    }
-    setLoading(false);
-  };
 
   if (loading) {
     return (

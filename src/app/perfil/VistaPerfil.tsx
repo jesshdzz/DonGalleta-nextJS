@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // Añadimos FileText a los iconos
-import { LogOut, User as UserIcon, Mail, Shield, Key, Pencil, Loader2, Phone, FileText } from "lucide-react";
+import { LogOut, User as UserIcon, Mail, Shield, Key, Pencil, Loader2, Phone, FileText, Gift } from "lucide-react";
 import { EditEmailModal } from "@/components/perfil/edit-email-modal";
 import { EditPasswordModal } from "@/components/perfil/edit-password-modal";
 import { EditPhoneModal } from "@/components/perfil/edit-phone-modal";
@@ -208,9 +208,9 @@ export default function VistaPerfil({ user, isOAuthUser }: { user: UserSession; 
 
         {/* TARJETA: Programa de Lealtad */}
         <Card className="border-[#A6A3A2]/40 shadow-sm">
-          <CardHeader className="bg-linear-to-r from-blue-50/50 to-purple-50/50 border-b border-[#A6A3A2]/20 pb-6">
+          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-[#A6A3A2]/20 pb-6">
             <CardTitle className="text-xl text-[#58321D] flex items-center gap-2">
-              <span className="text-2xl">🎁</span>
+              <Gift className="h-5 w-5" />
               Programa de Lealtad
             </CardTitle>
             <CardDescription>

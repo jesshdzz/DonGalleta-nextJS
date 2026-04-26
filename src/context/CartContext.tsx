@@ -24,7 +24,7 @@ interface CartItem {
   availableQuantity: number;
 }
 
-interface Coupon {
+export interface Coupon {
   id: string;
   code: string;
   discountType: 'PERCENTAGE' | 'FIXED';
@@ -64,7 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     getActivePromotions().then(promos => {
-      const formattedPromos = promos.map((p: any) => ({
+      const formattedPromos = promos.map((p: { id: number; name: string; type: "PERCENTAGE" | "FIXED" | "BUY_X_GET_Y"; value: number; minOrderAmount: number | null; buyQuantity: number | null; getQuantity: number | null; products?: { product?: { id: number } }[] }) => ({
         id: p.id,
         name: p.name,
         type: p.type,
@@ -72,7 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         minOrderAmount: p.minOrderAmount,
         buyQuantity: p.buyQuantity,
         getQuantity: p.getQuantity,
-        applicableProductIds: p.products?.map((pp: any) => pp.product?.id) || []
+        applicableProductIds: p.products?.map((pp: { product?: { id: number } }) => pp.product?.id) || []
       }));
       setPromotions(formattedPromos as Promotion[]);
     }).catch(console.error);
