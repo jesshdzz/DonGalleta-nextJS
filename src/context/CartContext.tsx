@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { checkStock, checkout as checkoutAction } from "@/actions/cart-actions";
-import { syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
+import { checkStock, checkout as checkoutAction, getCart, syncCart, clearCart as clearCartApi } from "@/actions/cart-actions";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { getActivePromotions } from "@/actions/promotion-actions";
@@ -38,7 +37,7 @@ interface CartContextType {
   updateQuantity: (productId: number, newQuantity: number) => Promise<void>;
   clearCart: (silent?: boolean) => void;
   logoutClearCart: () => void;
-  refreshCartStock: () => Promise<CartItem[]>; // <-- Añadido aquí
+  refreshCartStock: () => Promise<CartItem[]>;
   totalItems: number;
   totalPrice: number;
   discountedPrice: number;
@@ -52,19 +51,21 @@ const CART_STORAGE_VERSION = 1;
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children, initialPromotions = [], initialCart = [] }: { children: ReactNode, initialPromotions?: Promotion[], initialCart?: CartItem[] }) {
+export function CartProvider({ children }: { children: ReactNode }) {
   const { status } = useSession();
-  const [cart, setCart] = useState<CartItem[]>(initialCart);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [promotions, setPromotions] = useState<Promotion[]>(initialPromotions);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
 
-  // SEGURO ANTI-RECARGA: Evita que la DB reescriba un carrito recién vaciado
   const cartClearedRef = useRef(false);
+  const isInitialMount = useRef(true);
 
+  // Cargar promociones y carrito
   useEffect(() => {
+    // Promociones
     getActivePromotions().then(promos => {
-      const formattedPromos = promos.map((p: { id: number; name: string; type: "PERCENTAGE" | "FIXED" | "BUY_X_GET_Y"; value: number; minOrderAmount: number | null; buyQuantity: number | null; getQuantity: number | null; products?: { product?: { id: number } }[] }) => ({
+      const formattedPromos = promos.map((p: any) => ({
         id: p.id,
         name: p.name,
         type: p.type,
@@ -72,47 +73,58 @@ export function CartProvider({ children, initialPromotions = [], initialCart = [
         minOrderAmount: p.minOrderAmount,
         buyQuantity: p.buyQuantity,
         getQuantity: p.getQuantity,
-        applicableProductIds: p.products?.map((pp: { product?: { id: number } }) => pp.product?.id).filter((id): id is number => id !== undefined) || []
+        applicableProductIds: p.products?.map((pp: any) => pp.product?.id).filter((id: any) => id !== undefined) || []
       }));
       setPromotions(formattedPromos as Promotion[]);
     }).catch(console.error);
-  }, []);
 
-  useEffect(() => {
+    // Carrito local
+    let localCart: CartItem[] = [];
     try {
       const saved = localStorage.getItem('cart_session');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.version === CART_STORAGE_VERSION && Array.isArray(parsed?.data)) {
-          // Si tenemos carrito de la DB (initialCart), y el localStorage también tiene,
-          // podríamos querer unirlos, pero por ahora solo usaremos el del LocalStorage
-          // si no hay inicial de la BD o confiaremos en el de localStorage que es el más reciente de la sesión actual.
-          if (initialCart.length === 0) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setCart(parsed.data);
-          }
+          localCart = parsed.data;
         } else {
           localStorage.removeItem('cart_session');
-          localStorage.removeItem('cart');
         }
       } else {
         const legacyCart = localStorage.getItem('cart');
         if (legacyCart) {
-          if (initialCart.length === 0) {
-            setCart(JSON.parse(legacyCart));
-          }
+          localCart = JSON.parse(legacyCart);
           localStorage.removeItem('cart');
         }
       }
     } catch {
-      console.error('Error loading cart');
       localStorage.removeItem('cart_session');
     }
-    setIsLoaded(true);
-  }, [initialCart.length]);
+
+    // Carrito de servidor (si está logueado)
+    getCart().then(res => {
+      if (res.success && res.cart && res.cart.length > 0) {
+        setCart(res.cart);
+        localStorage.setItem('cart_session', JSON.stringify({ version: CART_STORAGE_VERSION, data: res.cart }));
+      } else if (localCart.length > 0) {
+        setCart(localCart);
+      }
+      setIsLoaded(true);
+    }).catch((err) => {
+      console.error(err);
+      if (localCart.length > 0) setCart(localCart);
+      setIsLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
+    
+    // Solo guardamos en LocalStorage y sincronizamos si NO es el montaje inicial
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     localStorage.setItem('cart_session', JSON.stringify({ version: CART_STORAGE_VERSION, data: cart }));
 
     if (status === "authenticated") {
