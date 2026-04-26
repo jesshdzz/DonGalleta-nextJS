@@ -10,11 +10,11 @@ import FavoriteButton from "@/components/ui/favorite-button";
 
 export async function ProductCarousel() {
     const [products, { favoriteIds }] = await Promise.all([
-        getProducts(),
+        getProducts(4),
         getUserFavoriteIds()
     ]);
 
-    const featuredProducts = products.slice(0, 4);
+    const featuredProducts = products;
 
     return (
         <section className="w-full py-12 md:py-24">

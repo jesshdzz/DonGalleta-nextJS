@@ -1,4 +1,4 @@
-import { getProducts } from "@/actions/product-actions";
+import { getProductById } from "@/actions/product-actions";
 import { isFavorite } from "@/actions/favorite-actions";
 import { getProductReviews, getUserReview } from "@/actions/review-actions";
 import { getPromotionsForProduct } from "@/actions/promotion-actions";
@@ -31,8 +31,7 @@ export default async function ProductDetailPage({ params }: Props) {
   }
 
   // 2. Obtener datos desde el Server Action
-  const products = await getProducts();
-  const product = products.find((p) => p.id === productId);
+  const product = await getProductById(productId);
 
   // Si no existe el producto, mostrar página 404
   if (!product) {

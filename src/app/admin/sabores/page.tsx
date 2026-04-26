@@ -1,4 +1,4 @@
-import { getFlavors } from "@/actions/flavor-actions";
+import { getAdminFlavors } from "@/actions/flavor-actions";
 import { FlavorDialog } from "@/components/admin/flavor-form";
 import { FlavorDeleteButton } from "@/components/admin/flavor-delete-button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Tag } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
-export default async function AdminFlavorsPage() {
-    const flavors = await getFlavors();
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminFlavorsPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { flavors, totalPages, currentPage, totalItems } = await getAdminFlavors({ page, pageSize: 10 });
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-4xl">
@@ -30,7 +39,7 @@ export default async function AdminFlavorsPage() {
 
             <div className="rounded-lg border bg-card shadow-sm">
                 <Table>
-                    <TableCaption>Lista total de sabores ({flavors.length})</TableCaption>
+                    <TableCaption>Mostrando {flavors.length} sabores de un total de {totalItems}.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-25">ID</TableHead>
@@ -74,6 +83,13 @@ export default async function AdminFlavorsPage() {
                     </TableBody>
                 </Table>
             </div>
+            
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/sabores"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }

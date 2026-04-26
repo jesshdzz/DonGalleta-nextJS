@@ -67,12 +67,8 @@ export const { auth, handlers } = NextAuth({
     },
     async session({ session, token }) {
       const base = await authConfig.callbacks!.session!({ session, token } as Parameters<typeof authConfig.callbacks.session>[0]);
-      if (token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { image: true },
-        });
-        base.user.image = dbUser?.image ?? token.picture ?? null;
+      if (token.picture) {
+        base.user.image = token.picture as string;
       }
       return base;
     },

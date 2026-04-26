@@ -8,6 +8,7 @@ import { Cookie } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Suspense } from 'react';
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -18,14 +19,16 @@ export default async function ProductosPage({ searchParams }: Props) {
   const params = await searchParams;
   const flavorsParam = params?.flavors;
   const queryParam = params?.q; // Capturamos lo que viene del Navbar
+  const pageParam = params?.page;
 
   // 2. Convertimos los datos para TypeScript
   const flavors = typeof flavorsParam === 'string' ? flavorsParam.split(',') : [];
   const query = typeof queryParam === 'string' ? queryParam : "";
+  const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
 
   // 3. Pasamos AMBOS filtros a la base de datos + consultamos favoritos
-  const [products, availableFlavors, { favoriteIds }, { hasGlobal: hasGlobalPromo, ids: promoProductIds }] = await Promise.all([
-    getFilteredProducts({ flavors, query }),
+  const [{ products, totalPages, currentPage }, availableFlavors, { favoriteIds }, { hasGlobal: hasGlobalPromo, ids: promoProductIds }] = await Promise.all([
+    getFilteredProducts({ flavors, query, page, pageSize: 12 }),
     getFlavors(),
     getUserFavoriteIds(),
     getProductIdsWithActivePromotion(),
@@ -61,16 +64,24 @@ export default async function ProductosPage({ searchParams }: Props) {
         {/* CUADRÍCULA O EMPTY STATE */}
         <div className="flex-1">
           {products.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <ProductoItem
-                  key={product.id}
-                  product={product}
-                  initialIsFavorite={favoriteIds.includes(product.id)}
-                  hasPromotion={hasGlobalPromo || promoProductIds.has(product.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <ProductoItem
+                    key={product.id}
+                    product={product}
+                    initialIsFavorite={favoriteIds.includes(product.id)}
+                    hasPromotion={hasGlobalPromo || promoProductIds.has(product.id)}
+                  />
+                ))}
+              </div>
+              <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/productos"
+                searchParams={params as Record<string, string | string[]>}
+              />
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center bg-secondary/10 border-2 border-dashed border-border rounded-xl">
               <Cookie className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />

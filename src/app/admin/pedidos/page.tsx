@@ -4,9 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import Link from "next/link";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
-export default async function AdminOrdersPage() {
-    const orders = await getAdminOrders();
+interface Props {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminOrdersPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const pageParam = params?.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) || 1 : 1;
+
+    const { orders, totalPages, currentPage, totalItems } = await getAdminOrders({ page, pageSize: 10 });
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -34,7 +43,7 @@ export default async function AdminOrdersPage() {
 
             <div className="rounded-lg border bg-card shadow-sm">
                 <Table>
-                    <TableCaption>Lista total de pedidos ({orders.length})</TableCaption>
+                    <TableCaption>Mostrando {orders.length} pedidos de un total de {totalItems} registrados.</TableCaption>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-30">ID Pedido</TableHead>
@@ -89,6 +98,13 @@ export default async function AdminOrdersPage() {
                     </TableBody>
                 </Table>
             </div>
+
+            <PaginationControls 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl="/admin/pedidos"
+                searchParams={params as Record<string, string | string[]>}
+            />
         </div>
     );
 }
