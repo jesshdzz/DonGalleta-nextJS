@@ -241,8 +241,8 @@ describe('HU-56: notifyWaitingList', () => {
       currentStock: 10,
       price: '10.00'
     });
-    expect(prisma.waitingList.deleteMany).toHaveBeenCalledWith({
-      where: { productId: 1 }
+    expect(prisma.waitingList.delete).toHaveBeenCalledWith({
+      where: { id: 'wl1' }
     });
   });
 });

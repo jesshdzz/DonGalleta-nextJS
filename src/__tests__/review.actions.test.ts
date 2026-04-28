@@ -12,6 +12,7 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn(),
       update: vi.fn(),
       create: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -138,6 +139,7 @@ describe('HU-08: Calificar Productos', () => {
   describe('HU-26: Obtener todas las reviews de un producto', () => {
     it('debería retornar un array vacío y promedio 0 si no hay reviews', async () => {
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce([]);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(0);
 
       const result = await getProductReviews(1);
 
@@ -192,11 +194,13 @@ describe('HU-08: Calificar Productos', () => {
       ];
 
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce(mockReviews as any);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(3);
 
       const result = await getProductReviews(1);
 
       // Promedio: (5 + 4 + 3) / 3 = 4.0
-      expect(result.reviews).toEqual(mockReviews);
+      expect(result.reviews).toHaveLength(3);
+      expect(result.reviews[0].id).toBe('1');
       expect(result.averageRating).toBe(4.0);
       expect(result.totalReviews).toBe(3);
     });
@@ -233,11 +237,12 @@ describe('HU-08: Calificar Productos', () => {
       ];
 
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce(mockReviews as any);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(3);
 
       const result = await getProductReviews(1);
 
-      expect(result.reviews[0].createdAt).toEqual(new Date('2026-04-20'));
-      expect(result.reviews[2].createdAt).toEqual(new Date('2026-04-10'));
+      expect(result.reviews[0].id).toBe('3');
+      expect(result.reviews[2].id).toBe('1');
     });
 
     it('debería calcular promedio con un decimal correctamente', async () => {
@@ -263,6 +268,7 @@ describe('HU-08: Calificar Productos', () => {
       ];
 
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce(mockReviews as any);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(2);
 
       const result = await getProductReviews(1);
 
@@ -284,6 +290,7 @@ describe('HU-08: Calificar Productos', () => {
       ];
 
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce(mockReviews as any);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(1);
 
       const result = await getProductReviews(1);
 
@@ -320,6 +327,7 @@ describe('HU-08: Calificar Productos', () => {
       ];
 
       vi.mocked(prisma.review.findMany).mockResolvedValueOnce(mockReviews as any);
+      vi.mocked(prisma.review.count).mockResolvedValueOnce(1);
 
       const result = await getProductReviews(1);
 

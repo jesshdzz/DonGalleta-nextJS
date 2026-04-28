@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { saveInvoiceData, requestOrderInvoice } from '@/actions/billing-actions';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 
 vi.mock('@/lib/prisma', () => ({
     prisma: {
@@ -11,6 +12,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
+}));
+
+vi.mock('@/auth', () => ({
+    auth: vi.fn(),
 }));
 
 describe('HU-51: Registrar RFC y Facturar', () => {
@@ -29,6 +34,7 @@ describe('HU-51: Registrar RFC y Facturar', () => {
             usoCFDI: 'G03'
         };
 
+        vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-123' } } as any);
         const result = await saveInvoiceData('user-123', data);
 
         expect(result.success).toBe(true);
@@ -39,10 +45,12 @@ describe('HU-51: Registrar RFC y Facturar', () => {
         // Simulamos una orden donde el usuario SÍ tiene invoiceData
         vi.mocked(prisma.order.findUnique).mockResolvedValue({
             id: 'order-123',
+            userId: 'user-123',
             user: { invoiceData: { rfc: 'XAXX010101000' } }
         } as any);
         vi.mocked(prisma.order.update).mockResolvedValue({} as any);
 
+        vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-123' } } as any);
         const result = await requestOrderInvoice('order-123');
 
         expect(result.success).toBe(true);
@@ -56,9 +64,11 @@ describe('HU-51: Registrar RFC y Facturar', () => {
         // Simulamos una orden donde invoiceData es null
         vi.mocked(prisma.order.findUnique).mockResolvedValue({
             id: 'order-123',
+            userId: 'user-123',
             user: { invoiceData: null }
         } as any);
 
+        vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-123' } } as any);
         const result = await requestOrderInvoice('order-123');
 
         expect(result.success).toBe(false);

@@ -66,13 +66,19 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
 
             expect(res.success).toBe(true);
             expect(res.clientSecret).toBe('secret_123');
-            expect(mockPaymentIntentsCreate).toHaveBeenCalledWith(expect.objectContaining({
+            expect(mockPaymentIntentsCreate).toHaveBeenCalledWith({
+                amount: 20000,
+                currency: "mxn",
+                automatic_payment_methods: {
+                    enabled: true,
+                },
                 metadata: {
                     userId: "",
                     productos: JSON.stringify([{ id: 1, cantidad: 2, precio: 100 }]),
-                    storeId: ""
+                    storeId: "",
+                    couponId: ""
                 }
-            }));
+            });
         });
 
         it('debe crear un intent extrayendo el userId si el usuario está autenticado', async () => {

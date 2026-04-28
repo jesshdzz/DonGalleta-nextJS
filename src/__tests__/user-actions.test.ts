@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/auth';
 import {
   updateEmail,
   updatePassword,
@@ -18,6 +19,7 @@ vi.mock('@/lib/prisma', () => ({
       update: vi.fn(),
       delete: vi.fn(),
       findMany: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -31,6 +33,10 @@ vi.mock('bcryptjs', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn(),
 }));
 
 const MOCK_USER = {
@@ -168,14 +174,14 @@ describe('HU-41: Eliminar cuenta', () => {
     vi.clearAllMocks();
   });
 
-  it('HU-41: debería retornar error si el usuario no tiene contraseña (cuenta OAuth)', async () => {
+  it('HU-41: debería permitir eliminar la cuenta Google (sin contraseña) sin pedir contraseña', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'user-1', password: null } as any);
+    vi.mocked(prisma.user.delete).mockResolvedValueOnce({} as any);
 
-    const result = await deleteAccount('user-1', 'pass123');
+    const result = await deleteAccount('user-1');
 
-    expect(result.success).toBe(false);
-    expect(result.message).toBe('No se puede eliminar esta cuenta desde aquí.');
-    expect(prisma.user.delete).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user-1' } });
   });
 
   it('HU-41: debería retornar error si el usuario no existe', async () => {
@@ -184,7 +190,7 @@ describe('HU-41: Eliminar cuenta', () => {
     const result = await deleteAccount('user-1', 'pass123');
 
     expect(result.success).toBe(false);
-    expect(result.message).toBe('No se puede eliminar esta cuenta desde aquí.');
+    expect(result.message).toBe('Usuario no encontrado.');
   });
 
   it('HU-41: debería retornar error si la contraseña es incorrecta', async () => {
@@ -278,21 +284,6 @@ const { mockDeleteFiles } = vi.hoisted(() => {
   return { mockDeleteFiles: vi.fn().mockResolvedValue({ success: true }) };
 });
 
-// 1. Simular (Mock) Prisma
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
-    },
-  },
-}));
-
-// 2. Simular (Mock) Next.js Cache
-vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
-}));
-
 // 3. Simular (Mock) UploadThing y su método deleteFiles
 vi.mock("uploadthing/server", () => {
   return {
@@ -311,6 +302,7 @@ describe("HU-67 y HU-68", () => {
     const newImageUrl = "https://utfs.io/f/new-file-key.png";
 
     // Preparamos entorno: el usuario no tiene imagen en DB
+    vi.mocked(auth).mockResolvedValue({ user: { id: userId } } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ image: null } as any);
     vi.mocked(prisma.user.update).mockResolvedValue({} as any);
 
@@ -346,6 +338,7 @@ describe("HU-67 y HU-68", () => {
     const newImageUrl = "https://utfs.io/f/new-file-key.png";
 
     // Entorno: el usuario YA TIENE una imagen
+    vi.mocked(auth).mockResolvedValue({ user: { id: userId } } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       image: oldImageUrl,
     } as any);
@@ -367,6 +360,7 @@ describe("HU-67 y HU-68", () => {
     const userId = "test-user-id";
     const imageUrl = "https://utfs.io/f/same-image.png";
 
+    vi.mocked(auth).mockResolvedValue({ user: { id: userId } } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       image: imageUrl,
     } as any);
@@ -384,6 +378,7 @@ describe("HU-67 y HU-68", () => {
     const oldImageUrl = "https://utfs.io/f/old-file.png";
     const newImageUrl = "https://utfs.io/f/new-file.png";
 
+    vi.mocked(auth).mockResolvedValue({ user: { id: userId } } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       image: oldImageUrl,
     } as any);
@@ -408,6 +403,7 @@ describe("HU-67 y HU-68", () => {
     const userId = "test-user-id";
     const newImageUrl = "https://utfs.io/f/new-file.png";
 
+    vi.mocked(auth).mockResolvedValue({ user: { id: userId } } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ image: null } as any);
     // Hacemos que Prisma crasheé
     vi.mocked(prisma.user.update).mockRejectedValue(
