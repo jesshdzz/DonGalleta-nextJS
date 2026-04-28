@@ -132,6 +132,7 @@ describe('HU-12: Registro de usuarios', () => {
                 password: 'hashed-password',
                 name: 'New User',
                 role: 'USER',
+                phoneNumber: null,
             },
         });
     });

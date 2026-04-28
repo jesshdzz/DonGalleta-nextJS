@@ -29,6 +29,14 @@ vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
 }));
 
+vi.mock('@/lib/email', () => ({
+    sendRestockAlert: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+vi.mock('./waiting-list-actions', () => ({
+    notifyWaitingList: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('upsertProduct', () => {
     beforeEach(() => {
         vi.clearAllMocks();
