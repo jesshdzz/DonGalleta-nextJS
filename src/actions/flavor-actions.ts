@@ -52,16 +52,27 @@ export async function upsertFlavor(prevState: unknown, formData: FormData) {
 
     const { data } = validatedFields;
     const id = formData.get("id") as string | null;
+    const nameNormalized = data.name.trim().toLowerCase();
 
     try {
+        const existingFlavor = await prisma.flavor.findFirst({
+            where: {
+                name: nameNormalized,
+            },
+        });
+
+        if (existingFlavor && (!id || existingFlavor.id !== parseInt(id))) {
+            return { success: false, message: "Ya existe un sabor con ese nombre" };
+        }
+
         if (id) {
             await prisma.flavor.update({
                 where: { id: parseInt(id) },
-                data: data,
+                data: { name: nameNormalized },
             });
         } else {
             await prisma.flavor.create({
-                data: data,
+                data: { name: nameNormalized },
             });
         }
         revalidatePath("/admin/sabores");
@@ -70,9 +81,6 @@ export async function upsertFlavor(prevState: unknown, formData: FormData) {
         return { success: true, message: "Sabor guardado correctamente" };
     } catch (error: unknown) {
         console.error(error);
-        if (error instanceof Error && (error as { code?: string }).code === 'P2002') {
-            return { success: false, message: "Ya existe un sabor con ese nombre" };
-        }
         return { success: false, message: "Error al guardar el sabor" };
     }
 }
