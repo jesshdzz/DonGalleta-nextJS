@@ -70,7 +70,6 @@ export async function getAdminPromotions(params?: { page?: number; pageSize?: nu
 }
 
 export async function getActivePromotions() {
-    await updatePromotionStatus();
     const now = new Date();
     const promotions = await prisma.promotion.findMany({
         where: {
@@ -89,7 +88,6 @@ export async function getActivePromotions() {
 export async function getPromotionsForProduct(productId: number) {
     if (!Number.isInteger(productId) || productId <= 0) return [];
 
-    await updatePromotionStatus();
     const now = new Date();
     const promotions = await prisma.promotion.findMany({
         where: {
@@ -109,7 +107,6 @@ export async function getPromotionsForProduct(productId: number) {
  *  Si existe una promoción global (sin productos), devuelve `{ hasGlobal: true, ids: Set() }`
  *  para que el catálogo pueda marcar todos los productos. */
 export async function getProductIdsWithActivePromotion() {
-    await updatePromotionStatus();
     const now = new Date();
 
     const [promotionProducts, globalPromoCount] = await Promise.all([
@@ -146,25 +143,6 @@ export async function getPromotionById(id: number) {
             products: { include: { product: { select: { id: true, name: true } } } },
         },
     });
-}
-
-// ── Actualizar estado automático por vigencia ────────────────────────────
-
-export async function updatePromotionStatus() {
-    const now = new Date();
-
-    await prisma.$transaction([
-        prisma.promotion.updateMany({
-            where: {
-                isActive: true,
-                expirationDate: { lt: now },
-            },
-            data: { isActive: false },
-        }),
-    ]);
-
-    revalidatePath("/admin/promociones");
-    revalidatePath("/");
 }
 
 // ── Write operations ───────────────────────────────────────────────────────────
