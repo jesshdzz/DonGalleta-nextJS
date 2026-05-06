@@ -161,14 +161,6 @@ export async function updatePromotionStatus() {
             },
             data: { isActive: false },
         }),
-        prisma.promotion.updateMany({
-            where: {
-                isActive: false,
-                startDate: { lte: now },
-                expirationDate: { gt: now },
-            },
-            data: { isActive: true },
-        }),
     ]);
 
     revalidatePath("/admin/promociones");
