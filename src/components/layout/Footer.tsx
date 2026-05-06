@@ -36,7 +36,7 @@ function FooterComponent() {
               </li>
               <li>
                 <a href="tel:+529515502806" className={LINK_STYLES}>
-                  Tel: +52 951 550 2806
+                  Tel: +52 953 209 2440
                 </a>
               </li>
               <li>

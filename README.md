@@ -1,5 +1,6 @@
 # Manual de Instalación y Desarrollo - Don Galleta
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jesshdzz/DonGalleta-nextJS)
+[!NOTE]
+Para una documentación mas detallada, visita: [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jesshdzz/DonGalleta-nextJS)
 
 Sigue esta guía paso a paso para levantar el entorno localmente sin errores.
 
@@ -53,19 +54,36 @@ Para visualizar la base de datos en la nube, ejecuta este comando:
 npx prisma studio
 ```
 
-## 7. Workflow de Git
-Por favor, sigue estas recomendaciones para tener un espacio de trabajo colaborativo limpio y sin problemas.
-- Nunca hagas commit directo a main.
-- Crea tu rama por cada cambio que hagas: git checkout -b nombre-tarea
-- Haz Pull Request  al terminar.
+# Stack Tecnológico
+- **Framework:** Next.js 16 (App Router) + React 19.
+- **BD:** Prisma + MariaDB/MySQL.
+- **Auth:** NextAuth v5 (Beta).
+- **Estilos:** Tailwind CSS 4 + shadcn/ui.
+- **Testing:** Vitest.
 
-## 8. Estandares de Color
-Por favor, sigue estos estandares de color para tener un espacio de trabajo limpio y sin problemas.
-- Primary: #58321D
-- Secondary: #F7DCBE
-- Destructive: #A42D2C
-- Muted: #C69A8F
-- Accent: #F7DCBE
-- Card: #FFFFFF
-- Border: #A6A3A2
-- Input: #A6A3A2
+## Comandos Importantes
+- `npx prisma generate`: **Requerido** después de `npm install` o cambios en el schema.
+- `npx auth secret`: **Requerido** para inicializar `AUTH_SECRET`.
+- `npm run dev`: Inicia el servidor de desarrollo.
+- `npm run test`: Ejecuta las suites de Vitest (principalmente acciones del servidor en `src/__tests__`).
+- `npm run lint`: Ejecuta ESLint.
+
+## Arquitectura
+- **Server Actions:** Ubicación principal de la lógica de la base de datos y mutaciones, se encuentran en `src/actions/`.
+- **Aliases de ruta:** Usar `@/` para `src/`.
+- **Base de Datos:** La base de datos de producción/staging se gestiona externamente. **No ejecutar `npx prisma db push` o `prisma migrate dev`** a menos que se indique explícitamente; solo usar `prisma generate` para actualizar el cliente local.
+- **Entorno:** Requiere `DATABASE_URL` en `.env`.
+- **Git:** Nunca hacer commit directo a `main`. Usar ramas de características y PRs.
+
+## Estándares de Diseño
+Sigue los códigos de colores de la marca estrictamente para el trabajo de UI:
+- **Primary:** `#58321D` (Coffee Brown)
+- **Secondary / Accent:** `#F7DCBE` (Beige/Cream)
+- **Destructive:** `#A42D2C` (Red)
+- **Muted:** `#C69A8F`
+- **Border / Input:** `#A6A3A2`
+- **Card:** `#FFFFFF`
+
+## Notas
+- **Next.js 16:** El proyecto utiliza una versión experimental/beta (16.1.6). Ten en cuenta los comportamientos específicos de React 19.
+- **Tailwind 4:** Utiliza `@tailwindcss/postcss`. No se encuentra `tailwind.config.js` ya que la configuración del tema se encuentra en `src/app/globals.css`.
