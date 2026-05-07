@@ -51,13 +51,13 @@ vi.mock('stripe', () => {
   };
 });
 
-describe('Checkout Architecture Refactor: Payment Actions', () => {
+describe('HU-03 y HU-44: Payment Actions', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    describe('createPaymentIntent', () => {
-        it('debe crear un intent con metadata userId vacía si el usuario es invitado', async () => {
+    describe('HU-44: createPaymentIntent', () => {
+        it('HU-44: debe crear un intent con metadata userId vacía si el usuario es invitado', async () => {
             vi.mocked(auth).mockResolvedValue(null as any);
             mockPaymentIntentsCreate.mockResolvedValue({ client_secret: 'secret_123' });
 
@@ -81,7 +81,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             });
         });
 
-        it('debe crear un intent extrayendo el userId si el usuario está autenticado', async () => {
+        it('HU-44: debe crear un intent extrayendo el userId si el usuario está autenticado', async () => {
             vi.mocked(auth).mockResolvedValue({ user: { email: 'test@test.com' }, expires: "2026-01-01" } as any);
             vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user_uuid' } as any);
             mockPaymentIntentsCreate.mockResolvedValue({ client_secret: 'secret_456' });
@@ -96,13 +96,13 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
         });
     });
 
-    describe('processSuccessfulPayment', () => {
+    describe('HU-44: processSuccessfulPayment', () => {
         const metadataBase = {
             userId: 'user_uuid',
             productos: JSON.stringify([{ id: 1, cantidad: 2, precio: 100 }])
         };
 
-        it('debe detenerse si la orden ya existe (evitar duplicidad)', async () => {
+        it('HU-44: debe detenerse si la orden ya existe (evitar duplicidad)', async () => {
             vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'existing_order' } as any);
             
             const res = await processSuccessfulPayment('pi_123', 20000, metadataBase);
@@ -110,7 +110,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             expect(prisma.order.create).not.toHaveBeenCalled();
         });
 
-        it('debe procesar el pago correctamente e invocar a pusher si los datos son válidos', async () => {
+        it('HU-44: debe procesar el pago correctamente e invocar a pusher si los datos son válidos', async () => {
             vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
             vi.mocked(prisma.order.findUnique).mockResolvedValue(null);
             
@@ -130,7 +130,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             expect(res.success).toBe(true);
         });
 
-        it('debe retornar error si falla el schema validator', async () => {
+        it('HU-44: debe retornar error si falla el schema validator', async () => {
             const badMetadata = {
                 userId: 'user_uuid',
                 productos: JSON.stringify([{ id: -1, cantidad: 0 }]) // valores inválidos según schema
@@ -143,8 +143,8 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
         });
     });
 
-    describe('verifyPaymentIntent', () => {
-        it('debe regresar la orden parseada si existe el intention ID directamente en la BD', async () => {
+    describe('HU-44: verifyPaymentIntent', () => {
+        it('HU-44: debe regresar la orden parseada si existe el intention ID directamente en la BD', async () => {
             const mockOrder = {
                 id: 'ord-123',
                 total: { toNumber: () => 200.50 },
@@ -163,7 +163,7 @@ describe('Checkout Architecture Refactor: Payment Actions', () => {
             expect(result.order?.items[0].price).toBe(100);
         });
 
-        it('debe buscar en Stripe de refilón si no existe, y regresar error si stripe dice que el pago falló', async () => {
+        it('HU-44: debe buscar en Stripe de refilón si no existe, y regresar error si stripe dice que el pago falló', async () => {
             vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
 
             const result = await verifyPaymentIntent('pi_no');
