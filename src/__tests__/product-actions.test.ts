@@ -144,7 +144,7 @@ describe('upsertProduct', () => {
     });
 });
 
-describe('getProducts', () => {
+describe('HU-17: Productos destacados - getProducts', () => {
     it('debería retornar productos con el precio como número', async () => {
         const mockProducts = [
             { id: 1, name: 'P1', price: { toNumber: () => 10.5 }, stock: 5 },
@@ -185,7 +185,7 @@ describe('deleteProduct', () => {
 
 
 
-describe('searchProducts', () => {
+describe('HU-45: Búsqueda rápida - searchProducts', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
