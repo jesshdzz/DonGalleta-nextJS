@@ -96,7 +96,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre del Producto</FormLabel>
+                                <FormLabel>Nombre del Producto <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <Input placeholder="Ej. Galleta ChocoChips" {...field} />
                                 </FormControl>
@@ -111,7 +111,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                         name="slug"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Slug (URL)</FormLabel>
+                                <FormLabel>Slug (URL) <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <Input placeholder="galleta-chocochips" {...field} />
                                 </FormControl>
@@ -129,7 +129,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                         name="price"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Precio ($)</FormLabel>
+                                <FormLabel>Precio ($) <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <Input
                                         type="number"
@@ -149,7 +149,7 @@ export const ProductForm = ({ defaultValues, availableFlavors = [] }: ProductFor
                         name="stock"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Stock Disponible</FormLabel>
+                                <FormLabel>Stock Disponible <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <Input
                                         type="number"

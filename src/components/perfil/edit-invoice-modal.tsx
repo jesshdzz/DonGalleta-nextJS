@@ -81,25 +81,25 @@ export function EditInvoiceModal({ userId, currentData }: EditInvoiceModalProps)
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="rfc" className="text-[#58321D] font-bold">RFC</Label>
+                        <Label htmlFor="rfc" className="text-[#58321D] font-bold">RFC <span className="text-destructive">*</span></Label>
                         <Input id="rfc" value={formData.rfc} onChange={handleChange} required className="uppercase" placeholder="Ej. XAXX010101000" />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="razonSocial" className="text-[#58321D] font-bold">Razón Social</Label>
+                        <Label htmlFor="razonSocial" className="text-[#58321D] font-bold">Razón Social <span className="text-destructive">*</span></Label>
                         <Input id="razonSocial" value={formData.razonSocial} onChange={handleChange} required placeholder="Nombre de tu empresa o persona física" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="codigoPostal" className="text-[#58321D] font-bold">C.P.</Label>
+                            <Label htmlFor="codigoPostal" className="text-[#58321D] font-bold">C.P. <span className="text-destructive">*</span></Label>
                             <Input id="codigoPostal" value={formData.codigoPostal} onChange={handleChange} required placeholder="Ej. 69000" />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="usoCFDI" className="text-[#58321D] font-bold">Uso CFDI</Label>
+                            <Label htmlFor="usoCFDI" className="text-[#58321D] font-bold">Uso CFDI <span className="text-destructive">*</span></Label>
                             <Input id="usoCFDI" value={formData.usoCFDI} onChange={handleChange} required placeholder="Ej. G03" />
                         </div>
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="regimenFiscal" className="text-[#58321D] font-bold">Régimen Fiscal (Clave)</Label>
+                        <Label htmlFor="regimenFiscal" className="text-[#58321D] font-bold">Régimen Fiscal (Clave) <span className="text-destructive">*</span></Label>
                         <Input id="regimenFiscal" value={formData.regimenFiscal} onChange={handleChange} required placeholder="Ej. 601" />
                     </div>
 

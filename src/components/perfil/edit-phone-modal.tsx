@@ -84,7 +84,7 @@ export function EditPhoneModal({ userId, currentPhone }: EditPhoneModalProps) {
                 <form onSubmit={handleSubmit} className="space-y-6 pt-4">
                     <div className="grid gap-2">
                         <Label htmlFor="phone" className="text-[#58321D] font-bold">
-                            Teléfono
+                            Teléfono <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative">
                             <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />

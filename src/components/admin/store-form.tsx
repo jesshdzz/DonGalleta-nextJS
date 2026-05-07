@@ -82,7 +82,7 @@ export const StoreForm = ({ defaultValues }: StoreFormProps) => {
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre de la Sucursal</FormLabel>
+                                <FormLabel>Nombre de la Sucursal <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <Input placeholder="Ej. Don Galleta Centro" {...field} />
                                 </FormControl>
@@ -108,12 +108,12 @@ export const StoreForm = ({ defaultValues }: StoreFormProps) => {
                 </div>
 
                 {/* Dirección */}
-                <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dirección</FormLabel>
+                    <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Dirección <span className="text-destructive">*</span></FormLabel>
                             <FormControl>
                                 <Input placeholder="Ej. Av. Independencia #123, Col. Centro" {...field} />
                             </FormControl>
