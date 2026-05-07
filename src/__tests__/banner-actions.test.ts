@@ -30,7 +30,7 @@ describe("HU-70 Creacion de banners promocionales", () => {
     vi.clearAllMocks();
   });
 
-  describe("HU-70:gi createBanner", () => {
+  describe("HU-70: Crear y gestionar banners - createBanner", () => {
     it("debería crear un banner si los datos pasan la validación de Zod", async () => {
       const mockBanner = {
         id: 1,
@@ -104,7 +104,7 @@ describe("HU-70 Creacion de banners promocionales", () => {
   });
 
   // ... (getBanners, toggleBannerStatus y deleteBanner se quedan exactamente igual) ...
-  describe("HU-70:gi getBanners", () => {
+  describe("HU-49: Visualizar banners promocionales - getBanners", () => {
     it("debería traer todos los banners si no se le pasa parámetro", async () => {
       const mockBanners = [{ id: 1, title: "Promo" }];
       // @ts-expect-error - mocked database array response
@@ -131,7 +131,7 @@ describe("HU-70 Creacion de banners promocionales", () => {
     });
   });
 
-  describe("HU-70:gi toggleBannerStatus", () => {
+  describe("HU-70: Crear y gestionar banners - toggleBannerStatus", () => {
     it("debería actualizar el estado y refrescar las rutas", async () => {
       // @ts-expect-error - mocked database update
       prisma.banner.update.mockResolvedValue({ id: 1, isActive: false });
@@ -147,7 +147,7 @@ describe("HU-70 Creacion de banners promocionales", () => {
     });
   });
 
-  describe("HU-70:gi deleteBanner", () => {
+  describe("HU-70: Crear y gestionar banners - deleteBanner", () => {
     it("debería borrar el banner permanentemente", async () => {
       // @ts-expect-error - mocked database delete
       prisma.banner.delete.mockResolvedValue({ id: 1 });

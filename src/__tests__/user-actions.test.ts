@@ -299,7 +299,7 @@ vi.mock("uploadthing/server", () => {
     },
   };
 });
-describe("HU-67 y HU-68", () => {
+describe("HU-67 y HU-68: Agregar y Actualizar foto de perfil - updateProfileImage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
