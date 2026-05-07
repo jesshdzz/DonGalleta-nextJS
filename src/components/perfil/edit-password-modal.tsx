@@ -71,7 +71,7 @@ export function EditPasswordModal({ userId }: EditPasswordModalProps) {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-2">
                     <div className="grid gap-2">
-                        <Label htmlFor="current-password">Contraseña actual</Label>
+                        <Label htmlFor="current-password">Contraseña actual <span className="text-destructive">*</span></Label>
                         <div className="relative">
                             <Input
                                 id="current-password"
@@ -90,7 +90,7 @@ export function EditPasswordModal({ userId }: EditPasswordModalProps) {
                         </div>
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="new-password">Nueva contraseña</Label>
+                        <Label htmlFor="new-password">Nueva contraseña <span className="text-destructive">*</span></Label>
                         <div className="relative">
                             <Input
                                 id="new-password"
@@ -109,7 +109,7 @@ export function EditPasswordModal({ userId }: EditPasswordModalProps) {
                         </div>
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="confirm-password">Confirmar nueva contraseña</Label>
+                        <Label htmlFor="confirm-password">Confirmar nueva contraseña <span className="text-destructive">*</span></Label>
                         <div className="relative">
                             <Input
                                 id="confirm-password"

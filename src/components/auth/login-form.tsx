@@ -86,7 +86,7 @@ export const LoginForm = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
           <div className="space-y-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
+            <Label htmlFor="email">Correo Electrónico <span className="text-destructive">*</span></Label>
             <Input
               id="email"
               placeholder="nombre@ejemplo.com"
@@ -104,7 +104,7 @@ export const LoginForm = () => {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">Contraseña <span className="text-destructive">*</span></Label>
               <Link
                 href="/auth/reset"
                 className="text-xs text-primary underline-offset-4 hover:underline"

@@ -87,7 +87,7 @@ export const ResetPasswordForm = ({ token }: Props) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Nueva contraseña */}
           <div className="space-y-2">
-            <Label htmlFor="password">Nueva contraseña</Label>
+            <Label htmlFor="password">Nueva contraseña <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="password"
@@ -113,7 +113,7 @@ export const ResetPasswordForm = ({ token }: Props) => {
 
           {/* Confirmar contraseña */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+            <Label htmlFor="confirmPassword">Confirmar contraseña <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="confirmPassword"

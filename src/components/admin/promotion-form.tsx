@@ -129,7 +129,7 @@ export const PromotionForm = ({ defaultValues, availableProducts = [] }: Promoti
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Nombre de la promoción</FormLabel>
+                            <FormLabel>Nombre de la promoción <span className="text-destructive">*</span></FormLabel>
                             <FormControl>
                                 <Input placeholder="Ej. Descuento de verano" {...field} />
                             </FormControl>

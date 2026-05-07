@@ -80,7 +80,7 @@ export const ResetRequestForm = () => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
+            <Label htmlFor="email">Correo Electrónico <span className="text-destructive">*</span></Label>
             <Input
               id="email"
               type="email"

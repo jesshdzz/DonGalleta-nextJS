@@ -62,7 +62,7 @@ const FlavorForm = ({ flavorToEdit, onClose }: FlavorFormProps) => {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Nombre del Sabor</FormLabel>
+                            <FormLabel>Nombre del Sabor <span className="text-destructive">*</span></FormLabel>
                             <FormControl>
                                 <Input placeholder="Ej. Chocolate, Vainilla..." {...field} />
                             </FormControl>

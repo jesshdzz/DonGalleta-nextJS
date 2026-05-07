@@ -65,7 +65,7 @@ export function EditEmailModal({ userId, currentEmail }: EditEmailModalProps) {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-2">
                     <div className="grid gap-2">
-                        <Label htmlFor="new-email">Nuevo correo</Label>
+                        <Label htmlFor="new-email">Nuevo correo <span className="text-destructive">*</span></Label>
                         <Input
                             id="new-email"
                             type="email"
@@ -76,7 +76,7 @@ export function EditEmailModal({ userId, currentEmail }: EditEmailModalProps) {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="email-password">Contraseña actual</Label>
+                        <Label htmlFor="email-password">Contraseña actual <span className="text-destructive">*</span></Label>
                         <div className="relative">
                             <Input
                                 id="email-password"
