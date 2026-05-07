@@ -43,12 +43,12 @@ const validStoreFields = {
 // ---------------------------------------------------------------------------
 // getStores
 // ---------------------------------------------------------------------------
-describe('getStores', () => {
+describe('HU-36: getStores', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar la lista de tiendas ordenada por fecha de creación', async () => {
+    it('HU-36: debería retornar la lista de tiendas ordenada por fecha de creación', async () => {
         const mockStores = [
             { id: '1', name: 'Tienda A', createdAt: new Date() },
             { id: '2', name: 'Tienda B', createdAt: new Date() },
@@ -63,7 +63,7 @@ describe('getStores', () => {
         });
     });
 
-    it('debería retornar un arreglo vacío si no hay tiendas', async () => {
+    it('HU-36: debería retornar un arreglo vacío si no hay tiendas', async () => {
         vi.mocked(prisma.store.findMany).mockResolvedValueOnce([]);
 
         const result = await getStores();
@@ -75,12 +75,12 @@ describe('getStores', () => {
 // ---------------------------------------------------------------------------
 // upsertStore – validación
 // ---------------------------------------------------------------------------
-describe('upsertStore – validación', () => {
+describe('HU-36: upsertStore – validación', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería retornar error si el nombre es demasiado corto', async () => {
+    it('HU-36: debería retornar error si el nombre es demasiado corto', async () => {
         const formData = buildFormData({ ...validStoreFields, name: 'AB' });
 
         const result = await upsertStore(null, formData);
@@ -90,7 +90,7 @@ describe('upsertStore – validación', () => {
         expect(prisma.store.create).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si la dirección es demasiado corta', async () => {
+    it('HU-36: debería retornar error si la dirección es demasiado corta', async () => {
         const formData = buildFormData({ ...validStoreFields, address: 'Cor' });
 
         const result = await upsertStore(null, formData);
@@ -100,7 +100,7 @@ describe('upsertStore – validación', () => {
         expect(prisma.store.create).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si la latitud no es un número válido', async () => {
+    it('HU-36: debería retornar error si la latitud no es un número válido', async () => {
         const formData = buildFormData({ ...validStoreFields, latitude: 'no-es-numero' });
 
         const result = await upsertStore(null, formData);
@@ -110,7 +110,7 @@ describe('upsertStore – validación', () => {
         expect(prisma.store.create).not.toHaveBeenCalled();
     });
 
-    it('debería retornar error si la longitud no es un número válido', async () => {
+    it('HU-36: debería retornar error si la longitud no es un número válido', async () => {
         const formData = buildFormData({ ...validStoreFields, longitude: 'abc' });
 
         const result = await upsertStore(null, formData);
@@ -119,7 +119,7 @@ describe('upsertStore – validación', () => {
         expect(result.errors).toHaveProperty('longitude');
     });
 
-    it('debería incluir el mensaje de error correcto al fallar la validación', async () => {
+    it('HU-36: debería incluir el mensaje de error correcto al fallar la validación', async () => {
         const formData = buildFormData({ ...validStoreFields, name: 'X' });
 
         const result = await upsertStore(null, formData);
@@ -131,12 +131,12 @@ describe('upsertStore – validación', () => {
 // ---------------------------------------------------------------------------
 // upsertStore – creación
 // ---------------------------------------------------------------------------
-describe('upsertStore – creación', () => {
+describe('HU-36: upsertStore – creación', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería crear una tienda exitosamente', async () => {
+    it('HU-36: debería crear una tienda exitosamente', async () => {
         vi.mocked(prisma.store.create).mockResolvedValueOnce({} as never);
         const formData = buildFormData(validStoreFields);
 
@@ -158,7 +158,7 @@ describe('upsertStore – creación', () => {
         expect(revalidatePath).toHaveBeenCalledWith('/admin/tiendas');
     });
 
-    it('debería marcar isActive como false cuando no se envía el checkbox', async () => {
+    it('HU-36: debería marcar isActive como false cuando no se envía el checkbox', async () => {
         vi.mocked(prisma.store.create).mockResolvedValueOnce({} as never);
         // isActive ausente → formData.get("isActive") !== "on" → false
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -174,7 +174,7 @@ describe('upsertStore – creación', () => {
         );
     });
 
-    it('debería manejar errores de base de datos al crear', async () => {
+    it('HU-36: debería manejar errores de base de datos al crear', async () => {
         vi.mocked(prisma.store.create).mockRejectedValueOnce(new Error('DB Error'));
         const formData = buildFormData(validStoreFields);
 
@@ -189,12 +189,12 @@ describe('upsertStore – creación', () => {
 // ---------------------------------------------------------------------------
 // upsertStore – edición
 // ---------------------------------------------------------------------------
-describe('upsertStore – edición', () => {
+describe('HU-36: upsertStore – edición', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería editar una tienda existente exitosamente', async () => {
+    it('HU-36: debería editar una tienda existente exitosamente', async () => {
         vi.mocked(prisma.store.update).mockResolvedValueOnce({} as never);
         const formData = buildFormData({ id: 'store-42', ...validStoreFields });
 
@@ -209,7 +209,7 @@ describe('upsertStore – edición', () => {
         expect(revalidatePath).toHaveBeenCalledWith('/admin/tiendas');
     });
 
-    it('debería manejar errores de base de datos al editar', async () => {
+    it('HU-36: debería manejar errores de base de datos al editar', async () => {
         vi.mocked(prisma.store.update).mockRejectedValueOnce(new Error('DB Error'));
         const formData = buildFormData({ id: 'store-99', ...validStoreFields });
 
@@ -223,12 +223,12 @@ describe('upsertStore – edición', () => {
 // ---------------------------------------------------------------------------
 // deleteStore
 // ---------------------------------------------------------------------------
-describe('deleteStore', () => {
+describe('HU-36: deleteStore', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería eliminar una tienda exitosamente', async () => {
+    it('HU-36: debería eliminar una tienda exitosamente', async () => {
         vi.mocked(prisma.store.delete).mockResolvedValueOnce({} as never);
 
         const result = await deleteStore('store-1');
@@ -238,7 +238,7 @@ describe('deleteStore', () => {
         expect(revalidatePath).toHaveBeenCalledWith('/admin/tiendas');
     });
 
-    it('debería retornar mensaje de error si la eliminación falla', async () => {
+    it('HU-36: debería retornar mensaje de error si la eliminación falla', async () => {
         vi.mocked(prisma.store.delete).mockRejectedValueOnce(new Error('Delete failed'));
 
         const result = await deleteStore('store-bad');

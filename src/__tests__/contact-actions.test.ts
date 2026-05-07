@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { sendContactMessage } from '../actions/contact-actions';
 
-describe('sendContactMessage', () => {
+describe('HU-18: sendContactMessage', () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
-    it('debería retornar error si la validación falla', async () => {
+    it('HU-18: debería retornar error si la validación falla', async () => {
         const formData = new FormData();
         formData.append('name', ''); // Empty
         formData.append('email', 'invalid-email');
@@ -21,7 +21,7 @@ describe('sendContactMessage', () => {
         expect(result.errors).toHaveProperty('email');
     });
 
-    it('debería enviar el mensaje exitosamente con datos válidos', async () => {
+    it('HU-18: debería enviar el mensaje exitosamente con datos válidos', async () => {
         const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
         const formData = new FormData();
@@ -36,7 +36,7 @@ describe('sendContactMessage', () => {
         expect(consoleSpy).toHaveBeenCalled(); // Verifies logic path was taken
     });
 
-    it('debería manejar errores correctamente', async () => {
+    it('HU-18: debería manejar errores correctamente', async () => {
         // To test the catch block, we need to make something throw inside the try block.
         // The try block logs and waits. We can mock console.log to throw.
         vi.spyOn(console, 'log').mockImplementation(() => { throw new Error('Forced Error'); });

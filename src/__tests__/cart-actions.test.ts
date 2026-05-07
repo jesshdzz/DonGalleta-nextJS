@@ -20,15 +20,15 @@ vi.mock('next/cache', () => ({
     revalidatePath: vi.fn(),
 }));
 
-describe('checkStock', () => {
-    it('debería retornar el stock correcto', async () => {
+describe('HU-01 y HU-02: checkStock', () => {
+    it('HU-01: debería retornar el stock correcto', async () => {
         vi.mocked(prisma.product.findUnique).mockResolvedValue({ stock: 15 } as never);
         const { checkStock } = await import('../actions/cart-actions');
         const stock = await checkStock(1);
         expect(stock).toBe(15);
     });
 
-    it('debería retornar 0 si el producto no se encuentra', async () => {
+    it('HU-01: debería retornar 0 si el producto no se encuentra', async () => {
         vi.mocked(prisma.product.findUnique).mockResolvedValue(null);
         const { checkStock } = await import('../actions/cart-actions');
         const stock = await checkStock(999);
@@ -36,8 +36,8 @@ describe('checkStock', () => {
     });
 });
 
-describe('checkout', () => {
-    it('debería retornar isAuthError si no hay sesión', async () => {
+describe('HU-02 y HU-39: checkout', () => {
+    it('HU-02: debería retornar isAuthError si no hay sesión', async () => {
         const { auth } = await import('@/auth');
         vi.mocked(auth).mockResolvedValueOnce(null as never);
         const { checkout } = await import('../actions/cart-actions');
@@ -46,7 +46,7 @@ describe('checkout', () => {
         expect(result).toHaveProperty('isAuthError', true);
     });
 
-    it('debería fallar si el stock es insuficiente', async () => {
+    it('HU-39: debería fallar si el stock es insuficiente', async () => {
         // Mock checkout behavior (findMany)
         vi.mocked(prisma.product.findMany).mockResolvedValue([{ id: 1, stock: 1 }] as never);
 
@@ -57,7 +57,7 @@ describe('checkout', () => {
         expect(result.message).toContain('Stock insuficiente');
     });
 
-    it('debería tener éxito y actualizar el stock', async () => {
+    it('HU-02: debería tener éxito y actualizar el stock', async () => {
         vi.mocked(prisma.product.findMany).mockResolvedValue([{ id: 1, stock: 100 }] as never);
 
         const { checkout } = await import('../actions/cart-actions');
@@ -67,7 +67,7 @@ describe('checkout', () => {
         expect(prisma.$transaction).toHaveBeenCalled();
     });
 
-    it('debería manejar errores durante el checkout', async () => {
+    it('HU-02: debería manejar errores durante el checkout', async () => {
         vi.mocked(prisma.product.findMany).mockResolvedValue([{ id: 1, stock: 100 }] as never);
         vi.mocked(prisma.$transaction).mockRejectedValueOnce(new Error('Tx Failed'));
 

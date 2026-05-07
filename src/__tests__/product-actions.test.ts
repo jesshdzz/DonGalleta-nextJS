@@ -37,12 +37,12 @@ vi.mock('./waiting-list-actions', () => ({
     notifyWaitingList: vi.fn().mockResolvedValue(undefined),
 }));
 
-describe('upsertProduct', () => {
+describe('HU-23 y HU-24: upsertProduct', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('debería crear un producto exitosamente', async () => {
+    it('HU-23: debería crear un producto exitosamente', async () => {
         const formData = new FormData();
         formData.append('name', 'New Product');
         formData.append('description', 'A great product');
@@ -73,7 +73,7 @@ describe('upsertProduct', () => {
         expect(revalidatePath).toHaveBeenCalledWith('/productos');
     });
 
-    it('debería editar un producto exitosamente', async () => {
+    it('HU-24: debería editar un producto exitosamente', async () => {
         const formData = new FormData();
         formData.append('id', '123');
         formData.append('name', 'Updated Product');
@@ -106,7 +106,7 @@ describe('upsertProduct', () => {
         expect(revalidatePath).toHaveBeenCalledTimes(2);
     });
 
-    it('debería fallar con errores de validación Zod', async () => {
+    it('HU-23: debería fallar con errores de validación Zod', async () => {
         const formData = new FormData();
         formData.append('name', 'AB'); // Too short
         formData.append('description', '');
@@ -124,7 +124,7 @@ describe('upsertProduct', () => {
         expect(prisma.product.update).not.toHaveBeenCalled();
     });
 
-    it('debería manejar errores de base de datos', async () => {
+    it('HU-23: debería manejar errores de base de datos', async () => {
         const formData = new FormData();
         formData.append('name', 'Error Product');
         formData.append('description', 'Desc');
@@ -144,8 +144,8 @@ describe('upsertProduct', () => {
     });
 });
 
-describe('getProducts', () => {
-    it('debería retornar productos con el precio como número', async () => {
+describe('HU-06 y HU-17: getProducts', () => {
+    it('HU-06 y HU-17: debería retornar productos con el precio como número', async () => {
         const mockProducts = [
             { id: 1, name: 'P1', price: { toNumber: () => 10.5 }, stock: 5 },
             { id: 2, name: 'P2', price: { toNumber: () => 20.0 }, stock: 10 },
@@ -165,8 +165,8 @@ describe('getProducts', () => {
 
 
 
-describe('deleteProduct', () => {
-    it('debería eliminar el producto exitosamente', async () => {
+describe('HU-23: deleteProduct', () => {
+    it('HU-23: debería eliminar el producto exitosamente', async () => {
         vi.mocked(prisma.product.delete).mockResolvedValue({} as never);
         const { deleteProduct } = await import('../actions/product-actions');
         const result = await deleteProduct(1);
@@ -174,7 +174,7 @@ describe('deleteProduct', () => {
         expect(prisma.product.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
-    it('debería manejar errores al eliminar', async () => {
+    it('HU-23: debería manejar errores al eliminar', async () => {
         vi.mocked(prisma.product.delete).mockRejectedValue(new Error('Delete invalid'));
         const { deleteProduct } = await import('../actions/product-actions');
         const result = await deleteProduct(1);
@@ -185,12 +185,12 @@ describe('deleteProduct', () => {
 
 
 
-describe('searchProducts', () => {
+describe('HU-45: searchProducts', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
     })
-    it('debería retornar un array vacío si la query está vacía o tiene menos de 3 caracteres', async () => {
+    it('HU-45: debería retornar un array vacío si la query está vacía o tiene menos de 3 caracteres', async () => {
         expect(await searchProducts('')).toEqual([]);
         expect(await searchProducts('ab')).toEqual([]);
 
@@ -198,7 +198,7 @@ describe('searchProducts', () => {
         expect(prisma.product.findMany).not.toHaveBeenCalled();
     });
 
-    it('debería llamar a la base de datos y formatear correctamente los productos encontrados', async () => {
+    it('HU-45: debería llamar a la base de datos y formatear correctamente los productos encontrados', async () => {
         const mockPrismaProducts = [
             {
                 id: '1',
@@ -248,7 +248,7 @@ describe('searchProducts', () => {
         ]);
     });
 
-    it('debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
+    it('HU-45: debería capturar errores, loguearlos en consola y retornar un array vacío', async () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         const dbError = new Error('Error de conexión');
 

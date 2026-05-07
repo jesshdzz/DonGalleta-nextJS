@@ -9,8 +9,8 @@ vi.mock('@/lib/prisma', () => ({
     },
 }));
 
-describe('getFlavors', () => {
-    it('debería retornar sabores', async () => {
+describe('HU-25: getFlavors', () => {
+    it('HU-25: debería retornar sabores', async () => {
         const mockFlavors = [{ id: 1, name: 'Vainilla' }];
         vi.mocked(prisma.flavor.findMany).mockResolvedValue(mockFlavors as never);
         // Corrected import to flavor-actions since product-actions no longer has it
